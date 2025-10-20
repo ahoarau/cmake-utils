@@ -199,57 +199,302 @@ endfunction()
 # @param visibility  Specifies the visibility of the include directory for the
 #                    generated header (e.g., PUBLIC, PRIVATE, INTERFACE).
 #]]
-function(xxx_target_generate_config_header target_name visibility)
+# function(xxx_target_generate_config_header target_name visibility)
+#     set(options SKIP_INSTALL)
+#     set(oneValueArgs OUTPUT INSTALL_DESTINATION)
+#     set(multiValueArgs)
+#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+#     xxx_require_variable(PROJECT_NAME)
+#     xxx_require_variable(PROJECT_VERSION)
+#     xxx_require_variable(PROJECT_VERSION_MAJOR)
+#     xxx_require_variable(PROJECT_VERSION_MINOR)
+#     xxx_require_variable(PROJECT_VERSION_PATCH)
+#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
+#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+#     xxx_require_target(${target_name})
+#     xxx_require_visibility(${visibility})
+
+#     set(default_output_file ${CMAKE_CURRENT_BINARY_DIR}/generated/include/${PROJECT_NAME}/config.hpp)
+#     set(default_install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+
+#     # We need PROJECT_NAME in uppercase to match the maestro convention for macro names
+#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
+
+#     # ref: https://cmake.org/cmake/help/latest/variable/CMAKE_CURRENT_FUNCTION_LIST_DIR.html
+#     set(input_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in)
+
+#     if(NOT EXISTS ${input_file})
+#         message(FATAL_ERROR "Input file ${input_file} does not exist.")
+#     endif()
+
+#     if(arg_OUTPUT)
+#         set(output_file ${arg_OUTPUT})
+#     else()
+#         set(output_file ${default_output_file})
+#     endif()
+
+#     configure_file(${input_file} ${output_file} @ONLY)
+
+#     target_include_directories(${target_name} ${visibility} 
+#         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated/include>
+#     )
+
+#     if(arg_SKIP_INSTALL)
+#         return()
+#     endif()
+
+#     if(${arg_INSTALL_DESTINATION})
+#         set(install_destination ${arg_INSTALL_DESTINATION})
+#     else()
+#         set(install_destination ${default_install_destination})
+#     endif()
+#     install(FILES ${output_file} DESTINATION ${install_destination})
+# endfunction()
+
+# function(xxx_target_generate_warning_header target_name visibility)
+#     set(options SKIP_INSTALL)
+#     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
+#     set(multiValueArgs)
+#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+#     xxx_require_variable(PROJECT_NAME)
+#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
+#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+#     xxx_require_target(${target_name})
+#     xxx_require_visibility(${visibility})
+
+#     set(filename ${PROJECT_NAME}/warning.hpp)
+#     if(arg_FILENAME)
+#         set(filename ${arg_FILENAME})
+#     endif()
+
+#     set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+#     if(arg_HEADER_DIR)
+#         set(header_dir ${arg_HEADER_DIR})
+#     endif()
+
+#     set(template_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/warning.hpp.in)
+#     if(arg_TEMPLATE_FILE)
+#         set(template_file ${arg_TEMPLATE_FILE})
+#     endif()
+
+#     set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+#     if(arg_INSTALL_DESTINATION)
+#         set(install_destination ${arg_INSTALL_DESTINATION})
+#     endif()
+
+#     if(NOT EXISTS ${template_file})
+#         message(FATAL_ERROR "Input file ${template_file} does not exist.")
+#     endif()
+
+#     set(output_file ${header_dir}/${filename})
+
+#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
+#     configure_file(${template_file} ${output_file} @ONLY)
+
+#     target_include_directories(${target_name} ${visibility} 
+#         $<BUILD_INTERFACE:${header_dir}>
+#     )
+
+#     if(arg_SKIP_INSTALL)
+#         return()
+#     endif()
+
+#     install(FILES ${output_file} DESTINATION ${install_destination})
+# endfunction()
+
+
+# function(xxx_target_generate_deprecated_header target_name visibility)
+#     set(options SKIP_INSTALL)
+#     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
+#     set(multiValueArgs)
+#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+#     xxx_require_variable(PROJECT_NAME)
+#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
+#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+#     xxx_require_target(${target_name})
+#     xxx_require_visibility(${visibility})
+
+#     set(filename ${PROJECT_NAME}/deprecated.hpp)
+#     if(arg_FILENAME)
+#         set(filename ${arg_FILENAME})
+#     endif()
+
+#     set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+#     if(arg_HEADER_DIR)
+#         set(header_dir ${arg_HEADER_DIR})
+#     endif()
+
+#     set(template_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/deprecated.hpp.in)
+#     if(arg_TEMPLATE_FILE)
+#         set(template_file ${arg_TEMPLATE_FILE})
+#     endif()
+
+#     set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+#     if(arg_INSTALL_DESTINATION)
+#         set(install_destination ${arg_INSTALL_DESTINATION})
+#     endif()
+
+#     if(NOT EXISTS ${template_file})
+#         message(FATAL_ERROR "Input file ${template_file} does not exist.")
+#     endif()
+
+#     set(output_file ${header_dir}/${filename})
+
+#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
+#     configure_file(${template_file} ${output_file} @ONLY)
+
+#     target_include_directories(${target_name} ${visibility} 
+#         $<BUILD_INTERFACE:${header_dir}>
+#     )
+
+#     if(arg_SKIP_INSTALL)
+#         return()
+#     endif()
+
+#     install(FILES ${output_file} DESTINATION ${install_destination})
+# endfunction()
+
+function(xxx_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
-    set(oneValueArgs OUTPUT INSTALL_DESTINATION)
+    set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     xxx_require_variable(PROJECT_NAME)
-    xxx_require_variable(PROJECT_VERSION)
-    xxx_require_variable(PROJECT_VERSION_MAJOR)
-    xxx_require_variable(PROJECT_VERSION_MINOR)
-    xxx_require_variable(PROJECT_VERSION_PATCH)
     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_target(${target_name})
     xxx_require_visibility(${visibility})
+    
+    xxx_require_variable(arg_FILENAME)
+    xxx_require_variable(arg_HEADER_DIR)
+    xxx_require_variable(arg_TEMPLATE_FILE)
+    xxx_require_variable(arg_INSTALL_DESTINATION)
 
-    set(default_output_file ${CMAKE_CURRENT_BINARY_DIR}/generated/include/${PROJECT_NAME}/config.hpp)
-    set(default_install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
+    if(NOT EXISTS ${arg_TEMPLATE_FILE})
+        message(FATAL_ERROR "Input file ${arg_TEMPLATE_FILE} does not exist.")
+    endif()
 
-    # We need PROJECT_NAME in uppercase to match the maestro convention for macro names
+    set(output_file ${arg_HEADER_DIR}/${arg_FILENAME})
+
     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
-
-    # ref: https://cmake.org/cmake/help/latest/variable/CMAKE_CURRENT_FUNCTION_LIST_DIR.html
-    set(input_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in)
-
-    if(NOT EXISTS ${input_file})
-        message(FATAL_ERROR "Input file ${input_file} does not exist.")
-    endif()
-
-    if(arg_OUTPUT)
-        set(output_file ${arg_OUTPUT})
-    else()
-        set(output_file ${default_output_file})
-    endif()
-
-    configure_file(${input_file} ${output_file} @ONLY)
+    configure_file(${arg_TEMPLATE_FILE} ${output_file} @ONLY)
 
     target_include_directories(${target_name} ${visibility} 
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated/include>
+        $<BUILD_INTERFACE:${arg_HEADER_DIR}>
     )
 
     if(arg_SKIP_INSTALL)
         return()
     endif()
 
-    if(${arg_INSTALL_DESTINATION})
-        set(install_destination ${arg_INSTALL_DESTINATION})
-    else()
-        set(install_destination ${default_install_destination})
+    install(FILES ${output_file} DESTINATION ${arg_INSTALL_DESTINATION})
+endfunction()
+
+function(xxx_target_generate_warning_header target_name visibility)
+    set(options SKIP_INSTALL)
+    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
+    set(multiValueArgs)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    
+    xxx_require_variable(PROJECT_NAME)
+    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+
+    set(filename ${PROJECT_NAME}/warning.hpp)
+    if(arg_FILENAME)
+        set(filename ${arg_FILENAME})
     endif()
-    install(FILES ${output_file} DESTINATION ${install_destination})
+
+    set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+    if(arg_HEADER_DIR)
+        set(header_dir ${arg_HEADER_DIR})
+    endif()
+
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    if(arg_INSTALL_DESTINATION)
+        set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    xxx_target_generate_header(${target_name} ${visibility} 
+        FILENAME ${filename}
+        HEADER_DIR ${header_dir}
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/warning.hpp.in
+        INSTALL_DESTINATION ${install_destination}
+        SKIP_INSTALL ${arg_SKIP_INSTALL}
+    )
+endfunction()
+
+function(xxx_target_generate_deprecated_header target_name visibility)
+    set(options SKIP_INSTALL)
+    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
+    set(multiValueArgs)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    
+    xxx_require_variable(PROJECT_NAME)
+    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+
+    set(filename ${PROJECT_NAME}/deprecated.hpp)
+    if(arg_FILENAME)
+        set(filename ${arg_FILENAME})
+    endif()
+
+    set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+    if(arg_HEADER_DIR)
+        set(header_dir ${arg_HEADER_DIR})
+    endif()
+
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    if(arg_INSTALL_DESTINATION)
+        set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    xxx_target_generate_header(${target_name} ${visibility} 
+        FILENAME ${filename}
+        HEADER_DIR ${header_dir}
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/deprecated.hpp.in
+        INSTALL_DESTINATION ${install_destination}
+        SKIP_INSTALL ${arg_SKIP_INSTALL}
+    )
+endfunction()
+
+function(xxx_target_generate_config_header target_name visibility)
+    set(options SKIP_INSTALL)
+    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
+    set(multiValueArgs)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    
+    xxx_require_variable(PROJECT_NAME)
+    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_require_variable(PROJECT_VERSION)
+    xxx_require_variable(PROJECT_VERSION_MAJOR)
+    xxx_require_variable(PROJECT_VERSION_MINOR)
+    xxx_require_variable(PROJECT_VERSION_PATCH)
+
+    set(filename ${PROJECT_NAME}/config.hpp)
+    if(arg_FILENAME)
+        set(filename ${arg_FILENAME})
+    endif()
+
+    set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+    if(arg_HEADER_DIR)
+        set(header_dir ${arg_HEADER_DIR})
+    endif()
+
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    if(arg_INSTALL_DESTINATION)
+        set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    xxx_target_generate_header(${target_name} ${visibility} 
+        FILENAME ${filename}
+        HEADER_DIR ${header_dir}
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in
+        INSTALL_DESTINATION ${install_destination}
+        SKIP_INSTALL ${arg_SKIP_INSTALL}
+    )
 endfunction()
 
 # Usage: xxx_find_package(<package> [version] [REQUIRED] [COMPONENTS ...] MODULE_PATH <path_to_find_module>)
