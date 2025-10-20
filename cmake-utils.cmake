@@ -290,21 +290,31 @@ macro(xxx_find_package)
     string(REPLACE ";" " " fp_pp "${arg_UNPARSED_ARGUMENTS}")
     message("   Executing find_package(${fp_pp})")
 
-    # Saving the list of imported targets BEFORE the call to find_package
+    # Saving the list of imported targets and variables BEFORE the call to find_package
     get_property(imported_targets_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+    get_property(variables_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
 
-    find_package(${arg_UNPARSED_ARGUMENTS})
+    find_package(${arg_UNPARSED_ARGUMENTS}) # TODO: handle QUIET properly
 
-    # TODO: handle QUIET properly
-
-    # Getting the list of imported targets AFTER the call to find_package
+    # Getting the list of imported targets and variables AFTER the call to find_package
+    get_property(variables_after DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
     get_property(imported_targets_after DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+
+     set(new_variables "")
+    foreach(var ${variables_after})
+        if(NOT var IN_LIST variables_before)
+            list(APPEND new_variables ${var})
+        endif()
+    endforeach()
     set(imported_targets "")
     foreach(target ${imported_targets_after})
         if(NOT target IN_LIST imported_targets_before)
             list(APPEND imported_targets ${target})
         endif()
     endforeach()
+
+    string(REPLACE ";" ", " new_variables_pp "${new_variables}")
+    message(DEBUG "   New variables detected: ${new_variables_pp}")
 
     string(REPLACE ";" ", " imported_targets_pp "${imported_targets}")
     message("   Imported targets detected: ${imported_targets_pp}")
@@ -321,9 +331,13 @@ macro(xxx_find_package)
 
     unset(package_name)
     unset(module_file)
-    unset(imported_targets)
     unset(imported_targets_before)
+    unset(variables_before)
+    unset(variables_after)
     unset(imported_targets_after)
+    unset(new_variables)
+    unset(imported_targets)
+    unset(new_variables_pp)
     unset(imported_targets_pp)
 endmacro()
 
