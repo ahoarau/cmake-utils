@@ -5,45 +5,45 @@
 // variable as deprecated (i.e. it will emit a warning when using it).
 //
 // Tagging a function as deprecated:
-//  void foo () @PROJECT_NAME_UPPERCASE@_DEPRECATED;
+//  void foo () @LIBRARY_NAME_UPPERCASE@_DEPRECATED;
 //
 // Tagging a type as deprecated:
 //  class Foo {};
-//  typedef Foo Bar @PROJECT_NAME_UPPERCASE@_DEPRECATED;
+//  typedef Foo Bar @LIBRARY_NAME_UPPERCASE@_DEPRECATED;
 //
 // Tagging a variable as deprecated:
-//  int a @PROJECT_NAME_UPPERCASE@_DEPRECATED = 0;
+//  int a @LIBRARY_NAME_UPPERCASE@_DEPRECATED = 0;
 //
 // The use of a macro is required as this is /not/ a standardized
 // feature of C++ language or preprocessor, even if most of the
 // compilers support it.
 #if defined(__cplusplus) && (__cplusplus >= 201402L)
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED [[deprecated]]
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) [[deprecated(#message)]]
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED [[deprecated]]
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) [[deprecated(#message)]]
 #elif defined(__GNUC__) || defined(__clang__)
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED __attribute__ ((deprecated))
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) __attribute__ (( deprecated(#message) ))
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED __attribute__ ((deprecated))
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) __attribute__ (( deprecated(#message) ))
 #else
 # if defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-#  define @PROJECT_NAME_UPPERCASE@_DEPRECATED __declspec (deprecated)
-#  define @PROJECT_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) __declspec ( deprecated(#message) )
+#  define @LIBRARY_NAME_UPPERCASE@_DEPRECATED __declspec (deprecated)
+#  define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message) __declspec ( deprecated(#message) )
 # else
 / If the compiler is not recognized, drop the feature.
-#  define @PROJECT_NAME_UPPERCASE@_DEPRECATED /* nothing */
-#  define @PROJECT_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message)
+#  define @LIBRARY_NAME_UPPERCASE@_DEPRECATED /* nothing */
+#  define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_MESSAGE(message)
 # endif // __MSVC__
 #endif // __cplusplus
 
 #if defined(__GNUC__) || defined(__clang__)
-# ifndef @PROJECT_NAME_UPPERCASE@_PRAGMA
-#  define @PROJECT_NAME_UPPERCASE@_PRAGMA(X) _Pragma(#X)
+# ifndef @LIBRARY_NAME_UPPERCASE@_PRAGMA
+#  define @LIBRARY_NAME_UPPERCASE@_PRAGMA(X) _Pragma(#X)
 # endif
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG) @PROJECT_NAME_UPPERCASE@_PRAGMA(GCC warning MSG)
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG) @LIBRARY_NAME_UPPERCASE@_PRAGMA(GCC warning MSG)
 #elif defined(_MSC_VER) && !defined(__INTEL_COMPILER)
-# define @PROJECT_NAME_UPPERCASE@_STRINGIZE_(MSG) #MSG
-# define @PROJECT_NAME_UPPERCASE@_STRINGIZE(MSG) @PROJECT_NAME_UPPERCASE@_STRINGIZE_(MSG)
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG) \
-  __pragma(message(__FILE__ "(" @PROJECT_NAME_UPPERCASE@_STRINGIZE(__LINE__) ") : Warning: " MSG))
+# define @LIBRARY_NAME_UPPERCASE@_STRINGIZE_(MSG) #MSG
+# define @LIBRARY_NAME_UPPERCASE@_STRINGIZE(MSG) @LIBRARY_NAME_UPPERCASE@_STRINGIZE_(MSG)
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG) \
+  __pragma(message(__FILE__ "(" @LIBRARY_NAME_UPPERCASE@_STRINGIZE(__LINE__) ") : Warning: " MSG))
 #else
-# define @PROJECT_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG)
+# define @LIBRARY_NAME_UPPERCASE@_DEPRECATED_HEADER(MSG)
 #endif

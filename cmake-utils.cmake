@@ -357,6 +357,24 @@ endfunction()
 #     install(FILES ${output_file} DESTINATION ${install_destination})
 # endfunction()
 
+function(xxx_make_valid_c_identifier INPUT OUTPUT_VAR)
+    # 1. Replace all non-alphanumeric and non-underscore characters with underscores
+    # 2. If it starts with a digit, prefix with underscore
+    # 3. Optionally collapse multiple consecutive underscores
+    # 4. Remove trailing underscores (optional cosmetic cleanup)
+    # 5. Return result to caller
+
+    string(REGEX REPLACE "[^A-Za-z0-9_]" "_" CLEAN "${INPUT}")
+
+    string(REGEX MATCH "^[0-9]" STARTS_WITH_DIGIT "${CLEAN}")
+    if(STARTS_WITH_DIGIT)
+        set(CLEAN "_${CLEAN}")
+    endif()
+    string(REGEX REPLACE "_+" "_" CLEAN "${CLEAN}")
+    string(REGEX REPLACE "_$" "" CLEAN "${CLEAN}")
+    set(${OUTPUT_VAR} "${CLEAN}" PARENT_SCOPE)
+endfunction()
+
 function(xxx_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
@@ -380,7 +398,26 @@ function(xxx_target_generate_header target_name visibility)
 
     set(output_file ${arg_HEADER_DIR}/${arg_FILENAME})
 
-    string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
+    xxx_make_valid_c_identifier(${target_name} LIBRARY_NAME)
+
+    # We need to define LIBRARY_NAME_UPPERCASE, TARGET_NAME, TARGET_VERSION, TARGET_VERSION_MAJOR, TARGET_VERSION_MINOR, TARGET_VERSION_PATCH
+    string(TOUPPER ${LIBRARY_NAME} LIBRARY_NAME_UPPERCASE)
+
+    # Retrieve version from target
+    get_property(library_version TARGET ${target_name} PROPERTY VERSION)
+    if(NOT library_version)
+        message(WARNING "Target ${target_name} does not have a VERSION property set, using the project version instead (PROJECT_VERSION=${PROJECT_VERSION}).
+        To remove this warning, set the VERSION property on the target using:
+
+            set_target_properties(${target_name} PROPERTIES VERSION \${PROJECT_VERSION})
+        ")
+    endif()
+    set(LIBRARY_VERSION ${library_version})
+    string(REPLACE "." ";" version_parts ${LIBRARY_VERSION})
+    list(GET version_parts 0 LIBRARY_VERSION_MAJOR)
+    list(GET version_parts 1 LIBRARY_VERSION_MINOR)
+    list(GET version_parts 2 LIBRARY_VERSION_PATCH)
+
     configure_file(${arg_TEMPLATE_FILE} ${output_file} @ONLY)
 
     target_include_directories(${target_name} ${visibility} 
@@ -492,6 +529,43 @@ function(xxx_target_generate_config_header target_name visibility)
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in
+        INSTALL_DESTINATION ${install_destination}
+        SKIP_INSTALL ${arg_SKIP_INSTALL}
+    )
+endfunction()
+
+function(xxx_target_generate_tracy_header target_name visibility)
+    set(options SKIP_INSTALL)
+    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
+    set(multiValueArgs)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    
+    xxx_require_variable(PROJECT_NAME)
+    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_require_variable(PROJECT_VERSION)
+    xxx_require_variable(PROJECT_VERSION_MAJOR)
+    xxx_require_variable(PROJECT_VERSION_MINOR)
+    xxx_require_variable(PROJECT_VERSION_PATCH)
+
+    set(filename ${PROJECT_NAME}/tracy.hpp)
+    if(arg_FILENAME)
+        set(filename ${arg_FILENAME})
+    endif()
+
+    set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
+    if(arg_HEADER_DIR)
+        set(header_dir ${arg_HEADER_DIR})
+    endif()
+
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    if(arg_INSTALL_DESTINATION)
+        set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    xxx_target_generate_header(${target_name} ${visibility} 
+        FILENAME ${filename}
+        HEADER_DIR ${header_dir}
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/tracy.hpp.in
         INSTALL_DESTINATION ${install_destination}
         SKIP_INSTALL ${arg_SKIP_INSTALL}
     )
