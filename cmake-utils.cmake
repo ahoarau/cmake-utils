@@ -33,6 +33,8 @@ endfunction()
 function(xxx_include_ctest)
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     include(CTest)
+    # Adding the boosttest_discover_tests function for Boost Unit Testing
+    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/BoostTestDiscoverTests.cmake)
 endfunction()
 
 
