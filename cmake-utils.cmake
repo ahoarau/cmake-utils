@@ -413,6 +413,7 @@ function(xxx_target_generate_header target_name visibility)
 
             set_target_properties(${target_name} PROPERTIES VERSION \${PROJECT_VERSION})
         ")
+        set(library_version ${PROJECT_VERSION})
     endif()
     set(LIBRARY_VERSION ${library_version})
     string(REPLACE "." ";" version_parts ${LIBRARY_VERSION})
