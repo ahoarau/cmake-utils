@@ -64,21 +64,21 @@ function(xxx_configure_default_binary_dirs)
     # doc: https://cmake.org/cmake/help/v3.22/manual/cmake-buildsystem.7.html#id47
 
     if(WIN32)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "" INTERNAL) # For .exe and .dll add_library(SHARED ...) .dll
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "" INTERNAL) # for add_library(MODULE ...) .dll
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "" INTERNAL) # add_library(STATIC ...) .lib
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For .exe and .dll add_library(SHARED ...) .dll
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # for add_library(MODULE ...) .dll
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # add_library(STATIC ...) .lib
     else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "" INTERNAL) # For .exe and .dll
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "" INTERNAL) # for shared libraries .so/.dylib and add_library(MODULE ...) .so/.dylib
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "" INTERNAL) # add_library(STATIC ...) .a
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For .exe and .dll
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # for shared libraries .so/.dylib and add_library(MODULE ...) .so/.dylib
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # add_library(STATIC ...) .a
     endif()
 
     set(config Debug Release RelWithDebInfo MinSizeRel)
     foreach(conf ${config})
         string(TOUPPER ${conf} conf_upper)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} CACHE PATH "" INTERNAL)
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} CACHE PATH "" INTERNAL)
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} CACHE PATH "" INTERNAL)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} CACHE PATH "")
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} CACHE PATH "")
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} CACHE PATH "")
     endforeach()
 endfunction()
 
