@@ -700,7 +700,7 @@ endfunction()
 # determines which packages are needed and generates a <export_name>-dependencies.cmake file
 function(xxx_export_dependencies)
     set(options)
-    set(oneValueArgs EXPORT FILE DESTINATION MATO)
+    set(oneValueArgs EXPORT FILE DESTINATION GEN_DIR COMPONENT)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -708,85 +708,67 @@ function(xxx_export_dependencies)
     xxx_require_variable(arg_FILE)
     xxx_require_variable(arg_TARGETS)
     xxx_require_variable(arg_DESTINATION)
+    xxx_require_variable(arg_GEN_DIR)
+    xxx_require_variable(arg_COMPONENT)
 
     # Get all BUILDSYSTEM_TARGETS of the current project (i.e. added via add_library/add_executable)
     # We need this to filter out internal targets when analyzing link libraries
     get_property(buildsystem_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+    foreach(target ${arg_TARGETS})
+        if(NOT target IN_LIST buildsystem_targets)
+            message(FATAL_ERROR "Target '${target}' is not a buildsystem target of the current project. Cannot export dependencies for it.")
+        endif()
+    endforeach()
 
-    set(all_link_libraries_only_targets "")
+    set(all_link_libraries "")
     foreach(target ${arg_TARGETS})
         # Note: On CMake 3.23, we have LINK_LIBRARIES_ONLY_TARGETS that might be useful
         set(ll "")
         get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
-        list(APPEND ll ${interface_link_libraries})
+        if(interface_link_libraries)
+            list(APPEND ll ${interface_link_libraries})
+        endif()
 
         get_target_property(link_libraries ${target} LINK_LIBRARIES)
-        list(APPEND ll ${link_libraries})
+        if(link_libraries)
+            list(APPEND ll ${link_libraries})
+        endif()
 
         message("Linked libraries of target '${target}':
             LINK_LIBRARIES          : ${link_libraries}
             INTERFACE_LINK_LIBRARIES: ${interface_link_libraries}
         ")
 
-        # Filter only targets
-        set(link_libraries_only_targets "")
-        foreach(l ${ll})
-            if(TARGET ${l})
-                get_target_property(original_target ${l} ALIASED_TARGET)
-                if(original_target)
-                    list(APPEND link_libraries_only_targets ${original_target})
-                else()
-                    list(APPEND link_libraries_only_targets ${l})
-                endif()
-            endif()
-        endforeach()
-
-        list(APPEND all_link_libraries_only_targets ${link_libraries_only_targets})
+        list(APPEND all_link_libraries ${ll})
     endforeach()
 
-    # filter buildsystem targets and imported targets
-    set(link_imported_libraries "")
-    set(link_buildsystem_libraries "")
-    foreach(l ${all_link_libraries_only_targets})
-        if(l IN_LIST buildsystem_targets)
-            list(APPEND link_buildsystem_libraries ${l})
-        else()
-            list(APPEND link_imported_libraries ${l})
-        endif()
-    endforeach()
+    message("All link libraries for targets '${arg_TARGETS}': ${all_link_libraries}") 
 
-    message("All link libraries of targets '${arg_TARGETS}': 
-        Imported Libraries              : ${link_imported_libraries}
-        BuildSystem(Internal) Libraries : ${link_buildsystem_libraries}
-    ")
+    file(GENERATE 
+        OUTPUT "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
+        CONTENT "set(imported_libraries \"${all_link_libraries}\")\n"
+    )
+    install(
+        FILES "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
+        DESTINATION ${arg_DESTINATION}
+    )
 
-    # At this point, we have the list of imported libraries
-    # We now retrieve the original package name for each imported library
-    set(packages_to_export "")
-    foreach(target ${link_imported_libraries})
-        get_property(package_name GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${target}_package_name)
-
-        if(NOT package_name)
-            message(WARNING "Could not find the package name for target '${target}'. Cannot automatically export dependency. Did you forget to use xxx_find_package() ?")
-            continue()
-        endif()
-
-        message("Library '${target}' comes from package '${package_name}'")
-        list(APPEND packages_to_export ${package_name})
-    endforeach()
-
-    message("Packages to export for EXPORT ${arg_EXPORT}: ${packages_to_export}")
+    get_property(packages GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found)
+    if(NOT packages)
+        message(STATUS "No dependencies found via xxx_find_package.")
+        return()
+    endif()
 
     # Now we generate the <target>-dependencies.cmake file with the list of packages, imported targets and custom modules
     set(modules "")
     set(fd "")
-    foreach(package_name ${packages_to_export})
+    foreach(package_name ${packages})
         get_property(expected_targets GLOBAL PROPERTY _xxx_${package_name}_imported_targets)
         get_property(find_package_args GLOBAL PROPERTY _xxx_${package_name}_find_package_args)
         get_property(module_path GLOBAL PROPERTY _xxx_${package_name}_module_path)
 
-        xxx_require_variable(find_package_args "find_package_args must be defined for package ${package_name}")
-        xxx_require_variable(expected_targets "expected_targets must be defined for package ${package_name}")
+        xxx_require_variable(find_package_args)
+        xxx_require_variable(expected_targets)
 
         string(REPLACE ";" " " find_package_args "${find_package_args}")
 
@@ -799,6 +781,9 @@ function(xxx_export_dependencies)
             )
         endif()
 
+        string(APPEND fd "set(${package_name}_targets \"${expected_targets}\")\n")
+        string(APPEND fd "any_of(\"\${imported_libraries}\" \"\${${package_name}_targets}\" uses_${package_name})\n")
+
         # Find Dependencies
         if(NOT expected_targets)
             string(APPEND fd "find_dependency(${find_package_args})\n")
@@ -806,13 +791,14 @@ function(xxx_export_dependencies)
             set(cond "")
             foreach(target IN LISTS expected_targets)
                 if(cond STREQUAL "")
-                    set(cond "NOT TARGET ${target}")
+                    set(cond "uses_${package_name} AND NOT TARGET ${target}")
                 else()
                     set(cond "${cond} OR NOT TARGET ${target}")
                 endif()
             endforeach()
 
             string(APPEND fd "if(${cond})\n")
+            string(APPEND fd "    message(\"            ==> Executing find_dependency(${find_package_args})\")\n")
             string(APPEND fd "    find_dependency(${find_package_args})\n")
             string(APPEND fd "endif()\n\n")
         endif()
@@ -821,10 +807,10 @@ function(xxx_export_dependencies)
     set(xxx_modules ${modules})
     set(xxx_find_dependencies ${fd})
 
-    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dependencies.cmake.in ${arg_FILE} @ONLY)
+    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dependencies.cmake.in ${arg_GEN_DIR}/${arg_FILE} @ONLY)
 
     install(
-        FILES ${arg_FILE}
+        FILES ${arg_GEN_DIR}/${arg_FILE}
         DESTINATION ${arg_DESTINATION}
     )
 endfunction()
@@ -1091,8 +1077,11 @@ function(xxx_generate_package_module_files)
         xxx_export_dependencies(
             TARGETS ${targets}
             EXPORT ${PROJECT_NAME}-${component}
-            FILE ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-${component}-dependencies.cmake
+            COMPONENT ${component}
+            GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}
+            FILE ${PROJECT_NAME}-component-${component}-dependencies.cmake
             DESTINATION ${DESTINATION}
+            NAMESPACE ${NAMESPACE}
         )
         # Create the export for the component targets
         install(TARGETS ${targets}
@@ -1104,7 +1093,7 @@ function(xxx_generate_package_module_files)
         )
         # <package>-<component>-targets.cmake
         install(EXPORT ${PROJECT_NAME}-${component}
-            FILE ${PROJECT_NAME}-${component}-targets.cmake
+            FILE ${PROJECT_NAME}-component-${component}-targets.cmake
             NAMESPACE ${NAMESPACE}
             DESTINATION ${DESTINATION}
         )

@@ -1,4 +1,21 @@
 include(CMakeFindDependencyMacro)
 
+include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-${component}-link-libraries.cmake")
+
+function(any_of list1 list2 result_var)
+    foreach(item ${list1})
+        if(${item} IN_LIST list2)
+            set(${result_var} TRUE PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set(${result_var} FALSE PARENT_SCOPE)
+endfunction()
+
+# ----- Custom Modules ----- #
 @xxx_modules@
+# ----- Find Dependencies -- #
 @xxx_find_dependencies@
+
+unset(imported_libraries)
+unset(buildsystem_libraries)
