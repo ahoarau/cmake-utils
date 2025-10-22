@@ -12,10 +12,22 @@ function(any_of list1 list2 result_var)
     set(${result_var} FALSE PARENT_SCOPE)
 endfunction()
 
+function(all_set list result_var)
+    foreach(item ${list})
+        if(NOT TARGET ${item})
+            set(${result_var} FALSE PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+    set(${result_var} TRUE PARENT_SCOPE)
+endfunction()
+
 # ----- Custom Modules ----- #
 @xxx_modules@
 # ----- Find Dependencies -- #
 @xxx_find_dependencies@
 
+unset(any_of)
+unset(all_set)
 unset(imported_libraries)
 unset(buildsystem_libraries)
