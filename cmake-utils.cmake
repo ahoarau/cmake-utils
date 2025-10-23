@@ -786,28 +786,23 @@ function(xxx_print_dependency_summary)
     endforeach()
 endfunction()
 
+# Get the INTERFACE_LINK_LIBRARIES, i.e. the public dependencies of a target
+# Usage: xxx_target_extract_link_libraries(<target> <output_var>)
 function(xxx_target_extract_link_libraries target output_var)
     xxx_require_target(${target})
 
     # Note: On CMake 3.23, we have LINK_LIBRARIES_ONLY_TARGETS that might be useful
 
-    set(ll "")
     get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
-    if(interface_link_libraries)
-        list(APPEND ll ${interface_link_libraries})
-    endif()
 
     get_target_property(link_libraries ${target} LINK_LIBRARIES)
-    if(link_libraries)
-        list(APPEND ll ${link_libraries})
-    endif()
 
     message("Linked libraries of target '${target}':
         LINK_LIBRARIES          : ${link_libraries}
         INTERFACE_LINK_LIBRARIES: ${interface_link_libraries}
     ")
 
-    set(${output_var} "${ll}" PARENT_SCOPE)
+    set(${output_var} "${interface_link_libraries}" PARENT_SCOPE)
 endfunction()
 
 # Usage: xxx_export_dependencies(EXPORT <export_name> FILE <output_file> DESTINATION <install_destination> TARGETS <target1> <target2> ...)
@@ -843,7 +838,7 @@ function(xxx_export_dependencies)
 
     set(all_link_libraries "")
     foreach(target ${arg_TARGETS})
-        xxx_target_extract_link_libraries(${target} ll)
+        get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
 
         # # /!\ Generator expressions are not supported for now /!\
         # string(REPLACE ";" " " ll_str "${ll}")
@@ -855,7 +850,7 @@ function(xxx_export_dependencies)
         #     Please use explicit link libraries without generator expressions.")
         # endif()
 
-        list(APPEND all_link_libraries ${ll})
+        list(APPEND all_link_libraries ${interface_link_libraries})
     endforeach()
 
     message("All link libraries for targets '${arg_TARGETS}': ${all_link_libraries}") 
