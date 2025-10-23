@@ -430,7 +430,12 @@ function(xxx_target_generate_header target_name visibility)
     if(arg_SKIP_INSTALL)
         return()
     endif()
-
+######
+######
+######     Make this work
+######    xxx_target_headers(${target_name} ${visibility} HEADERS ${output_file} BASE_DIRS ${arg_HEADER_DIR})
+######
+    message("Installing header ${output_file} to ${arg_INSTALL_DESTINATION}")
     install(FILES ${output_file} DESTINATION ${arg_INSTALL_DESTINATION})
 endfunction()
 
@@ -453,9 +458,14 @@ function(xxx_target_generate_warning_header target_name visibility)
         set(header_dir ${arg_HEADER_DIR})
     endif()
 
-    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
     if(arg_INSTALL_DESTINATION)
         set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    set(skip_install "")
+    if(arg_SKIP_INSTALL)
+        set(skip_install SKIP_INSTALL)
     endif()
 
     xxx_target_generate_header(${target_name} ${visibility} 
@@ -463,7 +473,7 @@ function(xxx_target_generate_warning_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/warning.hpp.in
         INSTALL_DESTINATION ${install_destination}
-        SKIP_INSTALL ${arg_SKIP_INSTALL}
+        ${skip_install}
     )
 endfunction()
 
@@ -486,9 +496,14 @@ function(xxx_target_generate_deprecated_header target_name visibility)
         set(header_dir ${arg_HEADER_DIR})
     endif()
 
-    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
     if(arg_INSTALL_DESTINATION)
         set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    set(skip_install "")
+    if(arg_SKIP_INSTALL)
+        set(skip_install SKIP_INSTALL)
     endif()
 
     xxx_target_generate_header(${target_name} ${visibility} 
@@ -496,7 +511,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/deprecated.hpp.in
         INSTALL_DESTINATION ${install_destination}
-        SKIP_INSTALL ${arg_SKIP_INSTALL}
+        ${skip_install}
     )
 endfunction()
 
@@ -523,9 +538,14 @@ function(xxx_target_generate_config_header target_name visibility)
         set(header_dir ${arg_HEADER_DIR})
     endif()
 
-    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
     if(arg_INSTALL_DESTINATION)
         set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    set(skip_install "")
+    if(arg_SKIP_INSTALL)
+        set(skip_install SKIP_INSTALL)
     endif()
 
     xxx_target_generate_header(${target_name} ${visibility} 
@@ -533,7 +553,7 @@ function(xxx_target_generate_config_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in
         INSTALL_DESTINATION ${install_destination}
-        SKIP_INSTALL ${arg_SKIP_INSTALL}
+        ${skip_install}
     )
 endfunction()
 
@@ -560,9 +580,14 @@ function(xxx_target_generate_tracy_header target_name visibility)
         set(header_dir ${arg_HEADER_DIR})
     endif()
 
-    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
+    set(install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
     if(arg_INSTALL_DESTINATION)
         set(install_destination ${arg_INSTALL_DESTINATION})
+    endif()
+
+    set(skip_install "")
+    if(arg_SKIP_INSTALL)
+        set(skip_install SKIP_INSTALL)
     endif()
 
     xxx_target_generate_header(${target_name} ${visibility} 
@@ -570,7 +595,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/tracy.hpp.in
         INSTALL_DESTINATION ${install_destination}
-        SKIP_INSTALL ${arg_SKIP_INSTALL}
+        ${skip_install}
     )
 endfunction()
 
@@ -981,7 +1006,7 @@ endfunction()
 # )
 function(xxx_target_headers target visibility)
     set(options)
-    set(oneValueArgs)
+    set(oneValueArgs GENERATED_DIR)
     set(multiValueArgs HEADERS BASE_DIRS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -989,26 +1014,54 @@ function(xxx_target_headers target visibility)
     xxx_require_target(${target})
     xxx_require_visibility(${visibility})
 
+    # Add the header to the target sources (for IDEs)
+    set(install_headers "")
+    foreach(header ${arg_HEADERS})
+        cmake_path(IS_ABSOLUTE header is_abs)
+        if(is_abs)
+            if(NOT arg_BASE_DIRS)
+                message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the current source directory or to one of the BASE_DIRS specified.")
+            else()
+                # Check if header starts with one of the base dirs
+                set(found_base_dir "")
+                foreach(base_dir ${arg_BASE_DIRS})
+                    string(FIND ${header} ${base_dir} pos)
+                    if(pos EQUAL 0)
+                        set(found_base_dir ${base_dir})
+                        break()
+                    endif()
+                endforeach()
+                if(${found_base_dir} STREQUAL "")
+                    message(FATAL_ERROR "Header '${header}' is an absolute path and does not start with any of the specified BASE_DIRS: ${arg_BASE_DIRS}. It should be a relative path to one of the BASE_DIRS.")
+                endif()
+                # Compute the relative path from the found base dir
+                string(REPLACE ${found_base_dir} "" relative_header ${header})
+                string(REGEX REPLACE "^[\\/]" "" relative_header ${relative_header})
+
+                target_sources(${target} ${visibility}
+                    $<BUILD_INTERFACE:${header}>
+                    $<INSTALL_INTERFACE:${relative_header}>)
+                list(APPEND install_headers ${relative_header})
+            endif()
+        else()
+            # Default is using CMAKE_CURRENT_SOURCE_DIR as base dir
+            target_sources(${target} ${visibility}
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${header}>
+                $<INSTALL_INTERFACE:${header}>)
+            list(APPEND install_headers ${header})
+        endif()
+        
+    endforeach()
+
     if(NOT arg_BASE_DIRS)
         set(arg_BASE_DIRS "")
     endif()
 
-    # Add the header to the target sources (for IDEs)
-    foreach(header ${arg_HEADERS})
-        cmake_path(IS_ABSOLUTE header is_abs)
-        if(is_abs)
-            message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the current source directory.")
-        endif()
-        target_sources(${target} ${visibility}
-            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${header}>
-            $<INSTALL_INTERFACE:${header}>)
-    endforeach()
-
     # Save the headers in a property of the target
     # NOTE: The PUBLIC_HEADER technically works, but does not support base_dirs
     # cf: https://cmake.org/cmake/help/latest/command/install.html#install
-    set_target_properties(${target} PROPERTIES _xxx_${visibility}_headers "${arg_HEADERS}")
-    set_target_properties(${target} PROPERTIES _xxx_${visibility}_header_base_dirs "${arg_BASE_DIRS}")
+    set_property(TARGET ${target} APPEND PROPERTY _xxx_${visibility}_headers "${install_headers}")
+    set_property(TARGET ${target} APPEND PROPERTY _xxx_${visibility}_header_base_dirs "${arg_BASE_DIRS}")
 endfunction()
 
 # Install declared header for a given target
