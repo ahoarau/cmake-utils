@@ -16,6 +16,7 @@ string(JSON package_dependencies GET "${package_dependencies_json}" "package_dep
 string(JSON num_deps LENGTH "${package_dependencies}")
 math(EXPR max_idx "${num_deps} - 1")
 
+set(used_indexes "")
 set(fd "include(CMakeFindDependencyMacro)\n\n")
 foreach(imported_lib IN LISTS imported_libraries)
     if(NOT imported_lib)
@@ -30,12 +31,14 @@ foreach(imported_lib IN LISTS imported_libraries)
     endif()
 
     # Find the corresponding package dependency JSON info
+    set(package_idx -1)
     set(package_json "")
     foreach(idx RANGE ${max_idx})
         string(JSON dep_i_json GET "${package_dependencies}" ${idx})
         string(JSON package_targets GET "${dep_i_json}" "package_targets")
         if(${imported_lib} IN_LIST package_targets)
             set(package_json ${dep_i_json})
+            set(package_idx ${idx})
             break()
         endif()
     endforeach()
@@ -50,6 +53,14 @@ foreach(imported_lib IN LISTS imported_libraries)
     string(JSON find_package_args GET "${package_json}" "find_package_args")
     string(JSON package_targets GET "${package_json}" "find_package_args")
     string(JSON using_custom_module GET "${package_json}" "using_custom_module")
+
+    if(package_idx IN_LIST used_indexes)
+        # Sorta works, but need to gather the imported targets to make it fully work.
+        # Example: if(NOT TARGET importedlibA OR NOT TARGET importedlibB)
+        # message("Skipping already processed package ${package_name} (find_package(${find_package_args})).")
+        # continue()
+    endif()
+    list(APPEND used_indexes ${package_idx})
 
     # Handling if package is using a custom module
     if(${using_custom_module})
