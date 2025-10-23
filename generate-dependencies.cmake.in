@@ -18,6 +18,10 @@ math(EXPR max_idx "${num_deps} - 1")
 
 set(fd "include(CMakeFindDependencyMacro)\n\n")
 foreach(imported_lib IN LISTS imported_libraries)
+    if(NOT imported_lib)
+        continue()
+    endif()
+
     message("Processing imported library: ${imported_lib}")
 
     if(${imported_lib} IN_LIST buildsystem_targets)
