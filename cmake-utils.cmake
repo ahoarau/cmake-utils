@@ -37,6 +37,27 @@ function(xxx_include_ctest)
     include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/BoostTestDiscoverTests.cmake)
 endfunction()
 
+macro(xxx_configure_apple_rpath)
+  if(APPLE) # Ensure that the policy if is only applied on OSX systems
+    xxx_require_variable(CMAKE_INSTALL_PREFIX)
+
+    set(CMAKE_MACOSX_RPATH True)
+    set(CMAKE_SKIP_BUILD_RPATH False)
+    set(CMAKE_BUILD_WITH_INSTALL_RPATH False)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
+
+    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    list(
+      FIND
+      CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
+      "${CMAKE_INSTALL_PREFIX}/lib"
+      isSystemDir
+    )
+    if("${isSystemDir}" STREQUAL "-1")
+      set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+    endif()
+  endif()
+endmacro()
 
 # Usage: xxx_configure_default_build_type(<default_build_type>)
 # Valid values for <default_build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
