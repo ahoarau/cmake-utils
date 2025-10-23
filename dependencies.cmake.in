@@ -2,32 +2,65 @@ include(CMakeFindDependencyMacro)
 
 include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-${component}-link-libraries.cmake")
 
-function(any_of list1 list2 result_var)
-    foreach(item ${list1})
-        if(${item} IN_LIST list2)
-            set(${result_var} TRUE PARENT_SCOPE)
+function(reverse_find_package_from_file imported_target_name output_json_var)
+    set(options "")
+    set(oneValueArgs PACKAGE_DEPENDENCY_FILE)
+    set(multiValueArgs "")
+    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+    if(NOT arg_PACKAGE_DEPENDENCY_FILE)
+        message(FATAL_ERROR "PACKAGE_DEPENDENCY_FILE argument is required.")
+    endif()
+
+    file(READ ${arg_PACKAGE_DEPENDENCY_FILE} package_dependencies_json)
+
+    string(JSON package_dependencies GET "${package_dependencies_json}" "package_dependencies")
+    string(JSON num_deps LENGTH "${package_dependencies}")
+    math(EXPR max_idx "${num_deps} - 1")
+    foreach(idx RANGE ${max_idx})
+        string(JSON dep_json GET "${package_dependencies}" ${idx})
+        string(JSON package_targets GET "${dep_json}" "package_targets")
+        if(${imported_target_name} IN_LIST package_targets)
+            set(${output_json_var} "${dep_json}" PARENT_SCOPE)
             return()
         endif()
     endforeach()
-    set(${result_var} FALSE PARENT_SCOPE)
 endfunction()
 
-function(all_set list result_var)
-    foreach(item ${list})
-        if(NOT TARGET ${item})
-            set(${result_var} FALSE PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-    set(${result_var} TRUE PARENT_SCOPE)
-endfunction()
+set(fd "")
+foreach(imported_lib IN LISTS imported_libraries)
+    message("Processing imported library: ${imported_lib}")
+    reverse_find_package_from_file(
+        ${imported_lib}
+        dep_json
+        PACKAGE_DEPENDENCY_FILE ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-package-dependencies.json
+    )
+    if(NOT dep_json)
+        message(WARNING "Could not find package dependency information for imported target: ${imported_lib}")
+        continue()
+    endif()
+    string(JSON package_name GET "${dep_json}" "package_name")
+    string(JSON find_package_args GET "${dep_json}" "find_package_args")
+    string(JSON package_targets GET "${dep_json}" "find_package_args")
+    string(JSON using_custom_module GET "${dep_json}" "using_custom_module")
 
-# ----- Custom Modules ----- #
-@xxx_modules@
-# ----- Find Dependencies -- #
-@xxx_find_dependencies@
+    if(${using_custom_module})
+        string(APPEND fd "list(APPEND CMAKE_MODULE_PATH \"${CMAKE_CURRENT_LIST_DIR}/modules/${package_name}\")\n")
+    endif()
 
-unset(any_of)
-unset(all_set)
-unset(imported_libraries)
-unset(buildsystem_libraries)
+    if(NOT ${imported_lib})
+        string(REPLACE ";" " " find_package_args_pp "${find_package_args}")
+        message("          ===>>   find_dependency(${find_package_args_pp})")
+        string(APPEND fd "find_dependency(${find_package_args_pp})\n")
+    else()
+        message("          ===>>   ${imported_lib} already imported. Skipping find_dependency(${find_package_args})")
+    endif()
+
+    unset(dep_json)
+    unset(find_package_args)
+    unset(find_package_args_pp)
+    unset(package_targets)
+endforeach()
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/@PROJECT_NAME@-component-${component}-find-dependencies.cmake "${fd}")
+unset(fd)
+include("${CMAKE_CURRENT_BINARY_DIR}/@PROJECT_NAME@-component-${component}-find-dependencies.cmake")
