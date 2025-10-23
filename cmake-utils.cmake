@@ -608,12 +608,6 @@ function(xxx_export_dependencies)
         endif()
     endforeach()
 
-    get_property(packages GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found)
-    if(NOT packages)
-        message(STATUS "No dependencies found via xxx_find_package.")
-        return()
-    endif()
-
     set(all_link_libraries "")
     foreach(target ${arg_TARGETS})
         get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
