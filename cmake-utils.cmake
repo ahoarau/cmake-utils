@@ -1,5 +1,5 @@
 # gersemi: off
-cmake_minimum_required(VERSION 3.22..4.1)
+cmake_minimum_required(VERSION 3.22...4.1)
 
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
@@ -188,176 +188,6 @@ function(xxx_target_treat_all_warnings_as_errors target_name visibility)
         message(WARNING "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. No warning as error flag set.")
     endif()
 endfunction()
-
-#[[[
-# @brief Generates a configuration header for a given target.
-#
-# This function creates a `config.hpp` file within the build directory for the
-# specified target. This header can be used to propagate preprocessor definitions
-# and other configuration details to the source code.
-#
-# @param target_name The name of the target for which the configuration header
-#                    is being generated.
-# @param visibility  Specifies the visibility of the include directory for the
-#                    generated header (e.g., PUBLIC, PRIVATE, INTERFACE).
-#]]
-# function(xxx_target_generate_config_header target_name visibility)
-#     set(options SKIP_INSTALL)
-#     set(oneValueArgs OUTPUT INSTALL_DESTINATION)
-#     set(multiValueArgs)
-#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-#     xxx_require_variable(PROJECT_NAME)
-#     xxx_require_variable(PROJECT_VERSION)
-#     xxx_require_variable(PROJECT_VERSION_MAJOR)
-#     xxx_require_variable(PROJECT_VERSION_MINOR)
-#     xxx_require_variable(PROJECT_VERSION_PATCH)
-#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
-#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-#     xxx_require_target(${target_name})
-#     xxx_require_visibility(${visibility})
-
-#     set(default_output_file ${CMAKE_CURRENT_BINARY_DIR}/generated/include/${PROJECT_NAME}/config.hpp)
-#     set(default_install_destination ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
-
-#     # We need PROJECT_NAME in uppercase to match the maestro convention for macro names
-#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
-
-#     # ref: https://cmake.org/cmake/help/latest/variable/CMAKE_CURRENT_FUNCTION_LIST_DIR.html
-#     set(input_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in)
-
-#     if(NOT EXISTS ${input_file})
-#         message(FATAL_ERROR "Input file ${input_file} does not exist.")
-#     endif()
-
-#     if(arg_OUTPUT)
-#         set(output_file ${arg_OUTPUT})
-#     else()
-#         set(output_file ${default_output_file})
-#     endif()
-
-#     configure_file(${input_file} ${output_file} @ONLY)
-
-#     target_include_directories(${target_name} ${visibility} 
-#         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/generated/include>
-#     )
-
-#     if(arg_SKIP_INSTALL)
-#         return()
-#     endif()
-
-#     if(${arg_INSTALL_DESTINATION})
-#         set(install_destination ${arg_INSTALL_DESTINATION})
-#     else()
-#         set(install_destination ${default_install_destination})
-#     endif()
-#     install(FILES ${output_file} DESTINATION ${install_destination})
-# endfunction()
-
-# function(xxx_target_generate_warning_header target_name visibility)
-#     set(options SKIP_INSTALL)
-#     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
-#     set(multiValueArgs)
-#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-#     xxx_require_variable(PROJECT_NAME)
-#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
-#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-#     xxx_require_target(${target_name})
-#     xxx_require_visibility(${visibility})
-
-#     set(filename ${PROJECT_NAME}/warning.hpp)
-#     if(arg_FILENAME)
-#         set(filename ${arg_FILENAME})
-#     endif()
-
-#     set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
-#     if(arg_HEADER_DIR)
-#         set(header_dir ${arg_HEADER_DIR})
-#     endif()
-
-#     set(template_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/warning.hpp.in)
-#     if(arg_TEMPLATE_FILE)
-#         set(template_file ${arg_TEMPLATE_FILE})
-#     endif()
-
-#     set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
-#     if(arg_INSTALL_DESTINATION)
-#         set(install_destination ${arg_INSTALL_DESTINATION})
-#     endif()
-
-#     if(NOT EXISTS ${template_file})
-#         message(FATAL_ERROR "Input file ${template_file} does not exist.")
-#     endif()
-
-#     set(output_file ${header_dir}/${filename})
-
-#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
-#     configure_file(${template_file} ${output_file} @ONLY)
-
-#     target_include_directories(${target_name} ${visibility} 
-#         $<BUILD_INTERFACE:${header_dir}>
-#     )
-
-#     if(arg_SKIP_INSTALL)
-#         return()
-#     endif()
-
-#     install(FILES ${output_file} DESTINATION ${install_destination})
-# endfunction()
-
-
-# function(xxx_target_generate_deprecated_header target_name visibility)
-#     set(options SKIP_INSTALL)
-#     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
-#     set(multiValueArgs)
-#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-#     xxx_require_variable(PROJECT_NAME)
-#     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
-#     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-#     xxx_require_target(${target_name})
-#     xxx_require_visibility(${visibility})
-
-#     set(filename ${PROJECT_NAME}/deprecated.hpp)
-#     if(arg_FILENAME)
-#         set(filename ${arg_FILENAME})
-#     endif()
-
-#     set(header_dir ${CMAKE_CURRENT_BINARY_DIR}/generated/include)
-#     if(arg_HEADER_DIR)
-#         set(header_dir ${arg_HEADER_DIR})
-#     endif()
-
-#     set(template_file ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/deprecated.hpp.in)
-#     if(arg_TEMPLATE_FILE)
-#         set(template_file ${arg_TEMPLATE_FILE})
-#     endif()
-
-#     set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
-#     if(arg_INSTALL_DESTINATION)
-#         set(install_destination ${arg_INSTALL_DESTINATION})
-#     endif()
-
-#     if(NOT EXISTS ${template_file})
-#         message(FATAL_ERROR "Input file ${template_file} does not exist.")
-#     endif()
-
-#     set(output_file ${header_dir}/${filename})
-
-#     string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPERCASE)
-#     configure_file(${template_file} ${output_file} @ONLY)
-
-#     target_include_directories(${target_name} ${visibility} 
-#         $<BUILD_INTERFACE:${header_dir}>
-#     )
-
-#     if(arg_SKIP_INSTALL)
-#         return()
-#     endif()
-
-#     install(FILES ${output_file} DESTINATION ${install_destination})
-# endfunction()
 
 function(xxx_make_valid_c_identifier INPUT OUTPUT_VAR)
     # 1. Replace all non-alphanumeric and non-underscore characters with underscores
@@ -636,7 +466,7 @@ macro(xxx_find_package)
     else()
         set(using_custom_module false)
     endif()
-
+    unset(module_file)
 
     # Call find_package with the provided arguments
     string(REPLACE ";" " " fp_pp "${arg_UNPARSED_ARGUMENTS}")
@@ -669,7 +499,6 @@ macro(xxx_find_package)
     if(NOT deps)
         string(JSON deps SET "{}" "package_dependencies" "[]")
     endif()
-    message("Current deps: ${deps}")
 
     set(package_json "{}")
     string(REPLACE ";" " " find_package_args "${find_package_args}")
@@ -679,120 +508,43 @@ macro(xxx_find_package)
     string(JSON package_json SET "${package_json}" "package_targets" "\"${package_targets}\"")
     string(JSON package_json SET "${package_json}" "using_custom_module" "\"${using_custom_module}\"")
 
-    message("package_json: ${package_json}")
-    # Append the package info to the dependencies list
-    # First get the length of the current dependencies list
-    # string(JSON <out-var> [ERROR_VARIABLE <error-variable>] LENGTH <json-string> [<member|index> ...])¶
+
     string(JSON deps_length LENGTH "${deps}" "package_dependencies")
-    # string(JSON <out-var> [ERROR_VARIABLE <error-variable>] SET <json-string> <member|index> [<member|index> ...] <value>)
-    message("Appending package '${package_name}' info to dependencies list at index ${deps_length}")
     string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
 
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies "${deps}")
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found "${package_name}" APPEND)
-    set_property(GLOBAL PROPERTY _xxx_${package_name}_imported_targets "${imported_targets}")
-    set_property(GLOBAL PROPERTY _xxx_${package_name}_find_package_args "${arg_UNPARSED_ARGUMENTS}")
-    set_property(GLOBAL PROPERTY _xxx_${package_name}_module_path "${arg_MODULE_PATH}")
-
-    # Save the reverse link between the imported targets and the original package name
-    foreach(target ${imported_targets})
-        set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${target}_package_name "${package_name}")
-    endforeach()
-
-    unset(package_name)
-    unset(module_file)
-    unset(imported_targets_before)
-    unset(variables_before)
-    unset(new_variables)
-    unset(imported_targets)
-    unset(new_variables_pp)
-    unset(imported_targets_pp)
+    unset(deps)
+    unset(package_json)
+    unset(deps_length)
 endmacro()
-# Usage: xxx_reverse_find_package_from_file(<imported_target_name> <output_json_var> PACKAGE_DEPENDENCY_FILE <file>)
-# Example: xxx_reverse_find_package_from_file(My::Target output_json PACKAGE_DEPENDENCY_FILE deps.json)
-# Given the package dependency file, this function searches for the package that provides the given imported target name.
-# If found, it sets the output_json_var to the JSON string representing the package info.
-# The json string contains:
-# {
-#   "package_name": "MyPackage",
-#   "find_package_args": "...",
-#   "package_variables": [...],
-#   "package_targets": [...],
-#   "module_file": "..."
-# }
-function(xxx_reverse_find_package_from_file imported_target_name output_json_var)
-    set(options "")
-    set(oneValueArgs PACKAGE_DEPENDENCY_FILE)
-    set(multiValueArgs "")
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    if(NOT arg_PACKAGE_DEPENDENCY_FILE)
-        message(FATAL_ERROR "PACKAGE_DEPENDENCY_FILE argument is required.")
-    endif()
-
-    file(READ ${arg_PACKAGE_DEPENDENCY_FILE} package_dependencies_json)
-
-    string(JSON package_dependencies GET "${package_dependencies_json}" "package_dependencies")
-    string(JSON num_deps LENGTH "${package_dependencies}")
-    math(EXPR max_idx "${num_deps} - 1")
-    foreach(idx RANGE ${max_idx})
-        string(JSON dep_json GET "${package_dependencies}" ${idx})
-        string(JSON package_targets GET "${dep_json}" "package_targets")
-        if(${imported_target_name} IN_LIST package_targets)
-            set(${output_json_var} "${dep_json}" PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-endfunction()
-
-function(xxx_reverse_find_package imported_target_name output_json_var)
-    get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
-    if(NOT package_dependencies_json)
-        message(DEBUG "No package dependencies recorded with xxx_find_package().")
-        set(${output_json_var} "" PARENT_SCOPE)
-        return()
-    endif()
-
-    string(JSON package_dependencies GET "${package_dependencies_json}" "package_dependencies")
-    string(JSON num_deps LENGTH "${package_dependencies}")
-    math(EXPR max_idx "${num_deps} - 1")
-    foreach(idx RANGE ${max_idx})
-        string(JSON dep_json GET "${package_dependencies}" ${idx})
-        string(JSON package_targets GET "${dep_json}" "package_targets")
-        if(${imported_target_name} IN_LIST package_targets)
-            set(${output_json_var} "${dep_json}" PARENT_SCOPE)
-            return()
-        endif()
-    endforeach()
-endfunction()
 
 function(xxx_print_dependency_summary)
+    # TODO: Find out if still necessary now that we have JSON package-dependencies.json
     include(CMakePrintHelpers)
 
-    get_property(packages GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found)
-    if(NOT packages)
+    get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
+    if(NOT deps)
         message(STATUS "No dependencies found via xxx_find_package.")
         return()
     endif()
 
-    message(STATUS "Dependencies found via xxx_find_package:")
-    foreach(package_name ${packages})
-        # Try to find the _xxx_<package_name>_expected_targets property
-        get_property(imported_targets GLOBAL PROPERTY _xxx_${package_name}_imported_targets)
-        if(NOT imported_targets)
-            set(imported_targets "None")
-        endif()
+    string(JSON num_deps LENGTH "${deps}" "package_dependencies")
+    math(EXPR num_deps "${num_deps} - 1")
+    message(STATUS "Dependencies found via xxx_find_package: ${num_deps}")
+    for(i RANGE 0 ${num_deps})
+        string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
+        string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
 
         # Replace ; by , for better readability
-        string(REPLACE ";" " " imported_targets_pp "${imported_targets}")
-        message(STATUS "    package [${package_name}] ==> targets [${imported_targets_pp}]")
+        string(REPLACE ";" " " package_targets_pp "${package_targets}")
+        message(STATUS "    package [${package_name}] ==> targets [${package_targets_pp}]")
 
         # Print target properties
-        if(imported_targets STREQUAL "None")
+        if(package_targets STREQUAL "")
             continue()
         endif()
-        cmake_print_properties(TARGETS ${imported_targets} PROPERTIES
+        cmake_print_properties(TARGETS ${package_targets} PROPERTIES
             LOCATION
             INCLUDE_DIRECTORIES
             COMPILE_DEFINITIONS
@@ -808,26 +560,6 @@ function(xxx_print_dependency_summary)
             INTERFACE_LINK_LIBRARIES
             INTERFACE_LINK_OPTIONS
         )
-    endforeach()
-endfunction()
-
-# Get the INTERFACE_LINK_LIBRARIES, i.e. the public dependencies of a target
-# Usage: xxx_target_extract_link_libraries(<target> <output_var>)
-function(xxx_target_extract_link_libraries target output_var)
-    xxx_require_target(${target})
-
-    # Note: On CMake 3.23, we have LINK_LIBRARIES_ONLY_TARGETS that might be useful
-
-    get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
-
-    get_target_property(link_libraries ${target} LINK_LIBRARIES)
-
-    message("Linked libraries of target '${target}':
-        LINK_LIBRARIES          : ${link_libraries}
-        INTERFACE_LINK_LIBRARIES: ${interface_link_libraries}
-    ")
-
-    set(${output_var} "${interface_link_libraries}" PARENT_SCOPE)
 endfunction()
 
 # Usage: xxx_export_dependencies(EXPORT <export_name> FILE <output_file> DESTINATION <install_destination> TARGETS <target1> <target2> ...)
@@ -864,17 +596,6 @@ function(xxx_export_dependencies)
     set(all_link_libraries "")
     foreach(target ${arg_TARGETS})
         get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
-
-        # # /!\ Generator expressions are not supported for now /!\
-        # string(REPLACE ";" " " ll_str "${ll}")
-        # string(GENEX_STRIP ll_str_wo_genex "${ll_str}")
-        # if(NOT ll_str STREQUAL ll_str_wo_genex)
-        #     message(FATAL_ERROR "Generator expressions $<...> are not (yet) supported in link libraries when exporting dependencies. 
-        #     Target ${target} link libraries contain generator expressions: 
-        #         ${ll_str}
-        #     Please use explicit link libraries without generator expressions.")
-        # endif()
-
         list(APPEND all_link_libraries ${interface_link_libraries})
     endforeach()
 
@@ -890,78 +611,11 @@ set(imported_libraries \"${all_link_libraries}\")
 "
     )
 
-
-
     configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate-dependencies.cmake.in ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake @ONLY)
     install(SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake)
     install(FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
         DESTINATION ${arg_DESTINATION}
     )
-    # install(CODE "message(\"\n\n\n\nSample install message.\")")
-
-    # foreach(package_name ${packages})
-    #     get_property(package_targets GLOBAL PROPERTY _xxx_${package_name}_imported_targets)
-    #     get_property(find_package_args GLOBAL PROPERTY _xxx_${package_name}_find_package_args)
-    #     get_property(module_path GLOBAL PROPERTY _xxx_${package_name}_module_path)
-
-    #     xxx_require_variable(find_package_args)
-    #     xxx_require_variable(package_targets)
-
-    #     file(GENERATE 
-    #         OUTPUT "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-package-${package_name}-info.cmake"
-    #         CONTENT "set(${package_name}_targets \"${package_targets}\")\nset(${package_name}_find_package_args \"${find_package_args}\")\nset(${package_name}_module_path \"${module_path}\")\n"
-    #     )
-    # endforeach()
-
-
-    # Now we generate the <target>-dependencies.cmake file with the list of packages, imported targets and custom modules
-    set(modules "")
-    set(fd "")
-    foreach(package_name ${packages})
-        get_property(package_targets GLOBAL PROPERTY _xxx_${package_name}_imported_targets)
-        get_property(find_package_args GLOBAL PROPERTY _xxx_${package_name}_find_package_args)
-        get_property(module_path GLOBAL PROPERTY _xxx_${package_name}_module_path)
-
-        xxx_require_variable(find_package_args)
-        xxx_require_variable(package_targets)
-
-        string(REPLACE ";" " " find_package_args "${find_package_args}")
-
-        # Custom Modules
-        if(module_path)
-            string(APPEND modules "list(APPEND CMAKE_MODULE_PATH \${CMAKE_CURRENT_LIST_DIR}/modules/${package_name})\n")
-            install(
-                FILES ${module_path}/Find${package_name}.cmake
-                DESTINATION ${arg_DESTINATION}/modules/${package_name}
-            )
-        endif()
-
-        string(APPEND fd "set(${package_name}_targets \"${package_targets}\")\n")
-        string(APPEND fd "any_of(\"\${imported_libraries}\" \"\${${package_name}_targets}\" ${package_name}_used)\n")
-        string(APPEND fd "all_set(\"\${${package_name}_targets}\" ${package_name}_allset)\n")
-
-        if(NOT package_targets)
-            string(APPEND fd "find_dependency(${find_package_args})\n")
-        else()
-            string(APPEND fd "if(${package_name}_used AND NOT ${package_name}_allset)\n")
-            string(APPEND fd "    message(\"            ==> Executing find_dependency(${find_package_args})\")\n")
-            string(APPEND fd "    find_dependency(${find_package_args})\n")
-            string(APPEND fd "endif()\n")
-            string(APPEND fd "unset(${package_name}_used)\n")
-            string(APPEND fd "unset(${package_name}_allset)\n")
-            string(APPEND fd "unset(${package_name}_targets)\n\n")
-        endif()
-    endforeach()
-
-    set(xxx_modules ${modules})
-    set(xxx_find_dependencies ${fd})
-
-    # configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dependencies.cmake.in ${arg_GEN_DIR}/${arg_FILE} @ONLY)
-
-    # install(
-    #     FILES ${arg_GEN_DIR}/${arg_FILE}
-    #     DESTINATION ${arg_DESTINATION}
-    # )
 endfunction()
 
 # Declare a component for the current project.
@@ -1276,28 +930,8 @@ function(xxx_generate_package_module_files)
             NAMESPACE ${NAMESPACE}
             DESTINATION ${DESTINATION}
         )
-
-        # HACK: Copy the generated targets file to the generated cmake directory, so that we can install all cmake files in one go
-        # ref: https://github.com/Kitware/CMake/blob/master/Source/cmInstallExportGenerator.cxx#L50-L58
-        # string(MD5 destdir_hash ${DESTINATION})
-        # set(generated_target_file ${CMAKE_CURRENT_BINARY_DIR}/CMakeFiles/Export/${destdir_hash}/${PROJECT_NAME}-${component}-targets.cmake)
-        # set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_generated_target_file ${generated_target_file} APPEND)
-        # cmake_language(DEFER DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} CALL _xxx_copy_generated_target_files())
     endforeach()
 endfunction()
-
-# Copy all generated target files accumulated in the _xxx_<project>_generated_target_file property
-# cf: function xxx_generate_package_module_files()
-# note: this function is called via cmake_language(DEFER ...)
-# /!\ DO NOT CALL THIS FUNCTION DIRECTLY /!\
-# function(_xxx_copy_generated_target_files)
-#     get_property(generated_files GLOBAL PROPERTY _xxx_${PROJECT_NAME}_generated_target_file)
-#     set(destination ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
-#     foreach(f ${generated_files})
-#         message(DEBUG "Copying generated targets file '${f}' to '${destination}'")
-#         file(COPY ${f} DESTINATION ${destination})
-#     endforeach()
-# endfunction()
 
 function(_xxx_dump_package_dependencies_json)
     get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
@@ -1311,7 +945,6 @@ function(_xxx_dump_package_dependencies_json)
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
     )
 endfunction()
-
 
 # xxx_option(<option_name> <description> <default_value>)
 # Example: xxx_option(BUILD_TESTING "Build the tests" ON)
