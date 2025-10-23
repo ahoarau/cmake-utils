@@ -621,7 +621,7 @@ macro(xxx_find_package)
     get_property(imported_targets_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
     get_property(variables_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
 
-    find_package(${arg_UNPARSED_ARGUMENTS}) # TODO: handle QUIET properly
+    find_package(${find_package_args}) # TODO: handle QUIET properly
 
     # Getting the list of imported targets and variables AFTER the call to find_package
     get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
@@ -647,6 +647,7 @@ macro(xxx_find_package)
     message("Current deps: ${deps}")
 
     set(package_json "{}")
+    string(REPLACE ";" " " find_package_args "${find_package_args}")
     string(JSON package_json SET "${package_json}" "package_name" "\"${package_name}\"")
     string(JSON package_json SET "${package_json}" "find_package_args" "\"${find_package_args}\"")
     string(JSON package_json SET "${package_json}" "package_variables" "\"${package_variables}\"")
@@ -834,6 +835,12 @@ function(xxx_export_dependencies)
         endif()
     endforeach()
 
+    get_property(packages GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found)
+    if(NOT packages)
+        message(STATUS "No dependencies found via xxx_find_package.")
+        return()
+    endif()
+
     set(all_link_libraries "")
     foreach(target ${arg_TARGETS})
         xxx_target_extract_link_libraries(${target} ll)
@@ -855,19 +862,22 @@ function(xxx_export_dependencies)
 
     file(GENERATE 
         OUTPUT "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
-        CONTENT "set(imported_libraries \"${all_link_libraries}\")\n"
+        CONTENT "
+# Generated file - do not edit
+# This file contains the list of buildsystem targets and all imported libraries linked by the exported targets
+set(buildsystem_targets \"${buildsystem_targets}\")
+set(imported_libraries \"${all_link_libraries}\")
+"
     )
 
-    install(
-        FILES "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
+
+
+    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate-dependencies.cmake.in ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake @ONLY)
+    install(SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake)
+    install(FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
         DESTINATION ${arg_DESTINATION}
     )
-
-    get_property(packages GLOBAL PROPERTY _xxx_${PROJECT_NAME}_packages_found)
-    if(NOT packages)
-        message(STATUS "No dependencies found via xxx_find_package.")
-        return()
-    endif()
+    # install(CODE "message(\"\n\n\n\nSample install message.\")")
 
     # foreach(package_name ${packages})
     #     get_property(package_targets GLOBAL PROPERTY _xxx_${package_name}_imported_targets)
@@ -926,12 +936,12 @@ function(xxx_export_dependencies)
     set(xxx_modules ${modules})
     set(xxx_find_dependencies ${fd})
 
-    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dependencies.cmake.in ${arg_GEN_DIR}/${arg_FILE} @ONLY)
+    # configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/dependencies.cmake.in ${arg_GEN_DIR}/${arg_FILE} @ONLY)
 
-    install(
-        FILES ${arg_GEN_DIR}/${arg_FILE}
-        DESTINATION ${arg_DESTINATION}
-    )
+    # install(
+    #     FILES ${arg_GEN_DIR}/${arg_FILE}
+    #     DESTINATION ${arg_DESTINATION}
+    # )
 endfunction()
 
 # Declare a component for the current project.
