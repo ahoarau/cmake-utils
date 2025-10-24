@@ -553,7 +553,7 @@ function(xxx_print_dependency_summary)
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
     math(EXPR num_deps "${num_deps} - 1")
     message(STATUS "Dependencies found via xxx_find_package: ${num_deps}")
-    for(i RANGE 0 ${num_deps})
+    foreach(i RANGE 0 ${num_deps})
         string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
 
@@ -581,6 +581,7 @@ function(xxx_print_dependency_summary)
             INTERFACE_LINK_LIBRARIES
             INTERFACE_LINK_OPTIONS
         )
+    endforeach()
 endfunction()
 
 # Usage: xxx_export_dependencies(EXPORT <export_name> FILE <output_file> DESTINATION <install_destination> TARGETS <target1> <target2> ...)
