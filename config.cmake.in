@@ -7,10 +7,10 @@ set(@PROJECT_NAME@_supported_components @xxx_project_components@)
 message("   Valid components for @PROJECT_NAME@: ${@PROJECT_NAME@_supported_components}")
 message("   User is requesting components: ${@PROJECT_NAME@_FIND_COMPONENTS}")
 
-# if no components were requested, consider the main package only
+# if no components were requested, add them all.
 if(@PROJECT_NAME@_FIND_COMPONENTS STREQUAL "")
-    message("   No components were requested, defaulting to main package only")
-    set(@PROJECT_NAME@_FIND_COMPONENTS @PROJECT_NAME@)
+    message("   No components were requested, including all supported components.")
+    set(@PROJECT_NAME@_FIND_COMPONENTS ${@PROJECT_NAME@_supported_components})
 endif()
 
 # iterate through components attempting to be found
