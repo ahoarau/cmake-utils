@@ -668,6 +668,15 @@ function(xxx_declare_component)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_COMPONENT}_targets ${arg_TARGETS})
 endfunction()
 
+function(xxx_contains_generator_expressions input_string output_var)
+    string(GENEX_STRIP "${input_string}" stripped_string)
+    if(stripped_string STREQUAL input_string)
+        set(${output_var} False PARENT_SCOPE)
+    else()
+        set(${output_var} True PARENT_SCOPE)
+    endif()
+endfunction()
+
 # Declare headers for target (to be installed later)
 # xxx_target_headers(<target>
 #   HEADERS <list_of_headers>
@@ -684,10 +693,21 @@ function(xxx_target_headers target visibility)
     xxx_require_visibility(${visibility})
 
     # Add the header to the target sources (for IDEs)
+    # Note: target_sources handle the cases:
+    # - absolute path, use it as is.
+    # - relative path, but will assume it's relative to CMAKE_CURRENT_SOURCE_DIR
+    # - Generator expressions: needs to be absolute paths.
     set(install_headers "")
     foreach(header ${arg_HEADERS})
         cmake_path(IS_ABSOLUTE header is_abs)
-        if(is_abs)
+        xxx_contains_generator_expressions(${header} has_genex)
+
+        if(has_genex)
+            target_sources(${target} ${visibility}
+                $<BUILD_INTERFACE:${header}>
+                $<INSTALL_INTERFACE:${header}>)
+            list(APPEND install_headers ${header})
+        elseif(is_abs)
             if(NOT arg_BASE_DIRS)
                 message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the current source directory or to one of the BASE_DIRS specified.")
             else()
@@ -772,29 +792,34 @@ function(xxx_target_install_headers target)
     # Install headers, preserving directory structure
     foreach(header ${headers})
         cmake_path(IS_ABSOLUTE header is_abs)
-        if(is_abs)
-            message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the source directory.")
-        endif()
+        xxx_contains_generator_expressions(${header} has_genex)
 
-        # Determine the relative path from base_dirs
-        set(relative_path "")
-        foreach(base_dir ${base_dirs})
-            string(FIND ${header} ${base_dir} pos)
-            if(pos EQUAL 0)
-                # base_dir is a prefix of header
-                string(REPLACE ${base_dir} "" relative_path ${header})
-                # Remove leading '/' or '\' if present
-                string(REGEX REPLACE "^[\\/]" "" relative_path ${relative_path})
-                break()
-            endif()
-        endforeach()
-
-        if(relative_path)
-            cmake_path(GET relative_path PARENT_PATH header_dir)
-            install(FILES ${header} DESTINATION ${install_destination}/${header_dir})
-        else()
-            # No base directory matched, install without subdirectory
+        if(has_genex)
             install(FILES ${header} DESTINATION ${install_destination})
+        else()
+
+            if(is_abs)
+                message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the source directory.")
+            endif()
+
+            # Determine the relative path from base_dirs
+            set(relative_path "")
+            foreach(base_dir ${base_dirs})
+                string(FIND ${header} ${base_dir} pos)
+                if(pos EQUAL 0)
+                    string(REPLACE ${base_dir} "" relative_path ${header})
+                    string(REGEX REPLACE "^[\\/]" "" relative_path ${relative_path})
+                    break()
+                endif()
+            endforeach()
+
+            if(relative_path)
+                cmake_path(GET relative_path PARENT_PATH header_dir)
+                install(FILES ${header} DESTINATION ${install_destination}/${header_dir})
+            else()
+                # No base directory matched, install without subdirectory
+                install(FILES ${header} DESTINATION ${install_destination})
+            endif()
         endif()
     endforeach()
 endfunction()
