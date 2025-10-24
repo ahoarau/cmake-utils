@@ -984,19 +984,19 @@ endfunction()
 # Example: xxx_option(BUILD_TESTING "Build the tests" ON)
 # Override cmake option() to get a nice summary at the end of the configuration step
 function(xxx_option option_name description default_value)
-    xxx_require_variable(option_name)
-    xxx_require_variable(description)
-    xxx_require_variable(default_value)
-
-    # The call to the original option()
     option(${ARGV})
 
-    # Save the default value in a property
-    set_property(GLOBAL PROPERTY _xxx_option_${option_name}_default_value ${default_value})
-
-    # Save the option name in the list
-    set_property(GLOBAL PROPERTY _xxx_project_option_names ${option_name} APPEND)
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value})
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
 endfunction()
+
+function(xxx_cmake_dependent_option option_name description default_value condition else-value)
+    cmake_dependent_option(${ARGV})
+
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value})
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
+endfunction()
+
 
 # Helper function: pad or truncate a string to a fixed width
 function(pad_string input width output_var)
@@ -1021,7 +1021,7 @@ endfunction()
 # Print all options defined via xxx_option() in a nice table
 # Usage: xxx_print_option_summary()
 function(xxx_print_option_summary)
-    get_property(option_names GLOBAL PROPERTY _xxx_project_option_names)
+    get_property(option_names GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names)
     if(NOT option_names)
         message(STATUS "No options defined via xxx_option.")
         return()
@@ -1041,7 +1041,7 @@ function(xxx_print_option_summary)
     foreach(option_name ${option_names})
         get_property(_type CACHE ${option_name} PROPERTY TYPE)
         get_property(_val CACHE ${option_name} PROPERTY VALUE)
-        get_property(_default GLOBAL PROPERTY _xxx_option_${option_name}_default_value)
+        get_property(_default GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value)
         get_property(_help CACHE ${option_name} PROPERTY HELPSTRING)
 
         pad_string("${option_name}"      40 _name)
