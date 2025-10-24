@@ -541,31 +541,32 @@ macro(xxx_find_package)
 endmacro()
 
 function(xxx_print_dependency_summary)
-    # TODO: Find out if still necessary now that we have JSON package-dependencies.json
-    include(CMakePrintHelpers)
-
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
         message(STATUS "No dependencies found via xxx_find_package.")
         return()
     endif()
 
+    message( "")
+    message( "================= External Dependencies ======================================")
+    message( "")
+
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
     math(EXPR num_deps "${num_deps} - 1")
-    message(STATUS "Dependencies found via xxx_find_package: ${num_deps}")
+    message("${num_deps} dependencies declared xxx_find_package: ")
     foreach(i RANGE 0 ${num_deps})
         string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
 
         # Replace ; by , for better readability
         string(REPLACE ";" " " package_targets_pp "${package_targets}")
-        message(STATUS "    package [${package_name}] ==> targets [${package_targets_pp}]")
+        message("${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]")
 
         # Print target properties
         if(package_targets STREQUAL "")
             continue()
         endif()
-        cmake_print_properties(TARGETS ${package_targets} PROPERTIES
+        xxx_cmake_print_properties(TARGETS ${package_targets} PROPERTIES 
             LOCATION
             INCLUDE_DIRECTORIES
             COMPILE_DEFINITIONS
@@ -583,6 +584,128 @@ function(xxx_print_dependency_summary)
         )
     endforeach()
 endfunction()
+
+function(xxx_cmake_print_properties)
+  set(options )
+  set(oneValueArgs VERBOSITY)
+  set(cpp_multiValueArgs PROPERTIES)
+  set(cppmode_multiValueArgs TARGETS SOURCES TESTS DIRECTORIES CACHE_ENTRIES )
+
+  string(JOIN " " _mode_names ${cppmode_multiValueArgs})
+  set(_missing_mode_message
+    "Mode keyword missing in xxx_cmake_print_properties() call, there must be exactly one of ${_mode_names}")
+
+  cmake_parse_arguments(
+    CPP "${options}" "${oneValueArgs}" "${cpp_multiValueArgs}" ${ARGN})
+
+  if(NOT CPP_PROPERTIES)
+    message(FATAL_ERROR
+      "Required argument PROPERTIES missing in xxx_cmake_print_properties() call")
+    return()
+  endif()
+
+  set(verbosity)
+  if(CPP_VERBOSITY)
+    set(verbosity ${CPP_VERBOSITY})
+  endif()
+
+  if(NOT CPP_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR "${_missing_mode_message}")
+    return()
+  endif()
+
+  cmake_parse_arguments(
+    CPPMODE "${options}" "${oneValueArgs}" "${cppmode_multiValueArgs}"
+    ${CPP_UNPARSED_ARGUMENTS})
+
+  if(CPPMODE_UNPARSED_ARGUMENTS)
+    message(FATAL_ERROR
+      "Unknown keywords given to cmake_print_properties(): \"${CPPMODE_UNPARSED_ARGUMENTS}\"")
+    return()
+  endif()
+
+  set(mode)
+  set(items)
+  set(keyword)
+
+  if(CPPMODE_TARGETS)
+    set(items ${CPPMODE_TARGETS})
+    set(mode ${mode} TARGETS)
+    set(keyword TARGET)
+  endif()
+
+  if(CPPMODE_SOURCES)
+    set(items ${CPPMODE_SOURCES})
+    set(mode ${mode} SOURCES)
+    set(keyword SOURCE)
+  endif()
+
+  if(CPPMODE_TESTS)
+    set(items ${CPPMODE_TESTS})
+    set(mode ${mode} TESTS)
+    set(keyword TEST)
+  endif()
+
+  if(CPPMODE_DIRECTORIES)
+    set(items ${CPPMODE_DIRECTORIES})
+    set(mode ${mode} DIRECTORIES)
+    set(keyword DIRECTORY)
+  endif()
+
+  if(CPPMODE_CACHE_ENTRIES)
+    set(items ${CPPMODE_CACHE_ENTRIES})
+    set(mode ${mode} CACHE_ENTRIES)
+    # This is a workaround for the fact that passing `CACHE` as an argument to
+    # set() causes a cache variable to be set.
+    set(keyword "")
+    string(APPEND keyword CACHE)
+  endif()
+
+  if(NOT mode)
+    message(FATAL_ERROR "${_missing_mode_message}")
+    return()
+  endif()
+
+  list(LENGTH mode modeLength)
+  if("${modeLength}" GREATER 1)
+    message(FATAL_ERROR
+      "Multiple mode keywords used in cmake_print_properties() call, there must be exactly one of ${_mode_names}.")
+    return()
+  endif()
+
+  set(msg "\n")
+  foreach(item ${items})
+
+    set(itemExists TRUE)
+    if(keyword STREQUAL "TARGET")
+      if(NOT TARGET ${item})
+        set(itemExists FALSE)
+        string(APPEND msg "\n No such TARGET \"${item}\" !\n\n")
+      endif()
+    endif()
+
+    if (itemExists)
+      string(APPEND msg " Properties for ${keyword} ${item}:\n")
+      foreach(prop ${CPP_PROPERTIES})
+
+        get_property(propertySet ${keyword} ${item} PROPERTY "${prop}" SET)
+
+        if(propertySet)
+          get_property(property ${keyword} ${item} PROPERTY "${prop}")
+        #   string(APPEND msg "   ${item}.${prop} = \"${property}\"\n")
+          string(APPEND msg "   ${prop} = \"${property}\"\n")
+        else()
+          # EDIT: Do not print unset properties
+          # string(APPEND msg "   ${item}.${prop} = <NOTFOUND>\n")
+        endif()
+      endforeach()
+    endif()
+
+  endforeach()
+  message(${verbosity} "${msg}")
+
+endfunction()
+
 
 # Usage: xxx_export_dependencies(EXPORT <export_name> FILE <output_file> DESTINATION <install_destination> TARGETS <target1> <target2> ...)
 # This function analyzes the link libraries of the provided targets,
