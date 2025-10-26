@@ -707,21 +707,22 @@ function(xxx_cmake_print_properties)
 endfunction()
 
 
-# Usage: xxx_export_dependencies(EXPORT <export_name> FILE <output_file> DESTINATION <install_destination> TARGETS <target1> <target2> ...)
+# Usage: xxx_export_dependencies(TARGETS <target1> <target2> ... DESTINATION <destination> GEN_DIR <gen_dir> COMPONENT <component>)
 # This function analyzes the link libraries of the provided targets,
 # determines which packages are needed and generates a <export_name>-dependencies.cmake file
 function(xxx_export_dependencies)
     set(options)
-    set(oneValueArgs EXPORT FILE DESTINATION GEN_DIR COMPONENT)
+    set(oneValueArgs DESTINATION GEN_DIR COMPONENT)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
-    xxx_require_variable(arg_EXPORT)
-    xxx_require_variable(arg_FILE)
     xxx_require_variable(arg_TARGETS)
     xxx_require_variable(arg_DESTINATION)
-    xxx_require_variable(arg_GEN_DIR)
     xxx_require_variable(arg_COMPONENT)
+
+    if(NOT arg_GEN_DIR)
+        set(arg_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
+    endif()
 
     # Get all BUILDSYSTEM_TARGETS of the current project (i.e. added via add_library/add_executable)
     # We need this to filter out internal targets when analyzing link libraries
@@ -1067,10 +1068,7 @@ function(xxx_generate_package_module_files)
         # <package>-<component>-dependencies.cmake
         xxx_export_dependencies(
             TARGETS ${targets}
-            EXPORT ${PROJECT_NAME}-${component}
             COMPONENT ${component}
-            GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}
-            FILE ${PROJECT_NAME}-component-${component}-dependencies.cmake
             DESTINATION ${DESTINATION}
             NAMESPACE ${NAMESPACE}
         )
