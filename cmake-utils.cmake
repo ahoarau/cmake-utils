@@ -1113,6 +1113,7 @@ function(xxx_option option_name description default_value)
 endfunction()
 
 function(xxx_cmake_dependent_option option_name description default_value condition else-value)
+    include(CMakeDependentOption)
     cmake_dependent_option(${ARGV})
 
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value})
