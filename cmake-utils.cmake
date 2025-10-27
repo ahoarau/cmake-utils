@@ -1185,10 +1185,6 @@ endfunction()
 # Example: xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
 macro(xxx_find_python)
     xxx_find_package(Python ${ARGN})
-    xxx_require_variable(Python_EXECUTABLE)
-    xxx_require_variable(Python_INCLUDE_DIRS)
-    xxx_require_variable(Python_LIBRARIES)
-    xxx_require_variable(Python_SITELIB)
 
     message(DEBUG "[${PROJECT_NAME}]
         Python executable           : ${Python_EXECUTABLE}
