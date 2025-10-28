@@ -45,17 +45,7 @@ macro(xxx_configure_apple_rpath)
     set(CMAKE_SKIP_BUILD_RPATH False)
     set(CMAKE_BUILD_WITH_INSTALL_RPATH False)
     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
-
-    set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    list(
-      FIND
-      CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES
-      "${CMAKE_INSTALL_PREFIX}/lib"
-      isSystemDir
-    )
-    if("${isSystemDir}" STREQUAL "-1")
-      set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
-    endif()
+    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
   endif()
 endmacro()
 
