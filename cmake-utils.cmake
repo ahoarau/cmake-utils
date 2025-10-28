@@ -535,6 +535,8 @@ macro(xxx_find_package)
     unset(deps_length)
 endmacro()
 
+# xxx_print_dependency_summary()
+# Print a summary of all dependencies found via xxx_find_package, and some properties of their imported targets.
 function(xxx_print_dependency_summary)
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
@@ -580,6 +582,9 @@ function(xxx_print_dependency_summary)
     endforeach()
 endfunction()
 
+# xxx_cmake_print_properties
+# Usage: xxx_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>])
+# This is taken and adapted from cmake's own cmake_print_properties function to add verbosity control and print only found properties.
 function(xxx_cmake_print_properties)
   set(options )
   set(oneValueArgs VERBOSITY)
@@ -753,9 +758,10 @@ set(imported_libraries \"${all_link_libraries}\")
     )
 endfunction()
 
-# Declare a component for the current project.
-# Each component declared and associated to a set of targets will have its own <package>-<component>-targets.cmake 
-# and  <target>-<component>-dependencies.cmake generated.
+# xxx_declare_component(COMPONENT <component_name> TARGETS <target1> <target2> ...)
+# Declare a component for the current project, with associated targets.
+# Each component declared and associated to a set of targets will have its own <package>-component-<component>-targets.cmake 
+# and <package>-component-<component>-dependencies.cmake generated.
 # Components are used as follow: find_package(<package> CONFIG REQUIRED COMPONENTS <component1> <component2> ...)
 function(xxx_declare_component)
     set(options)
@@ -788,6 +794,9 @@ function(xxx_declare_component)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_COMPONENT}_targets ${arg_TARGETS})
 endfunction()
 
+# xxx_contains_generator_expressions(<input_string> <output_var>)
+# Check if the provided string contains generator expressions.
+# Sets output_var to True or False.
 function(xxx_contains_generator_expressions input_string output_var)
     string(GENEX_STRIP "${input_string}" stripped_string)
     if(stripped_string STREQUAL input_string)
@@ -797,11 +806,14 @@ function(xxx_contains_generator_expressions input_string output_var)
     endif()
 endfunction()
 
-# Declare headers for target (to be installed later)
 # xxx_target_headers(<target>
 #   HEADERS <list_of_headers>
 #   BASE_DIRS <list_of_base_dirs> # Optional, default is empty
 # )
+# Declare headers for target (to be installed later)
+# This will populate the _xxx_install_headers and _xxx_install_headers_base_dirs properties of the target.
+# In CMake 3.23, we will use FILE_SETS instead of this trick.
+# cf: https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets
 function(xxx_target_headers target visibility)
     set(options)
     set(oneValueArgs GENERATED_DIR)
@@ -823,8 +835,12 @@ function(xxx_target_headers target visibility)
     set_property(TARGET ${target} APPEND PROPERTY _xxx_install_headers_base_dirs "${arg_BASE_DIRS}")
 endfunction()
 
-# Install declared header for a given target
-# For a whole project, use xxx_install_headers() instead
+# xxx_target_install_headers(<target>
+#   DESTINATION <destination> # Optional, default is CMAKE_INSTALL_INCLUDEDIR
+# )
+# Install declared header for a given target and solve the relative path using the provided base dirs.
+# It is using the _xxx_install_headers and _xxx_install_headers_base_dirs properties set via xxx_target_headers().
+# For a whole project, use xxx_install_headers() instead (which calls this function for each component, that contains targets).
 function(xxx_target_install_headers target)
     set(options)
     set(oneValueArgs DESTINATION)
@@ -884,6 +900,10 @@ endforeach()
     install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake)
 endfunction()
 
+# xxx_install_headers(
+#   DESTINATION <destination> # Optional, default is CMAKE_INSTALL_INCLUDEDIR
+#   COMPONENTS <component1> <component2> ... # Optional, default is all declared components
+# )
 # For each component, install declared headers for all targets.
 # See xxx_target_headers() to declare headers for a target.
 function(xxx_install_headers)
