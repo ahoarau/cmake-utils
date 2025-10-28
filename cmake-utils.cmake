@@ -1030,7 +1030,7 @@ function(xxx_generate_package_module_files)
 
         get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
 
-        # <package>-<component>-dependencies.cmake
+        # <package>-component-<component>-dependencies.cmake
         xxx_export_dependencies(
             TARGETS ${targets}
             COMPONENT ${component}
@@ -1045,7 +1045,7 @@ function(xxx_generate_package_module_files)
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
-        # <package>-<component>-targets.cmake
+        # <package>-component-<component>-targets.cmake
         install(EXPORT ${PROJECT_NAME}-${component}
             FILE ${PROJECT_NAME}-component-${component}-targets.cmake
             NAMESPACE ${NAMESPACE}
@@ -1054,6 +1054,10 @@ function(xxx_generate_package_module_files)
     endforeach()
 endfunction()
 
+# _xxx_dump_package_dependencies_json()
+# Internal function to dump the package dependencies recorded with xxx_find_package()
+# It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
+# In the function xxx_generate_package_module_files().
 function(_xxx_dump_package_dependencies_json)
     get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT package_dependencies_json)
@@ -1141,7 +1145,7 @@ function(xxx_print_option_summary)
         message( "${_name} | ${_type} | ${_val} | ${_help} (${_default})")
     endforeach()
 
-    message( "----------------------------------------------------------")
+    message( "------------------------------------------------------------------------------")
     message( "")
 endfunction()
 
