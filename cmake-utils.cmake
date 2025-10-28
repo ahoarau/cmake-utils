@@ -884,30 +884,6 @@ endforeach()
     install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake)
 endfunction()
 
-
-function(xxx_target_install_interface_sources target)
-    set(options)
-    set(oneValueArgs DESTINATION)
-    set(multiValueArgs BASE_DIRS)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-
-    xxx_require_target(${target})
-
-    get_target_property(interface_sources ${target} INTERFACE_SOURCES)
-    if(NOT interface_sources)
-        message(FATAL_ERROR "Cannot install any header, as target '${target}' has no INTERFACE_SOURCES property set. 
-                To install headers, declare them with target_sources(<target> INTERFACE <header1> <header2> ...).")
-    endif()
-
-    if(NOT arg_DESTINATION)
-        set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
-    else()
-        set(install_destination ${arg_DESTINATION})
-    endif()
-
-    install(FILES ${interface_sources} DESTINATION ${install_destination})
-endfunction()
-
 # For each component, install declared headers for all targets.
 # See xxx_target_headers() to declare headers for a target.
 function(xxx_install_headers)
