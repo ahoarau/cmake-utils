@@ -873,10 +873,10 @@ foreach(header \${headers})
 
     if(relative_path)
         cmake_path(GET relative_path PARENT_PATH header_dir)
-        file(INSTALL \${header_path} DESTINATION ${install_destination}/\${header_dir})
+        file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${install_destination}/\${header_dir}\" TYPE FILE FILES \${header_path})
     else()
         # No base directory matched, install without subdirectory
-        file(INSTALL \${header_path} DESTINATION ${install_destination})
+        file(INSTALL DESTINATION \"\${CMAKE_INSTALL_PREFIX}/${install_destination}\" TYPE FILE FILES \${header_path})
     endif()
 endforeach()
 "
