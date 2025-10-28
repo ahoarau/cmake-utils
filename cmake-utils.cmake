@@ -281,13 +281,8 @@ function(xxx_target_generate_header target_name visibility)
     if(arg_SKIP_INSTALL)
         return()
     endif()
-######
-######
-######     Make this work
-######    xxx_target_headers(${target_name} ${visibility} HEADERS ${output_file} BASE_DIRS ${arg_HEADER_DIR})
-######
-    message("Installing header ${output_file} to ${arg_INSTALL_DESTINATION}")
-    install(FILES ${output_file} DESTINATION ${arg_INSTALL_DESTINATION})
+
+    xxx_target_headers(${target_name} ${visibility} HEADERS ${output_file} BASE_DIRS ${arg_HEADER_DIR})
 endfunction()
 
 function(xxx_target_generate_warning_header target_name visibility)
@@ -817,53 +812,6 @@ function(xxx_target_headers target visibility)
     xxx_require_target(${target})
     xxx_require_visibility(${visibility})
 
-    # Add the header to the target sources (for IDEs)
-    # Note: target_sources handle the cases:
-    # - absolute path, use it as is.
-    # - relative path, but will assume it's relative to CMAKE_CURRENT_SOURCE_DIR
-    # - Generator expressions: needs to be absolute paths.
-    set(install_headers "")
-    foreach(header ${arg_HEADERS})
-        cmake_path(IS_ABSOLUTE header is_abs)
-        xxx_contains_generator_expressions(${header} has_genex)
-
-        if(has_genex)
-            message(FATAL_ERROR "Header '${header}' contains generator expressions. Headers with generator expressions are not supported in xxx_target_headers().")
-        elseif(is_abs)
-            if(NOT arg_BASE_DIRS)
-                message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the current source directory or to one of the BASE_DIRS specified.")
-            else()
-                # Check if header starts with one of the base dirs
-                set(found_base_dir "")
-                foreach(base_dir ${arg_BASE_DIRS})
-                    string(FIND ${header} ${base_dir} pos)
-                    if(pos EQUAL 0)
-                        set(found_base_dir ${base_dir})
-                        break()
-                    endif()
-                endforeach()
-
-                if(${found_base_dir} STREQUAL "")
-                    message(FATAL_ERROR "Header '${header}' is an absolute path and does not start with any of the specified BASE_DIRS: ${arg_BASE_DIRS}. It should be a relative path to one of the BASE_DIRS.")
-                endif()
-                # Compute the relative path from the found base dir
-                string(REPLACE ${found_base_dir} "" relative_header ${header})
-
-                target_sources(${target} ${visibility}
-                    $<BUILD_INTERFACE:${header}>
-                    $<INSTALL_INTERFACE:${relative_header}>)
-                list(APPEND install_headers ${relative_header})
-            endif()
-        else()
-            # Default is using CMAKE_CURRENT_SOURCE_DIR as base dir
-            target_sources(${target} ${visibility}
-                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${header}>
-                $<INSTALL_INTERFACE:${header}>)
-            list(APPEND install_headers ${header})
-        endif()
-        
-    endforeach()
-
     if(NOT arg_BASE_DIRS)
         set(arg_BASE_DIRS "")
     endif()
@@ -871,8 +819,8 @@ function(xxx_target_headers target visibility)
     # Save the headers in a property of the target
     # NOTE: The PUBLIC_HEADER technically works, but does not support base_dirs
     # cf: https://cmake.org/cmake/help/latest/command/install.html#install
-    set_property(TARGET ${target} APPEND PROPERTY _xxx_${visibility}_headers "${install_headers}")
-    set_property(TARGET ${target} APPEND PROPERTY _xxx_${visibility}_header_base_dirs "${arg_BASE_DIRS}")
+    set_property(TARGET ${target} APPEND PROPERTY _xxx_install_headers "${arg_HEADERS}")
+    set_property(TARGET ${target} APPEND PROPERTY _xxx_install_headers_base_dirs "${arg_BASE_DIRS}")
 endfunction()
 
 # Install declared header for a given target
@@ -891,56 +839,49 @@ function(xxx_target_install_headers target)
         set(install_destination ${arg_DESTINATION})
     endif()
 
-    # Retrieve PUBLIC and INTERFACE headers and base directories from target properties
-    set(vs PUBLIC INTERFACE)
-    set(headers "")
-    set(base_dirs "")
-    foreach(visibility ${vs})
-        get_property(h TARGET ${target} PROPERTY _xxx_${visibility}_headers)
-        get_property(bd TARGET ${target} PROPERTY _xxx_${visibility}_header_base_dirs)
-
-        if(h)
-            list(APPEND headers ${h})
-        endif()
-        if(bd)
-            list(APPEND base_dirs ${bd})
-        endif()
-    endforeach()
+    get_target_property(headers ${target} _xxx_install_headers)
+    get_target_property(base_dirs ${target} _xxx_install_headers_base_dirs)
 
     if(NOT headers)
+        message(WARNING "No headers declared for target '${target}'. Skipping installation.")
         return()
     endif()
 
-    # Install headers, preserving directory structure
-    foreach(header ${headers})
-        cmake_path(IS_ABSOLUTE header is_abs)
-        xxx_contains_generator_expressions(${header} has_genex)
-
-        if(has_genex)
-            message(FATAL_ERROR "Header '${header}' contains generator expressions. Headers with generator expressions are not supported in xxx_target_headers().")
-        endif()
-
-        if(is_abs)
-            message(FATAL_ERROR "Header '${header}' is an absolute path. It should be a relative path to the source directory.")
-        endif()
-
-        set(relative_path "")
-        foreach(base_dir ${base_dirs})
-            string(FIND ${header} ${base_dir} pos)
-            if(pos EQUAL 0)
-                string(REPLACE ${base_dir} "" relative_path ${header})
-                break()
-            endif()
-        endforeach()
-
-        if(relative_path)
-            cmake_path(GET relative_path PARENT_PATH header_dir)
-            install(FILES ${header} DESTINATION ${install_destination}/${header_dir})
-        else()
-            # No base directory matched, install without subdirectory
-            install(FILES ${header} DESTINATION ${install_destination})
+    file(GENERATE 
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake
+        CONTENT "
+# Generated file - do not edit
+# This file contains the list of headers declared for target '${target}' with visibility '${visibility}'
+set(headers \"${headers}\")
+set(base_dirs \"${base_dirs}\")
+foreach(header \${headers})
+    foreach(base_dir \${base_dirs})
+        string(FIND \${header} \${base_dir} pos)
+        if(pos EQUAL 0)
+            string(REPLACE \${base_dir} \"\" relative_path \${header})
+            string(REGEX REPLACE \"^/\" \"\" relative_path \${relative_path})
+            break()
         endif()
     endforeach()
+
+    cmake_path(IS_ABSOLUTE header is_abs)
+    if(is_abs)
+        set(header_path \${header})
+    else()
+        set(header_path ${CMAKE_CURRENT_SOURCE_DIR}/\${header})
+    endif()
+
+    if(relative_path)
+        cmake_path(GET relative_path PARENT_PATH header_dir)
+        file(INSTALL \${header_path} DESTINATION ${install_destination}/\${header_dir})
+    else()
+        # No base directory matched, install without subdirectory
+        file(INSTALL \${header_path} DESTINATION ${install_destination})
+    endif()
+endforeach()
+"
+    )
+    install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake)
 endfunction()
 
 
