@@ -1051,10 +1051,6 @@ function(_xxx_dump_package_dependencies_json)
         return()
     endif()
     file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json "${package_dependencies_json}")
-    install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
-    )
 endfunction()
 
 # xxx_option(<option_name> <description> <default_value>)
