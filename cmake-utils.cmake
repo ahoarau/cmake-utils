@@ -1137,6 +1137,9 @@ endfunction()
 macro(xxx_find_python)
     xxx_find_package(Python ${ARGN})
 
+    # On Windows, Python_SITELIB returns \. Let's convert it to /.
+    cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
+
     message(DEBUG "[${PROJECT_NAME}]
         Python executable           : ${Python_EXECUTABLE}
         Python include directories  : ${Python_INCLUDE_DIRS}
@@ -1158,7 +1161,11 @@ macro(xxx_find_nanobind)
       OUTPUT_VARIABLE nanobind_ROOT
     )
     message(DEBUG "[${PROJECT_NAME}] nanobind cmake directory: ${nanobind_ROOT}")
-    xxx_find_package(nanobind CONFIG REQUIRED)
+    if(${ARGC} GREATER 0)
+        xxx_find_package(nanobind ${ARGN})
+    else()
+        xxx_find_package(nanobind CONFIG REQUIRED)
+    endif()
 endmacro()
 
 # gersemi: on
