@@ -1170,7 +1170,7 @@ endmacro()
 
 function(xxx_python_compile_file)
     set(options)
-    set(oneValueArgs FILE GEN_DIR INSTALL_DESTINATION)
+    set(oneValueArgs FILE GEN_DIR)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -1178,7 +1178,6 @@ function(xxx_python_compile_file)
 
     xxx_require_variable(arg_FILE)
     xxx_require_variable(arg_GEN_DIR)
-    xxx_require_variable(arg_INSTALL_DESTINATION)
 
     execute_process(
         COMMAND ${Python_EXECUTABLE} -c "import py_compile; print(py_compile.compile(r'${arg_FILE}', doraise=True), end='')"
@@ -1199,23 +1198,17 @@ function(xxx_python_compile_file)
     file(COPY ${arg_FILE} DESTINATION ${arg_GEN_DIR})
     file(COPY ${compiled_file} DESTINATION ${arg_GEN_DIR}/__pycache__)
     set_source_files_properties(${compiled_file} PROPERTIES GENERATED True)
-
-    install(
-      FILES ${compiled_file}
-      DESTINATION ${arg_INSTALL_DESTINATION}
-    )
 endfunction()
 
 
 function(xxx_python_compile_files)
     set(options)
-    set(oneValueArgs GEN_DIR INSTALL_DESTINATION)
+    set(oneValueArgs GEN_DIR)
     set(multiValueArgs FILES)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     xxx_require_variable(arg_FILES)
     xxx_require_variable(arg_GEN_DIR)
-    xxx_require_variable(arg_INSTALL_DESTINATION)
 
     # Each file needs to be relative to the current source dir to respect directory structure
     foreach(file ${arg_FILES})
@@ -1226,20 +1219,9 @@ function(xxx_python_compile_files)
 
     foreach(file ${arg_FILES})
         cmake_path(GET file PARENT_PATH file_dir)
-        message(STATUS "Compiling Python file '${file}' 
-        
-        arg_GEN_DIR=${arg_GEN_DIR}
-        file_dir=${file_dir}
-            --> ${arg_GEN_DIR}/${file_dir}
-        
-        arg_INSTALL_DESTINATION=${arg_INSTALL_DESTINATION}
-            --> ${arg_INSTALL_DESTINATION}/${file_dir}   
-
-         ")
         xxx_python_compile_file(
             FILE ${file}
             GEN_DIR ${arg_GEN_DIR}/${file_dir}
-            INSTALL_DESTINATION ${arg_INSTALL_DESTINATION}/${file_dir}
         )
     endforeach()
 endfunction()
