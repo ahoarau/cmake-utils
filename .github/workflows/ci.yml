@@ -1,0 +1,149 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} - CMake ${{ matrix.cmake-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04, windows-latest, macos-13, macos-latest]
+        cmake-version: ['3.22.x', '3.25.x', '3.28.x', 'latest']
+        exclude:
+          # Ubuntu 24.04 requires CMake >= 3.28
+          - os: ubuntu-24.04
+            cmake-version: '3.22.x'
+          - os: ubuntu-24.04
+            cmake-version: '3.25.x'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup CMake ${{ matrix.cmake-version }}
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: ${{ matrix.cmake-version }}
+      
+      - name: Verify CMake version
+        run: cmake --version
+      
+      - name: Configure project
+        run: cmake -B build -S .
+      
+      - name: Verify cmake-utils.cmake can be included
+        shell: bash
+        run: |
+          mkdir -p test_include
+          cat > test_include/CMakeLists.txt << 'EOF'
+          cmake_minimum_required(VERSION 3.22...4.1)
+          project(test)
+          include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake-utils.cmake)
+          message(STATUS "cmake-utils.cmake loaded successfully")
+          EOF
+          cmake -B test_include/build -S test_include
+      
+      - name: Test basic functionality
+        shell: bash
+        run: |
+          mkdir -p test_functionality
+          cat > test_functionality/CMakeLists.txt << 'EOF'
+          cmake_minimum_required(VERSION 3.22...4.1)
+          project(test_project)
+          include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake-utils.cmake)
+          
+          # Test xxx_configure_default_build_type
+          xxx_configure_default_build_type(Release)
+          message(STATUS "Build type configured: ${CMAKE_BUILD_TYPE}")
+          
+          # Test xxx_configure_default_binary_dirs
+          xxx_configure_default_binary_dirs()
+          message(STATUS "Binary dirs configured")
+          
+          message(STATUS "All basic functionality tests passed")
+          EOF
+          cmake -B test_functionality/build -S test_functionality
+
+  test-debian:
+    name: Debian - CMake ${{ matrix.cmake-version }}
+    runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
+    strategy:
+      fail-fast: false
+      matrix:
+        cmake-version: ['3.25.*', '3.28.*']
+    
+    steps:
+      - name: Install dependencies
+        run: |
+          apt-get update
+          apt-get install -y wget build-essential libssl-dev git
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install CMake ${{ matrix.cmake-version }}
+        run: |
+          if [ "${{ matrix.cmake-version }}" = "3.25.*" ]; then
+            CMAKE_VERSION="3.25.3"
+          elif [ "${{ matrix.cmake-version }}" = "3.28.*" ]; then
+            CMAKE_VERSION="3.28.3"
+          fi
+          wget -q https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
+          chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
+          ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=/usr/local
+          cmake --version
+      
+      - name: Configure project
+        run: cmake -B build -S .
+      
+      - name: Test cmake-utils inclusion
+        run: |
+          mkdir -p test_include
+          cat > test_include/CMakeLists.txt << 'EOF'
+          cmake_minimum_required(VERSION 3.22...4.1)
+          project(test)
+          include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake-utils.cmake)
+          message(STATUS "cmake-utils.cmake loaded successfully on Debian")
+          EOF
+          cmake -B test_include/build -S test_include
+
+  test-arch:
+    name: Arch Linux - CMake latest
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+    
+    steps:
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm cmake gcc git
+      
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Verify CMake version
+        run: cmake --version
+      
+      - name: Configure project
+        run: cmake -B build -S .
+      
+      - name: Test cmake-utils inclusion
+        run: |
+          mkdir -p test_include
+          cat > test_include/CMakeLists.txt << 'EOF'
+          cmake_minimum_required(VERSION 3.22...4.1)
+          project(test)
+          include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake-utils.cmake)
+          message(STATUS "cmake-utils.cmake loaded successfully on Arch Linux")
+          EOF
+          cmake -B test_include/build -S test_include
