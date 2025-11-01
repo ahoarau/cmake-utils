@@ -1164,7 +1164,7 @@ macro(xxx_find_nanobind)
     if(${ARGC} GREATER 0)
         xxx_find_package(nanobind ${ARGN})
     else()
-        xxx_find_package(nanobind CONFIG REQUIRED)
+        xxx_find_package(nanobind CONFIG)
     endif()
 endmacro()
 
