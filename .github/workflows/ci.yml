@@ -79,7 +79,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cmake-version: ['3.25.*', '3.28.*']
+        # Use specific versions for Debian since we install manually
+        cmake-version: ['3.25.3', '3.28.3']
     
     steps:
       - name: Install dependencies
@@ -92,11 +93,7 @@ jobs:
       
       - name: Install CMake ${{ matrix.cmake-version }}
         run: |
-          if [ "${{ matrix.cmake-version }}" = "3.25.*" ]; then
-            CMAKE_VERSION="3.25.3"
-          elif [ "${{ matrix.cmake-version }}" = "3.28.*" ]; then
-            CMAKE_VERSION="3.28.3"
-          fi
+          CMAKE_VERSION="${{ matrix.cmake-version }}"
           wget -q https://github.com/Kitware/CMake/releases/download/v${CMAKE_VERSION}/cmake-${CMAKE_VERSION}-linux-x86_64.sh
           chmod +x cmake-${CMAKE_VERSION}-linux-x86_64.sh
           ./cmake-${CMAKE_VERSION}-linux-x86_64.sh --skip-license --prefix=/usr/local
