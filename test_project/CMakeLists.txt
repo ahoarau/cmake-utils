@@ -26,36 +26,28 @@ if(BUILD_PYTHON_BINDINGS AND NOT nanobind_FOUND)
 endif()
 
 # Create libraries
-add_library(math_lib STATIC)
-target_sources(math_lib PRIVATE
+add_library(test_project SHARED)
+target_sources(test_project PRIVATE
     src/Math.cpp
-)
-target_include_directories(math_lib PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
-)
-target_compile_features(math_lib PUBLIC cxx_std_17)
-
-add_library(string_lib SHARED)
-target_sources(string_lib PRIVATE
     src/StringUtils.cpp
 )
-target_include_directories(string_lib PUBLIC
+target_include_directories(test_project PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_compile_features(string_lib PUBLIC cxx_std_17)
+target_compile_features(test_project PUBLIC cxx_std_17)
 
 # Set compile options
-xxx_target_set_default_compile_options(math_lib PUBLIC)
-xxx_target_set_default_compile_options(string_lib PUBLIC)
+xxx_target_set_default_compile_options(test_project PUBLIC)
+xxx_target_generate_config_header(test_project PUBLIC)
 
-# Generate config headers
-xxx_target_generate_config_header(math_lib PUBLIC)
-xxx_target_generate_config_header(string_lib PUBLIC)
+include(GenerateExportHeader)
+generate_export_header(test_project
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/generated/include/test_project/export.hpp
+)
 
 # Declare components
-xxx_declare_component(COMPONENT core TARGETS math_lib string_lib)
+xxx_declare_component(COMPONENT test_project TARGETS test_project)
 
 # Python bindings
 if(BUILD_PYTHON_BINDINGS)
@@ -63,8 +55,7 @@ if(BUILD_PYTHON_BINDINGS)
 endif()
 
 # Install headers
-xxx_target_headers(math_lib PUBLIC HEADERS include/test_project/Math.hpp BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
-xxx_target_headers(string_lib PUBLIC HEADERS include/test_project/StringUtils.hpp BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/include)
+xxx_target_headers(test_project PUBLIC HEADERS include/test_project/Math.hpp BASE_DIRS include)
 
 # Generate package files
 xxx_generate_package_module_files()
