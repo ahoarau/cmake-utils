@@ -1,0 +1,40 @@
+import contextlib
+import os
+import sys
+
+class DllDirectoryManager(contextlib.AbstractContextManager):
+    """Restore DllDirectory state after importing Python module"""
+
+    def add_dll_directory(self, dll_dir: str):
+        # add_dll_directory can fail on relative path and non
+        # existing path.
+        # Since we don't know all the fail criterion we just ignore
+        # thrown exception
+        try:
+            self.dll_dirs.append(os.add_dll_directory(dll_dir))
+        except OSError:
+            pass
+
+    def __enter__(self):
+        self.dll_dirs = []
+        return self
+
+    def __exit__(self, *exc_details):
+        for d in self.dll_dirs:
+            d.close()
+
+try:
+    from .@PYTHON_MODULE_NAME@ import *  # noqa
+except ImportError:
+    import platform
+
+    if platform.system() == 'Windows':
+        with DllDirectoryManager() as mgr:
+            module_path = os.path.dirname(__file__)
+            mgr.add_dll_directory(os.path.join(module_path, 'bin'))
+            mgr.add_dll_directory(os.path.join(module_path, '..', 'bin'))
+            mgr.add_dll_directory(os.path.join(module_path, '..', '..', 'bin'))
+            mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
+            from .@PYTHON_MODULE_NAME@ import *  # noqa
+    else:
+        raise
