@@ -1,0 +1,36 @@
+{
+  "name": "cmake-utils (Ubuntu 24.04 x86_64)",
+  "build": {
+    "dockerfile": "../Dockerfile",
+    "args": {
+      "UBUNTU_VERSION": "24.04",
+      "TARGETARCH": "amd64"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.cpptools",
+        "ms-vscode.cmake-tools",
+        "twxs.cmake",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.copilot"
+      ],
+      "settings": {
+        "cmake.configureOnOpen": false,
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools"
+      }
+    }
+  },
+  "remoteUser": "vscode",
+  "postCreateCommand": "git config --global safe.directory ${containerWorkspaceFolder}",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "username": "vscode",
+      "userUid": 1000,
+      "userGid": 1000
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  }
+}
