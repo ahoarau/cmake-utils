@@ -28,7 +28,7 @@ if(BUILD_PYTHON_BINDINGS)
 endif()
 
 if(BUILD_TESTS)
-    xxx_find_package(Catch2 CONFIG REQUIRED)
+    xxx_find_package(Catch2 3.4.0 CONFIG REQUIRED)
     include(Catch)
 endif()
 
@@ -58,7 +58,7 @@ xxx_target_generate_deprecated_header(test_project PUBLIC)
 
 # Python bindings
 if(BUILD_PYTHON_BINDINGS)
-    message(STATUS "[${PROJECT_NAME} Building Python bindings")
+    message(STATUS "[${PROJECT_NAME}] Building Python bindings")
     add_subdirectory(python_bindings)
 endif()
 
