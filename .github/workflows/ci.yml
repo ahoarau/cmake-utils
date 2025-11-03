@@ -29,17 +29,20 @@ jobs:
       if: matrix.os == 'ubuntu-24.04'
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ catch2 nanobind-dev python3-pytest
+        sudo apt-get install -y cmake ninja-build g++ catch2 python3-pip 
+        pip3 install nanobind pytest
 
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install cmake ninja gcc python nanobind catch2 robin-map
+        brew install cmake ninja gcc python catch2
+        pip3 install nanobind pytest
 
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
       run: |
-        vcpkg install ninja python3 nanobind catch2 --triplet x64-windows
+        vcpkg install ninja python3 catch2
+        pip3 install nanobind pytest
 
     - name: Install Nanobind & Pytest
       run: |
