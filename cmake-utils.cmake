@@ -489,12 +489,24 @@ macro(xxx_find_package)
     unset(variables_before)
     unset(imported_targets_before)
 
+    if(${package_name}_VERSION)
+        message("   Version: ${${package_name}_VERSION}")
+    endif()
+
     string(REPLACE ";" ", " package_variables_pp "${package_variables}")
-    message(DEBUG "   New variables detected: ${package_variables_pp}")
+    if(package_variables)
+        message(DEBUG "   New variables detected: ${package_variables_pp}")
+    else()
+        message("   No new variables detected.")
+    endif()
     unset(package_variables_pp)
 
     string(REPLACE ";" ", " package_targets_pp "${package_targets}")
-    message("   Imported targets detected: ${package_targets_pp}")
+    if(package_targets)
+        message("   Imported targets detected: ${package_targets_pp}")
+    else()
+        message("   No imported targets detected.")
+    endif()
     unset(package_targets_pp)
 
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
@@ -542,7 +554,7 @@ function(xxx_print_dependency_summary)
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
 
         # Replace ; by , for better readability
-        string(REPLACE ";" " " package_targets_pp "${package_targets}")
+        string(REPLACE ";" ", " package_targets_pp "${package_targets}")
         message("${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]")
 
         # Print target properties
@@ -1153,14 +1165,22 @@ endmacro()
 macro(xxx_find_nanobind)
     xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
 
+    xxx_require_variable(Python_EXECUTABLE)
+
     # Detect the installed nanobind package and import it into CMake
     # ref: https://nanobind.readthedocs.io/en/latest/building.html#finding-nanobind
     execute_process(
       COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE nanobind_ROOT
+      ERROR_VARIABLE nanobind_error
     )
-    message(DEBUG "[${PROJECT_NAME}] nanobind cmake directory: ${nanobind_ROOT}")
+    
+    if(nanobind_error)
+        message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
+    endif()
+    
+    message("   Nanobind CMake directory: ${nanobind_ROOT}")
     if(${ARGC} GREATER 0)
         xxx_find_package(nanobind ${ARGN})
     else()
