@@ -1156,10 +1156,12 @@ macro(xxx_find_nanobind)
     # Detect the installed nanobind package and import it into CMake
     # ref: https://nanobind.readthedocs.io/en/latest/building.html#finding-nanobind
     execute_process(
-      COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
+      COMMAND Python::Interpreter -m nanobind --cmake_dir
       OUTPUT_STRIP_TRAILING_WHITESPACE
       OUTPUT_VARIABLE nanobind_ROOT
     )
+    mark_as_advanced(nanobind_ROOT)
+    
     message(DEBUG "[${PROJECT_NAME}] nanobind cmake directory: ${nanobind_ROOT}")
     if(${ARGC} GREATER 0)
         xxx_find_package(nanobind ${ARGN})
