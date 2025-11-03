@@ -1,0 +1,38 @@
+name: Windows CI
+
+on: push
+
+jobs:
+  windows-with-vcpkg:
+    name: Windows ${{ matrix.os }}
+    runs-on: windows-${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: 2022
+          - os: 2025
+
+    steps:
+    - uses: actions/checkout@v5
+    - uses: TheMrMilchmann/setup-msvc-dev@v4
+      with:
+        arch: x64
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        vcpkg install catch2
+        pip install nanobind pytest
+
+    - name: Configure project
+      run: |
+        cmake -G Ninja -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
+
+    - name: Build project
+      run: cmake --build build
+
+    - name: Run tests
+      run: ctest --test-dir build --output-on-failure
