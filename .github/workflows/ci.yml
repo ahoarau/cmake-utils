@@ -25,19 +25,23 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
-    - name: Install dependencies (Ubuntu)
-      if: runner.os == 'Linux' && matrix.container == null
+    - name: Install dependencies (Ubuntu 22.04)
+      if: runner.name == 'ubuntu-22.04' && matrix.container == null
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build g++ python3-pip libcatch2-dev
+        sudo apt-get install -y cmake ninja-build g++ catch2 python3-pip 
         pip3 install nanobind pytest
+
+    - name: Install dependencies (Ubuntu 24.04)
+      if: runner.name == 'ubuntu-24.04' && matrix.container == null
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++ catch2 nanobind-dev python3-pytest
 
     - name: Install dependencies (Arch Linux)
       if: matrix.container == 'docker://archlinux:latest'
       run: |
-        pacman -Syu --noconfirm
-        pacman -S --noconfirm cmake ninja gcc python python-pip catch2
-        pip install nanobind pytest
+        pacman -Syu --noconfirm cmake ninja gcc catch2 nanobind python-pytest
 
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
