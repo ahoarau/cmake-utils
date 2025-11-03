@@ -37,18 +37,22 @@ jobs:
     - name: Install dependencies (Arch Linux)
       if: matrix.container == 'docker://archlinux:latest'
       run: |
-        pacman -Syu --noconfirm cmake ninja gcc catch2 nanobind python-pytest
+        pacman -Syu --noconfirm
+        pacman -S --noconfirm cmake ninja gcc catch2 nanobind python3-pytest
 
     - name: Install dependencies (macOS)
       if: runner.os == 'macOS'
       run: |
-        brew install cmake ninja gcc python nanobind catch2
+        brew install cmake ninja gcc python nanobind catch2 robin-map
 
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
       run: |
         vcpkg install cmake ninja python3 nanobind catch2 --triplet x64-windows
-        pip install pytest
+
+    - name: Install Nanobind & Pytest
+      run: |
+        pip install nanobind pytest
 
     - name: Configure project
       run: |
