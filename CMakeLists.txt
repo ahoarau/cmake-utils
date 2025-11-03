@@ -5,5 +5,6 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake-utils.cmake)
 set(BUILD_TESTS ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build the test suite")
 
 if(BUILD_TESTS)
+    enable_testing()
     add_subdirectory(test_project)
 endif()

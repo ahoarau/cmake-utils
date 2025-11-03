@@ -58,11 +58,13 @@ xxx_target_generate_deprecated_header(test_project PUBLIC)
 
 # Python bindings
 if(BUILD_PYTHON_BINDINGS)
+    message(STATUS "[${PROJECT_NAME} Building Python bindings")
     add_subdirectory(python_bindings)
 endif()
 
 # Tests
 if(BUILD_TESTS)
+    message(STATUS "[${PROJECT_NAME}] Building tests")
     enable_testing()
     add_subdirectory(tests)
 endif()
