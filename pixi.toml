@@ -23,6 +23,7 @@ configure = { cmd = [
     "-S .",
     "-B build",
     "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
+    "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
     "-DBUILD_PYTHON_BINDINGS=ON",
     "-DBUILD_TESTS=ON",
