@@ -1041,6 +1041,14 @@ function(xxx_generate_package_module_files)
         DESTINATION ${DESTINATION}
     )
 
+    # find-modules/Find<pkg>.cmake 
+    # Install the find-modules used for this component
+    # TODO: only install the ones that are actually used
+    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
+        DESTINATION ${DESTINATION}
+        FILES_MATCHING PATTERN "Find*.cmake"
+    )
+
     # <package>-version.cmake
     write_basic_package_version_file(
       ${PACKAGE_VERSION_OUTPUT}
