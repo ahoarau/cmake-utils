@@ -443,6 +443,24 @@ function(xxx_target_generate_tracy_header target_name visibility)
     )
 endfunction()
 
+# This function searches for a find module named Find<package>.cmake).
+# It iterates over the CMAKE_MODULE_PATH and cmake builtin modules.
+function(xxx_search_package_module_file package_name output_filepath)
+    set(module_filename "Find${package_name}.cmake")
+    set(found_module_file "")
+    set(cmake_builtin_modules_path "${CMAKE_ROOT}/Modules")
+
+    foreach(module_path IN LISTS CMAKE_MODULE_PATH cmake_builtin_modules_path)
+        set(candidate_filepath "${module_path}/${module_filename}")
+        if(EXISTS ${candidate_filepath})
+            set(found_module_file ${candidate_filepath})
+            break()
+        endif()
+    endforeach()
+
+    set(${output_filepath} ${found_module_file} PARENT_SCOPE)
+endfunction()
+
 # Usage: xxx_find_package(<package> [version] [REQUIRED] [COMPONENTS ...] MODULE_PATH <path_to_find_module>)
 # ref: https://cmake.org/cmake/help/latest/command/find_package.html
 # This function allows to automatically retrieve the imported targets provided by the package
