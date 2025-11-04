@@ -448,10 +448,14 @@ endfunction()
 function(xxx_search_package_module_file package_name output_filepath)
     set(module_filename "Find${package_name}.cmake")
     set(found_module_file "")
-    set(cmake_builtin_modules_path "${CMAKE_ROOT}/Modules")
+    # QUESTION: Should we look into cmake builtin modules?
+    # set(cmake_builtin_modules_path "${CMAKE_ROOT}/Modules")
+    set(extra_modules_path "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../find-modules")
+    cmake_path(CONVERT "${extra_modules_path}" TO_CMAKE_PATH_LIST extra_modules_path NORMALIZE)
 
-    foreach(module_path IN LISTS CMAKE_MODULE_PATH cmake_builtin_modules_path)
+    foreach(module_path IN LISTS CMAKE_MODULE_PATH extra_modules_path)
         set(candidate_filepath "${module_path}/${module_filename}")
+        message(DEBUG "        Searching for package module file at: ${candidate_filepath}")
         if(EXISTS ${candidate_filepath})
             set(found_module_file ${candidate_filepath})
             break()
@@ -483,25 +487,35 @@ macro(xxx_find_package)
     # Handle custom module file
     if(arg_MODULE_PATH)
         set(module_file "${arg_MODULE_PATH}/Find${package_name}.cmake")
-        # check if file exists
         if(NOT EXISTS ${module_file})
-            message(FATAL_ERROR "Custom module file ${module_file} does not exist.")
+            message(FATAL_ERROR "Custom module file provided with MODULE_PATH ${module_file} does not exist.")
         endif()
-
-        # Copy the module file to the generated cmake directory in the build dir
-        file(COPY ${module_file} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/modules/${package_name})
-
-        # Add the parent path to the CMAKE_MODULE_PATH
-        list(APPEND CMAKE_MODULE_PATH ${arg_MODULE_PATH})
-        message("   Using custom module file: ${module_file}")
-        set(using_custom_module true)
     else()
+        # search for the module file only is CONFIG is not in the find_package args
+        if(NOT "${find_package_args}" MATCHES "CONFIG")
+            xxx_search_package_module_file(${package_name} module_file)
+        endif()
+    endif()
+
+    if(module_file)
+        cmake_path(CONVERT "${module_file}" TO_CMAKE_PATH_LIST module_file NORMALIZE)
+        set(using_custom_module true)
+    else() 
         set(using_custom_module false)
     endif()
-    unset(module_file)
+
+    if(module_file)
+        # Copy the module file to the generated cmake directory in the build dir
+        file(COPY ${module_file} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name})
+
+        # Add the parent path to the CMAKE_MODULE_PATH
+        cmake_path(GET module_file PARENT_PATH module_dir)
+        list(APPEND CMAKE_MODULE_PATH ${module_dir})
+        message("   Using custom module file: ${module_file}")
+    endif()
 
     # Call find_package with the provided arguments
-    string(REPLACE ";" " " fp_pp "${arg_UNPARSED_ARGUMENTS}")
+    string(REPLACE ";" " " fp_pp "${find_package_args}")
     message("   Executing find_package(${fp_pp})")
 
     # Saving the list of imported targets and variables BEFORE the call to find_package
@@ -559,6 +573,7 @@ macro(xxx_find_package)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies "${deps}")
 
     unset(deps)
+    unset(module_file)
     unset(package_json)
     unset(deps_length)
 endmacro()
