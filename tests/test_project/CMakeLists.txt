@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.22...4.1)
+
+include(${CMAKE_CURRENT_SOURCE_DIR}/../../modules/cmake-utils.cmake)
+
 project(test_project 
     VERSION 1.0.0
     DESCRIPTION "A test project for cmake-utils"
     HOMEPAGE_URL "https://example.com/test_project"
     LANGUAGES CXX
 )
-
-include(${CMAKE_CURRENT_SOURCE_DIR}/../cmake-utils.cmake)
 
 # Enable testing
 xxx_include_ctest()
@@ -73,7 +74,12 @@ endif()
 xxx_declare_component(COMPONENT test_project TARGETS test_project)
 
 # Install headers
-xxx_target_headers(test_project PUBLIC HEADERS include/test_project/Math.hpp BASE_DIRS include)
+xxx_target_headers(test_project PUBLIC 
+    HEADERS 
+        include/test_project/Math.hpp 
+    BASE_DIRS 
+        include
+)
 xxx_install_headers()
 
 # Generate package files

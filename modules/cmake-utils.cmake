@@ -1,6 +1,20 @@
 # gersemi: off
 cmake_minimum_required(VERSION 3.22...4.1)
 
+function(xxx_use_external_modules)
+  # Adding the pytest_discover_tests function for pytest
+  # repo: https://github.com/python-cmake/pytest-cmake
+  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test/PytestAddTests.cmake)
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/pytest-cmake)
+
+  # Adding the boosttest_discover_tests function for Boost Unit Testing
+  # repo: https://github.com/DenizThatMenace/cmake-modules
+  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
+  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test)
+
+  list(REMOVE_DUPLICATES CMAKE_MODULE_PATH)
+endfunction()
+
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
 # Example: xxx_require_variable(MY_VAR) # Will print "MY_VAR is not defined."
@@ -33,8 +47,6 @@ endfunction()
 function(xxx_include_ctest)
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     include(CTest)
-    # Adding the boosttest_discover_tests function for Boost Unit Testing
-    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/BoostTestDiscoverTests.cmake)
 endfunction()
 
 macro(xxx_configure_apple_rpath)
@@ -306,7 +318,7 @@ function(xxx_target_generate_warning_header target_name visibility)
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
-        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/warning.hpp.in
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/warning.hpp.in
         INSTALL_DESTINATION ${install_destination}
         ${skip_install}
     )
@@ -343,7 +355,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
-        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/deprecated.hpp.in
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/deprecated.hpp.in
         INSTALL_DESTINATION ${install_destination}
         ${skip_install}
     )
@@ -384,7 +396,7 @@ function(xxx_target_generate_config_header target_name visibility)
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
-        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.hpp.in
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.hpp.in
         INSTALL_DESTINATION ${install_destination}
         ${skip_install}
     )
@@ -425,7 +437,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
-        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/tracy.hpp.in
+        TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/tracy.hpp.in
         INSTALL_DESTINATION ${install_destination}
         ${skip_install}
     )
@@ -753,7 +765,7 @@ set(imported_libraries \"${all_link_libraries}\")
 "
     )
 
-    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/generate-dependencies.cmake.in ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake @ONLY)
+    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/generate-dependencies.cmake.in ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake @ONLY)
     install(SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake)
     install(FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
         DESTINATION ${arg_DESTINATION}
@@ -985,7 +997,7 @@ function(xxx_generate_package_module_files)
     endif()
 
     # NOTE: Expose as options if needed
-    set(PACKAGE_CONFIG_INPUT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/config.cmake.in)
+    set(PACKAGE_CONFIG_INPUT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
     set(PACKAGE_CONFIG_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config.cmake)
     set(PACKAGE_VERSION ${PROJECT_VERSION})
     set(PACKAGE_VERSION_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-version.cmake)
