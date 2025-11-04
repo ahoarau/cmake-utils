@@ -1162,8 +1162,8 @@ endmacro()
 
 # Shortcut to find the nanobind package
 # Usage: xxx_find_nanobind()
-macro(xxx_find_nanobind)
-    xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+macro(xxx_find_nanobind min_python_version)
+    xxx_find_python(${min_python_version} REQUIRED COMPONENTS Interpreter Development.Module)
 
     xxx_require_variable(Python_EXECUTABLE)
 
