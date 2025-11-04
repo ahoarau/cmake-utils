@@ -80,5 +80,5 @@ xxx_install_headers()
 xxx_generate_package_module_files()
 
 # Print summaries
-xxx_print_dependency_summary()
-xxx_print_option_summary()
+xxx_print_dependencies_summary()
+xxx_print_options_summary()
