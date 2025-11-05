@@ -65,23 +65,23 @@ macro(xxx_configure_apple_rpath)
   endif()
 endmacro()
 
-# Usage: xxx_configure_default_build_type(<default_build_type>)
-# Valid values for <default_build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
+# Usage: xxx_configure_default_build_type(<build_type>)
+# Usual values for <build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
 # Example: xxx_configure_default_build_type(RelWithDebInfo)
-function(xxx_configure_default_build_type default_build_type)
-    set(allowed_build_types
+function(xxx_configure_default_build_type build_type)
+    set(standard_build_types
         Debug
         Release
         MinSizeRel
         RelWithDebInfo
     )
-    if(NOT default_build_type IN_LIST allowed_build_types)
-        message(FATAL_ERROR "Invalid build type: ${default_build_type}, valid values are: ${allowed_build_types}")
+    if(NOT build_type IN_LIST standard_build_types)
+        message(AUTHOR_WARNING "Unusual build type provided: ${build_type}, standard values are: ${standard_build_types}")
     endif()
 
     if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-        message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
-        set(CMAKE_BUILD_TYPE ${default_build_type} CACHE STRING "Choose the type of build." FORCE)
+        message(STATUS "Setting build type to '${build_type}' as none was specified.")
+        set(CMAKE_BUILD_TYPE ${build_type} CACHE STRING "Choose the type of build." FORCE)
         # set the possible values of build type for cmake-gui
         set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${allowed_build_types})
     endif()
