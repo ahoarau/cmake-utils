@@ -582,9 +582,9 @@ macro(xxx_find_package)
     unset(deps_length)
 endmacro()
 
-# xxx_print_dependency_summary()
+# xxx_print_dependencies_summary()
 # Print a summary of all dependencies found via xxx_find_package, and some properties of their imported targets.
-function(xxx_print_dependency_summary)
+function(xxx_print_dependencies_summary)
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
         message(STATUS "No dependencies found via xxx_find_package.")
@@ -1171,8 +1171,8 @@ endfunction()
 
 
 # Print all options defined via xxx_option() in a nice table
-# Usage: xxx_print_option_summary()
-function(xxx_print_option_summary)
+# Usage: xxx_print_options_summary()
+function(xxx_print_options_summary)
     get_property(option_names GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names)
     if(NOT option_names)
         message(STATUS "No options defined via xxx_option.")
