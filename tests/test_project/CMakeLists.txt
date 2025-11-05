@@ -9,15 +9,8 @@ project(test_project
     LANGUAGES CXX
 )
 
-# Enable testing
-xxx_include_ctest()
-
-# Configure defaults
-xxx_configure_default_build_type(Release)
-xxx_configure_default_binary_dirs()
-xxx_configure_default_install_dirs()
-xxx_configure_default_install_prefix(${CMAKE_CURRENT_BINARY_DIR}/install)
-xxx_configure_apple_rpath()
+# Setup the project
+xxx_setup_project()
 
 # Declare options
 xxx_option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
