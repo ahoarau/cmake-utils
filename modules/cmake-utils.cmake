@@ -1216,9 +1216,15 @@ endmacro()
 # Shortcut to find the nanobind package
 # Usage: xxx_find_nanobind()
 macro(xxx_find_nanobind)
-    xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+    string(REPLACE ";" " " args_pp "${ARGN}")
+    xxx_require_variable(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
+        
+    Please call xxx_find_python(<args>) first, e.g.:
 
-    xxx_require_variable(Python_EXECUTABLE)
+        xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+        xxx_find_package(nanobind ${args_pp})
+    ")
+    unset(args_pp)
 
     # Detect the installed nanobind package and import it into CMake
     # ref: https://nanobind.readthedocs.io/en/latest/building.html#finding-nanobind
@@ -1234,11 +1240,7 @@ macro(xxx_find_nanobind)
     endif()
     
     message("   Nanobind CMake directory: ${nanobind_ROOT}")
-    if(${ARGC} GREATER 0)
-        xxx_find_package(nanobind ${ARGN})
-    else()
-        xxx_find_package(nanobind CONFIG REQUIRED)
-    endif()
+    xxx_find_package(nanobind ${ARGN})
 endmacro()
 
 function(xxx_python_compile_file)
