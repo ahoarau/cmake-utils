@@ -484,105 +484,128 @@ macro(xxx_find_package)
     set(package_name ${ARGV0})
     set(find_package_args "${arg_UNPARSED_ARGUMENTS}")
 
-    # Handle custom module file
-    if(arg_MODULE_PATH)
-        set(module_file "${arg_MODULE_PATH}/Find${package_name}.cmake")
-        if(NOT EXISTS ${module_file})
-            message(FATAL_ERROR "Custom module file provided with MODULE_PATH ${module_file} does not exist.")
+    set(execute_find_package true)
+    string(SHA256 find_package_args_hash "${find_package_args}")
+    set(existing_find_package_hashes "")
+    get_property(existing_find_package_hashes GLOBAL PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes)
+
+    # TODO: re-enable optimization. So far it's only depending on <pkg>_FOUND, which might not be enough.
+    # if(${package_name}_FOUND AND find_package_args_hash IN_LIST existing_find_package_hashes)
+    #     string(REPLACE ";" " " fp_pp "${find_package_args}")
+    #     message("   Package '${package_name}' already found with the same arguments, skipping find_package(${fp_pp})")
+    #     set(execute_find_package false)
+    # else()
+    #     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes "${find_package_args_hash}" APPEND)
+    # endif()
+
+    unset(existing_find_package_hashes)
+    unset(find_package_args_hash)
+
+    if(execute_find_package)
+        unset(executing_find_package)
+
+        # Handle custom module file
+        if(arg_MODULE_PATH)
+            set(module_file "${arg_MODULE_PATH}/Find${package_name}.cmake")
+            if(NOT EXISTS ${module_file})
+                message(FATAL_ERROR "Custom module file provided with MODULE_PATH ${module_file} does not exist.")
+            endif()
+        else()
+            # search for the module file only is CONFIG is not in the find_package args
+            if(NOT "CONFIG" IN_LIST find_package_args)
+                xxx_search_package_module_file(${package_name} module_file)
+            endif()
         endif()
-    else()
-        # search for the module file only is CONFIG is not in the find_package args
-        if(NOT "CONFIG" IN_LIST find_package_args)
-            xxx_search_package_module_file(${package_name} module_file)
+
+        if(module_file)
+            cmake_path(CONVERT "${module_file}" TO_CMAKE_PATH_LIST module_file NORMALIZE)
+            set(using_custom_module true)
+        else() 
+            set(using_custom_module false)
         endif()
-    endif()
 
-    if(module_file)
-        cmake_path(CONVERT "${module_file}" TO_CMAKE_PATH_LIST module_file NORMALIZE)
-        set(using_custom_module true)
-    else() 
-        set(using_custom_module false)
-    endif()
+        if(module_file)
+            # Copy the module file to the generated cmake directory in the build dir
+            file(COPY ${module_file} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name})
 
-    if(module_file)
-        # Copy the module file to the generated cmake directory in the build dir
-        file(COPY ${module_file} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name})
+            # Add the parent path to the CMAKE_MODULE_PATH
+            cmake_path(GET module_file PARENT_PATH module_dir)
+            list(APPEND CMAKE_MODULE_PATH ${module_dir})
+            message("   Using custom module file: ${module_file}")
+        endif()
 
-        # Add the parent path to the CMAKE_MODULE_PATH
-        cmake_path(GET module_file PARENT_PATH module_dir)
-        list(APPEND CMAKE_MODULE_PATH ${module_dir})
-        message("   Using custom module file: ${module_file}")
-    endif()
+        # Call find_package with the provided arguments
+        string(REPLACE ";" " " fp_pp "${find_package_args}")
+        message("   Executing find_package(${fp_pp})")
+        unset(fp_pp)
 
-    # Call find_package with the provided arguments
-    string(REPLACE ";" " " fp_pp "${find_package_args}")
-    message("   Executing find_package(${fp_pp})")
-
-    # Saving the list of imported targets and variables BEFORE the call to find_package
-    get_property(imported_targets_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
-    get_property(variables_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
-
-    find_package(${find_package_args}) # TODO: handle QUIET properly
-
-    if(${package_name}_FOUND)
-        message("   Executing find_package(${fp_pp})...✅")
-    else()
-        message("   Executing find_package(${fp_pp})...❌")
-    endif()
-
-    # Put back CMAKE_MODULE_PATH to its previous value
-    if(module_dir)
-        list(REMOVE_ITEM CMAKE_MODULE_PATH ${module_dir})
-    endif()
-
-    # Getting the list of imported targets and variables AFTER the call to find_package
-    get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
-    get_property(package_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
-    list(REMOVE_ITEM package_variables ${variables_before} variables_before)
-    list(REMOVE_ITEM package_targets ${imported_targets_before})
+        # Saving the list of imported targets and variables BEFORE the call to find_package
+        get_property(imported_targets_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+        get_property(variables_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
     
+        find_package(${find_package_args}) # TODO: handle QUIET properly
+    
+        if(${package_name}_FOUND)
+            message("   Executing find_package(${fp_pp})...✅")
+        else()
+            message("   Executing find_package(${fp_pp})...❌")
+        endif()
+
+        # Put back CMAKE_MODULE_PATH to its previous value
+        if(module_dir)
+            list(REMOVE_ITEM CMAKE_MODULE_PATH ${module_dir})
+        endif()
+
+        # Getting the list of imported targets and variables AFTER the call to find_package
+        get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
+        get_property(package_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+        list(REMOVE_ITEM package_variables ${variables_before} variables_before)
+        list(REMOVE_ITEM package_targets ${imported_targets_before})
+        
+        if(${package_name}_VERSION)
+            message("   Version found: ${${package_name}_VERSION}")
+        endif()
+
+        string(REPLACE ";" ", " package_variables_pp "${package_variables}")
+        if(package_variables)
+            message(DEBUG "   New variables detected: ${package_variables_pp}")
+        else()
+            message("   No new variables detected.")
+        endif()
+        
+        string(REPLACE ";" ", " package_targets_pp "${package_targets}")
+        if(package_targets)
+            message("   Imported targets detected: ${package_targets_pp}")
+        else()
+            message("   No imported targets detected.")
+        endif()
+
+        get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
+        if(NOT deps)
+            string(JSON deps SET "{}" "package_dependencies" "[]")
+        endif()
+
+        set(package_json "{}")
+        string(REPLACE ";" " " find_package_args "${find_package_args}")
+        string(JSON package_json SET "${package_json}" "package_name" "\"${package_name}\"")
+        string(JSON package_json SET "${package_json}" "find_package_args" "\"${find_package_args}\"")
+        string(JSON package_json SET "${package_json}" "package_variables" "\"${package_variables}\"")
+        string(JSON package_json SET "${package_json}" "package_targets" "\"${package_targets}\"")
+        string(JSON package_json SET "${package_json}" "using_custom_module" "\"${using_custom_module}\"")
+
+
+        string(JSON deps_length LENGTH "${deps}" "package_dependencies")
+        string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
+
+        set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies "${deps}")
+    endif()
+
+    unset(package_targets)
+    unset(package_targets_pp)
+    unset(package_variables)
+    unset(package_variables_pp)
     unset(variables_before)
     unset(imported_targets_before)
-
-    if(${package_name}_VERSION)
-        message("   Version found: ${${package_name}_VERSION}")
-    endif()
-
-    string(REPLACE ";" ", " package_variables_pp "${package_variables}")
-    if(package_variables)
-        message(DEBUG "   New variables detected: ${package_variables_pp}")
-    else()
-        message("   No new variables detected.")
-    endif()
-    unset(package_variables_pp)
-
-    string(REPLACE ";" ", " package_targets_pp "${package_targets}")
-    if(package_targets)
-        message("   Imported targets detected: ${package_targets_pp}")
-    else()
-        message("   No imported targets detected.")
-    endif()
-    unset(package_targets_pp)
-
-    get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
-    if(NOT deps)
-        string(JSON deps SET "{}" "package_dependencies" "[]")
-    endif()
-
-    set(package_json "{}")
-    string(REPLACE ";" " " find_package_args "${find_package_args}")
-    string(JSON package_json SET "${package_json}" "package_name" "\"${package_name}\"")
-    string(JSON package_json SET "${package_json}" "find_package_args" "\"${find_package_args}\"")
-    string(JSON package_json SET "${package_json}" "package_variables" "\"${package_variables}\"")
-    string(JSON package_json SET "${package_json}" "package_targets" "\"${package_targets}\"")
-    string(JSON package_json SET "${package_json}" "using_custom_module" "\"${using_custom_module}\"")
-
-
-    string(JSON deps_length LENGTH "${deps}" "package_dependencies")
-    string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
-
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies "${deps}")
-
     unset(deps)
     unset(module_file)
     unset(package_json)
