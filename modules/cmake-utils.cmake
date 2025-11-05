@@ -492,7 +492,7 @@ macro(xxx_find_package)
         endif()
     else()
         # search for the module file only is CONFIG is not in the find_package args
-        if(NOT "${find_package_args}" MATCHES "CONFIG")
+        if(NOT "CONFIG" IN_LIST find_package_args)
             xxx_search_package_module_file(${package_name} module_file)
         endif()
     endif()
@@ -524,6 +524,12 @@ macro(xxx_find_package)
 
     find_package(${find_package_args}) # TODO: handle QUIET properly
 
+    if(${package_name}_FOUND)
+        message("   Executing find_package(${fp_pp})...✅")
+    else()
+        message("   Executing find_package(${fp_pp})...❌")
+    endif()
+
     # Getting the list of imported targets and variables AFTER the call to find_package
     get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
     get_property(package_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
@@ -534,7 +540,7 @@ macro(xxx_find_package)
     unset(imported_targets_before)
 
     if(${package_name}_VERSION)
-        message("   Version: ${${package_name}_VERSION}")
+        message("   Version found: ${${package_name}_VERSION}")
     endif()
 
     string(REPLACE ";" ", " package_variables_pp "${package_variables}")
