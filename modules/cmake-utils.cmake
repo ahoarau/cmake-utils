@@ -596,21 +596,26 @@ function(xxx_print_dependency_summary)
     message( "")
 
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
-    math(EXPR num_deps "${num_deps} - 1")
+    math(EXPR max_idx "${num_deps} - 1")
     message("${num_deps} dependencies declared xxx_find_package: ")
-    foreach(i RANGE 0 ${num_deps})
+    foreach(i RANGE 0 ${max_idx})
         string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
 
         # Replace ; by , for better readability
         string(REPLACE ";" ", " package_targets_pp "${package_targets}")
+        math(EXPR i "${i} + 1")
         message("${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]")
 
         # Print target properties
         if(package_targets STREQUAL "")
             continue()
         endif()
-        xxx_cmake_print_properties(TARGETS ${package_targets} PROPERTIES 
+        xxx_cmake_print_properties(TARGETS ${package_targets} PROPERTIES
+            NAME
+            ALIASED_TARGET
+            TYPE
+            VERSION
             LOCATION
             INCLUDE_DIRECTORIES
             COMPILE_DEFINITIONS
@@ -625,6 +630,9 @@ function(xxx_print_dependency_summary)
             INTERFACE_COMPILE_OPTIONS
             INTERFACE_LINK_LIBRARIES
             INTERFACE_LINK_OPTIONS
+            CXX_STANDARD
+            CXX_EXTENSIONS
+            CXX_STANDARD_REQUIRED
         )
     endforeach()
 endfunction()
@@ -740,7 +748,8 @@ function(xxx_cmake_print_properties)
         if(propertySet)
           get_property(property ${keyword} ${item} PROPERTY "${prop}")
         #   string(APPEND msg "   ${item}.${prop} = \"${property}\"\n")
-          string(APPEND msg "   ${prop} = \"${property}\"\n")
+          pad_string("${prop}"      40 _prop)
+          string(APPEND msg "   ${_prop} = ${property}\n")
         else()
           # EDIT: Do not print unset properties
           # string(APPEND msg "   ${item}.${prop} = <NOTFOUND>\n")
