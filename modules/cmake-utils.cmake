@@ -546,9 +546,9 @@ macro(xxx_find_package)
         find_package(${find_package_args}) # TODO: handle QUIET properly
     
         if(${package_name}_FOUND)
-            message("   Executing find_package(${fp_pp})...✅")
+            message("   Executing find_package()...✅")
         else()
-            message("   Executing find_package(${fp_pp})...❌")
+            message("   Executing find_package()...❌")
         endif()
 
         # Put back CMAKE_MODULE_PATH to its previous value
