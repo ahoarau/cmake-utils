@@ -530,6 +530,11 @@ macro(xxx_find_package)
         message("   Executing find_package(${fp_pp})...❌")
     endif()
 
+    # Put back CMAKE_MODULE_PATH to its previous value
+    if(module_dir)
+        list(REMOVE_ITEM CMAKE_MODULE_PATH ${module_dir})
+    endif()
+
     # Getting the list of imported targets and variables AFTER the call to find_package
     get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
     get_property(package_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
