@@ -1025,7 +1025,7 @@ endfunction()
 # Install the project (targets, headers, package modules, etc.)
 # Generate the package modules files and installs them:
 #  - <package>-config.cmake
-#  - <package>-version.cmake
+#  - <package>-config-version.cmake
 #  - <package>-<componentA>-targets.cmake
 #  - <package>-<componentA>-dependencies.cmake
 #  - <package>-<componentB>-targets.cmake
@@ -1057,7 +1057,7 @@ function(xxx_install_project)
     set(PACKAGE_CONFIG_INPUT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
     set(PACKAGE_CONFIG_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config.cmake)
     set(PACKAGE_VERSION ${PROJECT_VERSION})
-    set(PACKAGE_VERSION_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-version.cmake)
+    set(PACKAGE_VERSION_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config-version.cmake)
     set(PACKAGE_VERSION_COMPATIBILITY AnyNewerVersion)
     set(PACKAGE_VERSION_ARCH_INDEPENDENT "")
     set(DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
@@ -1091,7 +1091,7 @@ function(xxx_install_project)
         FILES_MATCHING PATTERN "Find*.cmake"
     )
 
-    # <package>-version.cmake
+    # <package>-config-version.cmake
     write_basic_package_version_file(
       ${PACKAGE_VERSION_OUTPUT}
       VERSION ${PACKAGE_VERSION}
