@@ -74,10 +74,9 @@ xxx_target_headers(test_project PUBLIC
     BASE_DIRS 
         include
 )
-xxx_install_headers()
 
-# Generate package files
-xxx_generate_package_module_files()
+# Install the project (headers, targets, config files, etc.)
+xxx_install_project()
 
 # Print summaries
 xxx_print_dependencies_summary()

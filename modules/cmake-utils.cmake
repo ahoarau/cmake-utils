@@ -990,7 +990,7 @@ function(xxx_install_headers)
             message(FATAL_ERROR "No components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_declare_component() first.")
         endif()
         set(components ${declared_components})
-        message("No components specified, installing headers for all declared components. Declared components: ${declared_components}")
+        message("Installing headers for all declared components. Declared components: [${declared_components}]")
     endif()
 
     foreach(component ${components})
@@ -1011,14 +1011,17 @@ function(xxx_install_headers)
     endforeach()
 endfunction()
 
-# Generate the package modules files:
+# Install the project (targets, headers, package modules, etc.)
+# Generate the package modules files and installs them:
 #  - <package>-config.cmake
 #  - <package>-version.cmake
 #  - <package>-<componentA>-targets.cmake
 #  - <package>-<componentA>-dependencies.cmake
 #  - <package>-<componentB>-targets.cmake
 #  - <package>-<componentB>-dependencies.cmake
-function(xxx_generate_package_module_files)
+function(xxx_install_project)
+    message(STATUS "[${PROJECT_NAME}] Installing project (${CMAKE_CURRENT_FUNCTION})")
+
     # Dump package dependencies at the end of the current CMakeLists configuration step
     cmake_language(DEFER CALL _xxx_dump_package_dependencies_json())
 
@@ -1052,6 +1055,9 @@ function(xxx_generate_package_module_files)
     set(NAMESPACE "${PROJECT_NAME}::")
 
     string(REPLACE ";" " " xxx_project_components "${declared_components}")
+
+    # Install headers for all declared components
+    xxx_install_headers()
 
     # <package>-config.cmake
     configure_package_config_file(
@@ -1118,7 +1124,7 @@ endfunction()
 # _xxx_dump_package_dependencies_json()
 # Internal function to dump the package dependencies recorded with xxx_find_package()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
-# In the function xxx_generate_package_module_files().
+# In the function xxx_install_project().
 function(_xxx_dump_package_dependencies_json)
     get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT package_dependencies_json)
