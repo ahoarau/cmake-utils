@@ -113,6 +113,16 @@ function(xxx_configure_default_install_prefix default_install_prefix)
     endif()
 endfunction()
 
+# Setup the default options for a project (opinionated defaults)
+# Usage : xxx_setup_project()
+function(xxx_setup_project)
+    xxx_configure_default_build_type(Release)
+    xxx_configure_default_binary_dirs()
+    xxx_configure_default_install_dirs()
+    xxx_configure_default_install_prefix(${CMAKE_CURRENT_BINARY_DIR}/install)
+    xxx_configure_apple_rpath()
+endfunction()
+
 # Enable the most common warnings for MSVC, GCC and Clang
 # Adding some extra warning on msvc to mimic gcc/clang behavior
 # Usage: xxx_target_set_default_compile_options(<target_name> <visibility>)
