@@ -1,19 +1,23 @@
 # gersemi: off
 cmake_minimum_required(VERSION 3.22...4.1)
 
-function(xxx_use_external_modules)
+macro(xxx_use_external_modules)
+  set(utils_ROOT ${CMAKE_CURRENT_LIST_DIR}/..)
+  cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
+
   # Adding the pytest_discover_tests function for pytest
   # repo: https://github.com/python-cmake/pytest-cmake
-  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test/PytestAddTests.cmake)
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/pytest-cmake)
+  include(${utils_ROOT}/external-modules/pytest-cmake/PytestAddTests.cmake)
+  list(APPEND CMAKE_MODULE_PATH ${utils_ROOT}/external-modules/pytest-cmake)
 
   # Adding the boosttest_discover_tests function for Boost Unit Testing
   # repo: https://github.com/DenizThatMenace/cmake-modules
-  include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/external-modules/boost-test)
+  include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
+  list(APPEND CMAKE_MODULE_PATH ${utils_ROOT}/external-modules/boost-test)
 
   list(REMOVE_DUPLICATES CMAKE_MODULE_PATH)
-endfunction()
+  unset(utils_ROOT)
+endmacro()
 
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
@@ -23,7 +27,7 @@ function(xxx_require_variable var)
         if(ARGC EQUAL 1)
             set(msg "Required variable '${ARGV0}' is not defined.")
         else()
-            set(msg "${ARGV1}.")
+            set(msg "${ARGV1}")
         endif()
         message(FATAL_ERROR "${msg}")
     endif()
