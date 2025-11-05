@@ -87,35 +87,21 @@ function(xxx_configure_default_build_type default_build_type)
     endif()
 endfunction()
 
+# Configures the default output directory for binaries and libraries
 function(xxx_configure_default_binary_dirs)
     # doc: https://cmake.org/cmake/help/v3.22/manual/cmake-buildsystem.7.html#id47
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For .exe and .dll
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # for shared libraries .so/.dylib and add_library(MODULE ...) .so/.dylib
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # add_library(STATIC ...) .a
 
-    if(WIN32)
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For .exe and .dll add_library(SHARED ...) .dll
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # for add_library(MODULE ...) .dll
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # add_library(STATIC ...) .lib
-    else()
-        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For .exe and .dll
-        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # for shared libraries .so/.dylib and add_library(MODULE ...) .so/.dylib
-        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # add_library(STATIC ...) .a
-    endif()
-
-    # set(config Debug Release RelWithDebInfo MinSizeRel)
-    # foreach(conf ${config})
-    #     string(TOUPPER ${conf} conf_upper)
-    #     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY} CACHE PATH "")
-    #     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY} CACHE PATH "")
-    #     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${conf_upper} ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY} CACHE PATH "")
-    # endforeach()
+    # Note: MODULE libraries are dynamic libraries. On windows, python modules are MODULE libraries, whith pyd extension.
+    # They should be placed explicitely in lib/site-packages when building python extensions.
 endfunction()
 
+# Configures the default install directories using GNUInstallDirs (bin, lib, include, etc.)
+# Works on all platforms
 function(xxx_configure_default_install_dirs)
     include(GNUInstallDirs)
-    # # On Windows, in order to avoid touching the env vars, the dll needs to be installed in the same directory as executables
-    # # TODO: Find out if this is still needed on Windows. 
-    # if(WIN32)
-    #     set(CMAKE_INSTALL_LIBDIR ${CMAKE_INSTALL_BINDIR} CACHE PATH "Installation directory for dlls" FORCE)
-    # endif()
 endfunction()
 
 # If not provided by the user, set a default CMAKE_INSTALL_PREFIX. Useful for IDEs.
