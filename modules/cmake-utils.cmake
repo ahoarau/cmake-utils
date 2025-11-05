@@ -1019,6 +1019,7 @@ endfunction()
 #  - <package>-<componentB>-targets.cmake
 #  - <package>-<componentB>-dependencies.cmake
 function(xxx_generate_package_module_files)
+    # Dump package dependencies at the end of the current CMakeLists configuration step
     cmake_language(DEFER CALL _xxx_dump_package_dependencies_json())
 
     set(options)
@@ -1124,7 +1125,9 @@ function(_xxx_dump_package_dependencies_json)
         message(STATUS "No package dependencies recorded with xxx_find_package().")
         return()
     endif()
-    file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json "${package_dependencies_json}")
+    set(package_dependencies_file "${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json")
+    message(STATUS "[${PROJECT_NAME}] Dumping package dependencies JSON to ${package_dependencies_file}")
+    file(WRITE ${package_dependencies_file} "${package_dependencies_json}")
 endfunction()
 
 # xxx_option(<option_name> <description> <default_value>)
