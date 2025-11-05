@@ -20,6 +20,9 @@ xxx_option(BUILD_TESTS "Build tests" ON)
 if(BUILD_PYTHON_BINDINGS)
     xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
     xxx_find_nanobind(2.4.0 CONFIG REQUIRED)
+
+    xxx_find_python(3.8 REQUIRED COMPONENTS Development.Module NumPy)
+    xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python numpy)
 endif()
 
 if(BUILD_TESTS)
@@ -54,7 +57,8 @@ xxx_target_generate_deprecated_header(test_project PUBLIC)
 # Python bindings
 if(BUILD_PYTHON_BINDINGS)
     message(STATUS "[${PROJECT_NAME}] Building Python bindings")
-    add_subdirectory(python_bindings)
+    add_subdirectory(bindings/nanobind-bindings)
+    add_subdirectory(bindings/boostpy-bindings)
 endif()
 
 # Tests
