@@ -845,7 +845,12 @@ function(xxx_declare_component)
         endforeach()
     endforeach()
 
-    message("Declaring component '${arg_COMPONENT}' with targets: ${arg_TARGETS}")
+    message("Declaring component '${arg_COMPONENT}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_COMPONENT})")
+
+    # This option associates the installed target files with an export, without installing anything.
+    # TODO: Declare exports first like that, split the install_project() with a generation and an install step.
+    # install(TARGETS ${arg_TARGETS} EXPORT ${PROJECT_NAME}-${arg_COMPONENT})
+
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components ${arg_COMPONENT} APPEND)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_COMPONENT}_targets ${arg_TARGETS})
 endfunction()
