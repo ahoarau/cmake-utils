@@ -954,7 +954,7 @@ function(xxx_target_install_headers target)
     get_target_property(base_dirs ${target} _xxx_install_headers_base_dirs)
 
     if(NOT headers)
-        message(WARNING "No headers declared for target '${target}'. Skipping installation.")
+        message(DEBUG "No headers declared for target '${target}'. Skipping installation.")
         return()
     endif()
 
