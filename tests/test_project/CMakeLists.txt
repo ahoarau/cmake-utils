@@ -25,7 +25,8 @@ xxx_option(BUILD_TESTS "Build tests" ON)
 
 # Find dependencies
 if(BUILD_PYTHON_BINDINGS)
-    xxx_find_nanobind()
+    xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+    xxx_find_nanobind(2.4.0 CONFIG REQUIRED)
 endif()
 
 if(BUILD_TESTS)
@@ -47,7 +48,7 @@ target_include_directories(test_project PUBLIC
 target_compile_features(test_project PUBLIC cxx_std_17)
 
 # Set compile options
-xxx_target_set_default_compile_options(test_project PUBLIC)
+xxx_target_set_default_compile_options(test_project PRIVATE)
 xxx_target_enforce_msvc_conformance(test_project PRIVATE)
 xxx_target_treat_all_warnings_as_errors(test_project PRIVATE)
 
