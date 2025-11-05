@@ -1,4 +1,4 @@
-definitions: [./modules]
-line_length: 80
-indent: 2
+definitions: []
+line_length: 100
+indent: 4
 warn_about_unknown_commands: false
