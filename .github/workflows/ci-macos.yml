@@ -3,41 +3,18 @@ name: macOS CI
 on: push
 
 jobs:
-  macos-arm:
-    name: macOS (Apple Silicon)
-    runs-on: macos-26
-
+  macos:
+    name: ${{ matrix.target.name }}
+    runs-on: ${{ matrix.target.os }}
+    strategy:
+      matrix:
+        target: [{os: macos-26, name: macOS (Apple Silicon)}
+               , {os: macos-15-intel, name: macOS (Intel)}]
     steps:
       - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
           brew install cmake ninja catch2 python boost-python3 nanobind robin-map pytest numpy
-
-      - name: Configure project
-        run: |
-          cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
-
-      - name: Build project
-        run: cmake --build build
-
-      - name: Run tests
-        run: ctest --test-dir build --output-on-failure
-
-  macos-intel:
-    name: macOS (Intel)
-    runs-on: macos-15-intel
-
-    steps:
-      - uses: actions/checkout@v5
-      - name: Install c++ dependencies
-        run: |
-          brew install cmake catch2 boost-python3
-
-      - name: Install python dependencies
-        run: |
-          which python3
-          which pip3
-          pip3 install pytest numpy nanobind
 
       - name: Configure project
         run: |
