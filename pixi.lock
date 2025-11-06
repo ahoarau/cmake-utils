@@ -1145,14 +1145,11 @@ packages:
   build: h9352c13_0
   subdir: win-64
   depends:
-  - vc >=14.3,<15
   - vc >=14.2,<15
-  - vc14_runtime >=14.44.35208
   - vc14_runtime >=14.29.30139
   - ucrt >=10.0.20348.0
-  - ucrt >=10.0.20348.0
   input:
-    hash: aa53cc8462e592cb0e16b423c159b849019fd465cbaa7d26d50cc19991eaee9d
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
     globs: []
 - conda: .
   name: cmake-utils
@@ -1163,7 +1160,7 @@ packages:
   - libstdcxx >=15
   - libgcc >=15
   input:
-    hash: aa53cc8462e592cb0e16b423c159b849019fd465cbaa7d26d50cc19991eaee9d
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
     globs: []
 - conda: .
   name: cmake-utils
@@ -1173,7 +1170,7 @@ packages:
   depends:
   - libcxx >=21
   input:
-    hash: aa53cc8462e592cb0e16b423c159b849019fd465cbaa7d26d50cc19991eaee9d
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
     globs: []
 - conda: .
   name: cmake-utils
@@ -1183,7 +1180,7 @@ packages:
   depends:
   - libcxx >=21
   input:
-    hash: aa53cc8462e592cb0e16b423c159b849019fd465cbaa7d26d50cc19991eaee9d
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
     globs: []
 - conda: https://conda.anaconda.org/conda-forge/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
   sha256: ab29d57dc70786c1269633ba3dff20288b81664d3ff8d21af995742e2bb03287
