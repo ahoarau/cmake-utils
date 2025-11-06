@@ -18,29 +18,15 @@ jobs:
     - uses: TheMrMilchmann/setup-msvc-dev@v4
       with:
         arch: x64
-    - uses: actions/setup-python@v6
-      with:
-        python-version: '3.12'
 
     - name: Install c++ vcpkg
       run: |
         vcpkg install catch2 boost-python
-        pip install nanobind pytest numpy
 
     - name: Install Python Dependencies
       run: |
-        pip install nanobind pytest numpy
-
-    - name: Display Python info
-      run: |
-        python --version
-        where python
-        where python3
-        where pip
-        where pip3
-        python -m pip show numpy
-        python -m pip show nanobind
-        python -m pip show pytest
+        C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m ensurepip --upgrade
+        C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install nanobind pytest numpy
 
     - name: Configure project
       run: |
