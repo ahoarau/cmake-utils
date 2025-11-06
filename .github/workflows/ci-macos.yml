@@ -29,16 +29,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - uses: jwlawson/actions-setup-cmake@v2
-        with:
-          cmake-version: "3.28"
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
       - name: Install c++ dependencies
         run: |
-          brew install catch2 boost-python3
+          brew install cmake catch2 boost-python3
 
       - name: Install python dependencies
         run: |
