@@ -96,9 +96,25 @@ function(boostpy_add_module name)
         endif()
     endif()
 
+    # ---------------------------------------------------------------------------
+    # Helper function to handle undefined CPython API symbols on macOS
+    # ---------------------------------------------------------------------------
+
+    function(boostpy_link_options name)
+        if(APPLE)
+            if(Python_INTERPRETER_ID STREQUAL "PyPy")
+                set(BP_LINKER_RESPONSE_FILE darwin-ld-pypy.sym)
+            else()
+                set(BP_LINKER_RESPONSE_FILE darwin-ld-cpython.sym)
+            endif()
+            target_link_options(${name} PRIVATE "-Wl,@${CMAKE_CURRENT_FUNCTION_LIST_DIR}/${BP_LINKER_RESPONSE_FILE}")
+        endif()
+    endfunction()
+
     add_library(${name} MODULE ${arg_UNPARSED_ARGUMENTS})
     set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "${NB_SUFFIX}")
     target_link_libraries(${name} PRIVATE Python::Module Boost::python)
+    boostpy_link_options(${name})
 endfunction()
 
 boostpy_add_module(test_project_pywrap_bp bindings.cpp)
