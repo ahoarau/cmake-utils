@@ -37,8 +37,10 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: |
-          brew install ninja catch2 boost-python3 nanobind
-          pip3 install pytest numpy
+          brew install catch2 boost-python3
+          which python3
+          which pip3
+          pip3 install pytest numpy nanobind
 
       - name: Configure project
         run: |
