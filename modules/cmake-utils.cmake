@@ -1261,10 +1261,16 @@ macro(xxx_find_python)
     # On Windows, Python_SITELIB returns \. Let's convert it to /.
     cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
 
-    message("   Python executable           : ${Python_EXECUTABLE}
-                Python include directories  : ${Python_INCLUDE_DIRS}
-                Python libraries            : ${Python_LIBRARIES}
-                Python sitelib              : ${Python_SITELIB}")
+    message("   Python_FOUND             : ${Python_FOUND}")
+    message("   Python_EXECUTABLE        : ${Python_EXECUTABLE}")
+    message("   Python_VERSION           : ${Python_VERSION}")
+    message("   Python_SITELIB           : ${Python_SITELIB}")
+    message("   Python_INCLUDE_DIRS      : ${Python_INCLUDE_DIRS}")
+    message("   Python_LIBRARIES         : ${Python_LIBRARIES}")
+    message("   Python_SOABI             : ${Python_SOABI}")
+    message("   Python_NumPy_FOUND       : ${Python_NumPy_FOUND}")
+    message("   Python_NumPy_VERSION     : ${Python_NumPy_VERSION}")
+    message("   Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
 endmacro()
 
 # Shortcut to find the nanobind package
