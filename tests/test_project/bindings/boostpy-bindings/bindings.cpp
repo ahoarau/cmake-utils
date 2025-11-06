@@ -1,4 +1,5 @@
 #include <boost/python.hpp>
+#include <boost/python/numpy.hpp>
 #include <test_project/StringUtils.hpp>
 #include <test_project/Math.hpp>
 

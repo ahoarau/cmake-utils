@@ -22,7 +22,7 @@ if(BUILD_PYTHON_BINDINGS)
     xxx_find_nanobind(2.4.0 CONFIG REQUIRED)
 
     xxx_find_python(3.8 REQUIRED COMPONENTS Development.Module NumPy)
-    xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python numpy)
+    xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python)
 endif()
 
 if(BUILD_TESTS)

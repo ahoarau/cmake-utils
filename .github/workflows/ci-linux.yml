@@ -18,7 +18,7 @@ jobs:
       - name: Install c++ dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++ unzip libboost-python-dev libboost-numpy-dev
+          sudo apt-get install -y ninja-build g++ unzip libboost-python-dev
 
       - name: Install python dependencies
         run: |
@@ -60,7 +60,7 @@ jobs:
       - name: Install c++ dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++ catch2 libboost-python-dev libboost-numpy-dev
+          sudo apt-get install -y ninja-build g++ catch2 libboost-python-dev
 
       - name: Install python dependencies
         run: |

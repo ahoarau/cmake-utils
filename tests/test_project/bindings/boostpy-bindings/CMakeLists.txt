@@ -98,11 +98,11 @@ function(boostpy_add_module name)
 
     add_library(${name} MODULE ${arg_UNPARSED_ARGUMENTS})
     set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "${NB_SUFFIX}")
-    target_link_libraries(${name} PRIVATE Python::Module Python::NumPy Boost::python Boost::numpy)
+    target_link_libraries(${name} PRIVATE Python::Module Boost::python)
 endfunction()
 
 boostpy_add_module(test_project_pywrap_bp bindings.cpp)
-target_link_libraries(test_project_pywrap_bp PRIVATE test_project Python::NumPy Boost::numpy)
+target_link_libraries(test_project_pywrap_bp PRIVATE test_project)
 
 set(PYTHON_MODULE_NAME "test_project_pywrap_bp")
 configure_file(
