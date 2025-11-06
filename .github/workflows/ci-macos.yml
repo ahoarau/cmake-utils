@@ -1,0 +1,51 @@
+name: macOS CI
+
+on: push
+
+jobs:
+  macos-arm:
+    name: macOS (Apple Silicon)
+    runs-on: macos-26
+
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: |
+          brew install cmake ninja catch2 python boost-python3 nanobind pytest numpy
+
+      - name: Configure project
+        run: |
+          cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
+
+      - name: Build project
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+
+  macos-intel:
+    name: macOS Intel
+    runs-on: macos-15-intel
+
+    steps:
+      - uses: actions/checkout@v5
+      - uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: "3.28"
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          brew install ninja catch2 boost-python3 nanobind
+          pip3 install pytest numpy
+
+      - name: Configure project
+        run: |
+          cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
+
+      - name: Build project
+        run: cmake --build build
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
