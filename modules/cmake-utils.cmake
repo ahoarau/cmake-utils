@@ -1261,12 +1261,10 @@ macro(xxx_find_python)
     # On Windows, Python_SITELIB returns \. Let's convert it to /.
     cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
 
-    message(DEBUG "[${PROJECT_NAME}]
-        Python executable           : ${Python_EXECUTABLE}
-        Python include directories  : ${Python_INCLUDE_DIRS}
-        Python libraries            : ${Python_LIBRARIES}
-        Python sitelib              : ${Python_SITELIB}
-    ")
+    message("   Python executable           : ${Python_EXECUTABLE}
+                Python include directories  : ${Python_INCLUDE_DIRS}
+                Python libraries            : ${Python_LIBRARIES}
+                Python sitelib              : ${Python_SITELIB}")
 endmacro()
 
 # Shortcut to find the nanobind package
@@ -1298,7 +1296,7 @@ macro(xxx_find_nanobind)
     xxx_find_package(nanobind ${ARGN})
     
     message("   Nanobind CMake directory: ${nanobind_ROOT}")
-    
+
     # If you install nanobind with pip, it will include tsl-robin-map in <nanobind>/ext/robin_map
     # On macOS, brew install nanobind will not include tsl-robin-map, we need to install it via: brew install robin-map
     # Naturally, find_package(nanobind CONFIG REQUIRED) will succeed (nanobind_FOUND -> True), but the tsl-robin-map dependency will be missing, causing build errors.
