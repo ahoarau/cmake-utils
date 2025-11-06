@@ -25,7 +25,7 @@ jobs:
     - name: Install dependencies
       run: |
         vcpkg install catch2
-        pip install nanobind pytest
+        pip install nanobind pytest numpy
 
     - name: Configure project
       run: |
