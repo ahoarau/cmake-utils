@@ -18,7 +18,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++ unzip
+          sudo apt-get install -y ninja-build g++ unzip libboost-python-dev
           pip3 install nanobind pytest numpy
 
       - name: Build Catch2 (Ubuntu 22.04 has Catch2 v2, we need v3)
@@ -55,7 +55,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build g++ catch2
+          sudo apt-get install -y ninja-build g++ catch2 libboost-python-dev
           pip3 install nanobind pytest numpy
 
       - name: Configure project
@@ -77,7 +77,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
-          pacman -Syu --noconfirm cmake ninja gcc catch2 python-pytest nanobind python-numpy
+          pacman -Syu --noconfirm cmake ninja gcc catch2 python-pytest nanobind python-numpy boost
 
       - name: Configure project
         run: |
