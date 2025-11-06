@@ -22,10 +22,25 @@ jobs:
       with:
         python-version: '3.12'
 
-    - name: Install dependencies
+    - name: Install c++ vcpkg
       run: |
         vcpkg install catch2 boost-python
         pip install nanobind pytest numpy
+
+    - name: Install Python Dependencies
+      run: |
+        pip install nanobind pytest numpy
+
+    - name: Display Python info
+      run: |
+        python --version
+        where python
+        where python3
+        where pip
+        where pip3
+        python -m pip show numpy
+        python -m pip show nanobind
+        python -m pip show pytest
 
     - name: Configure project
       run: |
