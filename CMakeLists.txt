@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22...4.1)
-project(cmake-utils VERSION 0.1.0)
+project(cmake-utils VERSION 0.1.0 LANGUAGES NONE)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/modules/cmake-utils.cmake)
 
