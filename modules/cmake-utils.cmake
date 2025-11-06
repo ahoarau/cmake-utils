@@ -1295,8 +1295,19 @@ macro(xxx_find_nanobind)
         message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
     endif()
     
-    message("   Nanobind CMake directory: ${nanobind_ROOT}")
     xxx_find_package(nanobind ${ARGN})
+    
+    message("   Nanobind CMake directory: ${nanobind_ROOT}")
+    
+    # If you install nanobind with pip, it will include tsl-robin-map in <nanobind>/ext/robin_map
+    # On macOS, brew install nanobind will not include tsl-robin-map, we need to install it via: brew install robin-map
+    # Naturally, find_package(nanobind CONFIG REQUIRED) will succeed (nanobind_FOUND -> True), but the tsl-robin-map dependency will be missing, causing build errors.
+    # So let's check if the headers are available, otherwise require tsl-robin-map explicitly.
+    if(EXISTS "${nanobind_ROOT}/../ext/robin_map/include/tsl/robin_map.h")
+        message("   Nanobind's tsl-robin-map dependency found in '${nanobind_ROOT}/ext/robin_map'.")
+    else()
+        xxx_find_package(tsl-robin-map CONFIG REQUIRED)
+    endif()
 endmacro()
 
 function(xxx_python_compile_file)
