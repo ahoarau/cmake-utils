@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
-          brew install cmake ninja catch2 python boost-python3 nanobind pytest numpy
+          brew install cmake ninja catch2 python boost-python3 nanobind robin-map pytest numpy
 
       - name: Configure project
         run: |
@@ -24,7 +24,7 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   macos-intel:
-    name: macOS Intel
+    name: macOS (Intel)
     runs-on: macos-15-intel
 
     steps:
