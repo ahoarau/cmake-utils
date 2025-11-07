@@ -139,6 +139,10 @@ function(xxx_target_set_default_compile_options target_name visibility)
         set(CMAKE_CXX_COMPILER_ID "MSVC")
     endif()
 
+    if(CMAKE_COMPILER_ID STREQUAL "AppleClang")
+        set(CMAKE_CXX_COMPILER_ID "Clang")
+    endif()
+
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         target_compile_options(${target_name} ${visibility}
             /W4     # Enable most warnings
@@ -197,6 +201,10 @@ function(xxx_target_treat_all_warnings_as_errors target_name visibility)
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
+    endif()
+    
+    if(CMAKE_COMPILER_ID STREQUAL "AppleClang")
+        set(CMAKE_CXX_COMPILER_ID "Clang")
     endif()
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
