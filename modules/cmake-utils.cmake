@@ -139,7 +139,7 @@ function(xxx_target_set_default_compile_options target_name visibility)
         set(CMAKE_CXX_COMPILER_ID "MSVC")
     endif()
 
-    if(CMAKE_COMPILER_ID STREQUAL "AppleClang")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(CMAKE_CXX_COMPILER_ID "Clang")
     endif()
 
@@ -203,7 +203,7 @@ function(xxx_target_treat_all_warnings_as_errors target_name visibility)
         set(CMAKE_CXX_COMPILER_ID "MSVC")
     endif()
     
-    if(CMAKE_COMPILER_ID STREQUAL "AppleClang")
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(CMAKE_CXX_COMPILER_ID "Clang")
     endif()
 
