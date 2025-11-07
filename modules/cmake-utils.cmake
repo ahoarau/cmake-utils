@@ -1,23 +1,19 @@
 # gersemi: off
 cmake_minimum_required(VERSION 3.22...4.1)
 
-macro(xxx_use_external_modules)
-  set(utils_ROOT ${CMAKE_CURRENT_LIST_DIR}/..)
+function(xxx_use_external_modules)
+  set(utils_ROOT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/..)
   cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
 
   # Adding the pytest_discover_tests function for pytest
   # repo: https://github.com/python-cmake/pytest-cmake
   include(${utils_ROOT}/external-modules/pytest-cmake/PytestAddTests.cmake)
-  list(APPEND CMAKE_MODULE_PATH ${utils_ROOT}/external-modules/pytest-cmake)
+  include(${utils_ROOT}/external-modules/pytest-cmake/PytestDiscoverTests.cmake)
 
   # Adding the boosttest_discover_tests function for Boost Unit Testing
   # repo: https://github.com/DenizThatMenace/cmake-modules
   include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
-  list(APPEND CMAKE_MODULE_PATH ${utils_ROOT}/external-modules/boost-test)
-
-  list(REMOVE_DUPLICATES CMAKE_MODULE_PATH)
-  unset(utils_ROOT)
-endmacro()
+endfunction()
 
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
@@ -48,10 +44,10 @@ function(xxx_require_visibility visibility)
 endfunction()
 
 # Include CTest but simply prevent adding a lot of useless targets. Useful for IDEs.
-function(xxx_include_ctest)
+macro(xxx_include_ctest)
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     include(CTest)
-endfunction()
+endmacro()
 
 macro(xxx_configure_apple_rpath)
   if(APPLE) # Ensure that the policy if is only applied on OSX systems
@@ -115,13 +111,14 @@ endfunction()
 
 # Setup the default options for a project (opinionated defaults)
 # Usage : xxx_setup_project()
-function(xxx_setup_project)
+macro(xxx_setup_project)
     xxx_configure_default_build_type(Release)
     xxx_configure_default_binary_dirs()
     xxx_configure_default_install_dirs()
     xxx_configure_default_install_prefix(${CMAKE_CURRENT_BINARY_DIR}/install)
     xxx_configure_apple_rpath()
-endfunction()
+    xxx_use_external_modules()
+endmacro()
 
 # Enable the most common warnings for MSVC, GCC and Clang
 # Adding some extra warning on msvc to mimic gcc/clang behavior
