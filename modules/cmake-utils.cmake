@@ -1301,6 +1301,17 @@ macro(xxx_find_nanobind)
     )
     
     if(nanobind_error)
+        unset(nanobind_ROOT)
+    
+        # On Ubuntu 24.04, nanobind installed via apt is located in /usr/share/nanobind
+        find_path(nanobind_INCLUDE_DIR NAMES nanobind/nanobind.h HINTS /usr/share/nanobind/include)
+        if(nanobind_INCLUDE_DIR)
+            set(nanobind_ROOT ${nanobind_INCLUDE_DIR}/../cmake)
+            cmake_path(CONVERT ${nanobind_ROOT} TO_CMAKE_PATH_LIST nanobind_ROOT NORMALIZE)
+        endif()
+    endif()
+
+    if(NOT nanobind_ROOT)
         message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
     endif()
     
@@ -1318,6 +1329,39 @@ macro(xxx_find_nanobind)
         xxx_find_package(tsl-robin-map CONFIG REQUIRED)
     endif()
 endmacro()
+
+function(xxx_find_python_pytest)
+    xxx_require_target(Python::Interpreter "Python::Interpreter not found. Make sure you have the Python interpreter using xxx_find_package(Python REQUIRED COMPONENTS Interpreter).")
+    
+    if(TARGET Pytest::Pytest)
+        get_target_property(l Pytest::Pytest IMPORTED_LOCATION)
+        get_target_property(v Pytest::Pytest VERSION)
+        message(STATUS "Found pytest: ${l} (version: ${v})")
+        return()
+    endif()
+
+    # If python is installed via vcpkg and pytest installed via 
+    # C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install pytest
+    # Then pytest will be located in C:/vcpkg/installed/x64-windows/tools/python3/Scripts/pytest.exe
+    # So we add an additional hint to find_program
+
+    cmake_path(GET Python_EXECUTABLE PARENT_PATH Python_ROOT)
+    find_program(pytest_EXECUTABLE pytest HINTS ${Python_ROOT} REQUIRED)
+    
+    execute_process(COMMAND ${pytest_EXECUTABLE} --version OUTPUT_VARIABLE pytest_VERSION_FULL OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(REGEX MATCH "[0-9]+(\\.[0-9]+)*" pytest_VERSION "${pytest_VERSION_FULL}")
+    
+    mark_as_advanced(pytest_EXECUTABLE pytest_VERSION)
+
+    add_executable(Pytest::Pytest IMPORTED)
+    set_target_properties(Pytest::Pytest
+        PROPERTIES
+            VERSION ${pytest_VERSION}
+            IMPORTED_LOCATION ${pytest_EXECUTABLE})
+    xxx_require_target(Pytest::Pytest "Pytest::Pytest not found. Make sure you have pytest installed and accessible in your PATH.")
+    
+    message(STATUS "Found pytest: ${pytest_EXECUTABLE} (version: ${pytest_VERSION})")
+endfunction()
 
 function(xxx_python_compile_file)
     set(options)
