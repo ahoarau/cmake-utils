@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v5
       - name: Install dependencies
         run: |
-          brew install cmake ninja catch2 python boost-python3 nanobind robin-map pytest numpy
+          brew install catch2 boost-python3 nanobind robin-map pytest numpy
 
       - name: Configure project
         run: cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
