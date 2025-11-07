@@ -31,10 +31,7 @@ except ImportError:
     if platform.system() == 'Windows':
         with DllDirectoryManager() as mgr:
             module_path = os.path.dirname(__file__)
-            mgr.add_dll_directory(os.path.join(module_path, 'bin'))
-            mgr.add_dll_directory(os.path.join(module_path, '..', 'bin'))
-            mgr.add_dll_directory(os.path.join(module_path, '..', '..', 'bin'))
-            mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
+            mgr.add_dll_directory(os.path.join(module_path, '@REL_PATH_PYTHON_MODULE_TO_MAIN_LIB@'))
             from .@PYTHON_MODULE_NAME@ import *  # noqa
     else:
         raise

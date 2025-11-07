@@ -97,22 +97,43 @@ function(boostpy_add_module name)
     endif()
 
     add_library(${name} MODULE ${arg_UNPARSED_ARGUMENTS})
-    set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "${NB_SUFFIX}")
+    set_target_properties(${name} PROPERTIES PREFIX "" SUFFIX "${BP_SUFFIX}")
     target_link_libraries(${name} PRIVATE Python::Module Boost::python)
 endfunction()
 
 boostpy_add_module(test_project_pywrap_bp bindings.cpp)
 target_link_libraries(test_project_pywrap_bp PRIVATE test_project)
 
-set(PYTHON_MODULE_NAME "test_project_pywrap_bp")
-configure_file(
-    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in
-    ${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp/__init__.py
-    @ONLY
-)
-
 set_target_properties(
     test_project_pywrap_bp
     PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp
 )
 xxx_target_set_default_compile_options(test_project_pywrap_bp PRIVATE)
+
+
+# Compute the relative path between the python module and the main dll library
+# The python module is locate at: $<TARGET_FILE_DIR:test_project_pywrap_bp>
+
+set(PYTHON_MODULE_NAME "test_project_pywrap_bp")
+set(MAIN_LIB_NAME "test_project")
+
+# The location of the python module
+get_target_property(_PYTHON_MODULE_DIR ${PYTHON_MODULE_NAME} LIBRARY_OUTPUT_DIRECTORY)
+xxx_require_variable(_PYTHON_MODULE_DIR)
+
+# The location of the main library
+get_target_property(_MAIN_LIB_DIR ${MAIN_LIB_NAME} RUNTIME_OUTPUT_DIRECTORY)
+xxx_require_variable(_MAIN_LIB_DIR)
+
+# The relative path from the python module to the main library
+file(RELATIVE_PATH REL_PATH_PYTHON_MODULE_TO_MAIN_LIB
+    ${_PYTHON_MODULE_DIR}
+    ${_MAIN_LIB_DIR}
+)
+
+# Configure the __init__.py with PYTHON_MODULE_NAME and REL_PATH_PYTHON_MODULE_TO_MAIN_LIB
+configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in
+    ${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp/__init__.py
+    @ONLY
+)
