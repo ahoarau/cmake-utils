@@ -111,27 +111,51 @@ set_target_properties(
 xxx_target_set_default_compile_options(test_project_pywrap_bp PRIVATE)
 
 
-# Compute the relative path between the python module and the main dll library
-# The python module is locate at: $<TARGET_FILE_DIR:test_project_pywrap_bp>
-
 set(PYTHON_MODULE_NAME "test_project_pywrap_bp")
-set(MAIN_LIB_NAME "test_project")
 
-# The location of the python module
-get_target_property(_PYTHON_MODULE_DIR ${PYTHON_MODULE_NAME} LIBRARY_OUTPUT_DIRECTORY)
-xxx_require_variable(_PYTHON_MODULE_DIR)
+# The target PYTHON_MODULE_NAME, gather the list of builsystem_targets that is depends on
+get_property(buildsystem_targets DIRECTORY ${PROJECT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+message(STATUS "Buildsystem targets: [${buildsystem_targets}]")
 
-# The location of the main library
-get_target_property(_MAIN_LIB_DIR ${MAIN_LIB_NAME} RUNTIME_OUTPUT_DIRECTORY)
-xxx_require_variable(_MAIN_LIB_DIR)
+get_target_property(python_module_link_libraries ${PYTHON_MODULE_NAME} LINK_LIBRARIES)
+message(STATUS "Python module '${PYTHON_MODULE_NAME}' link libraries: [${python_module_link_libraries}]")
 
-# The relative path from the python module to the main library
-file(RELATIVE_PATH REL_PATH_PYTHON_MODULE_TO_MAIN_LIB
-    ${_PYTHON_MODULE_DIR}
-    ${_MAIN_LIB_DIR}
-)
+set(dlls_to_link "")
+list(REMOVE_DUPLICATES python_module_link_libraries)
+foreach(target IN LISTS python_module_link_libraries)
+    get_target_property(target_type ${target} TYPE)
+    if(target_type STREQUAL "SHARED_LIBRARY" OR target_type STREQUAL "MODULE_LIBRARY" AND ${target} IN_LIST buildsystem_targets)
+        list(APPEND dlls_to_link ${target})
+    endif()
+endforeach()
+message(STATUS "Python module '${PYTHON_MODULE_NAME}' depends on the following dlls: [${dlls_to_link}]")
 
-# Configure the __init__.py with PYTHON_MODULE_NAME and REL_PATH_PYTHON_MODULE_TO_MAIN_LIB
+# Get the relative paths between the python module and each dll
+set(all_rel_paths "")
+foreach(dll_name IN LISTS dlls_to_link)
+    get_target_property(python_module_dir ${PYTHON_MODULE_NAME} LIBRARY_OUTPUT_DIRECTORY)
+    xxx_require_variable(python_module_dir)
+
+    get_target_property(dll_dir ${dll_name} RUNTIME_OUTPUT_DIRECTORY)
+    xxx_require_variable(dll_dir)
+
+    file(RELATIVE_PATH rel_path
+        ${python_module_dir}
+        ${dll_dir}
+    )
+    list(APPEND all_rel_paths ${rel_path})
+endforeach()
+
+# Final formatting to a Python list
+set(DLL_DIRS "[")
+foreach(rel_path IN LISTS all_rel_paths)
+    string(APPEND DLL_DIRS "'${rel_path}',")
+endforeach()
+string(REGEX REPLACE ",$" "" DLL_DIRS "${DLL_DIRS}")
+string(APPEND DLL_DIRS "]")
+
+
+# Configure the __init__.py with PYTHON_MODULE_NAME and optional DLL_DIRS
 configure_file(
     ${CMAKE_CURRENT_SOURCE_DIR}/__init__.py.in
     ${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp/__init__.py
