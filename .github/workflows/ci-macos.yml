@@ -7,6 +7,7 @@ jobs:
     name: ${{ matrix.target.name }}
     runs-on: ${{ matrix.target.os }}
     strategy:
+      fail-fast: false
       matrix:
         target: [{os: macos-26, name: macOS (Apple Silicon)}
                , {os: macos-15-intel, name: macOS (Intel)}]
