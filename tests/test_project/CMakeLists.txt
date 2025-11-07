@@ -25,6 +25,10 @@ if(BUILD_PYTHON_BINDINGS)
     xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python)
 endif()
 
+if(BUILD_PYTHON_BINDINGS AND BUILD_TESTS)
+    xxx_find_package(Pytest 8.0.0 REQUIRED)
+endif()
+
 if(BUILD_TESTS)
     xxx_find_package(Catch2 3.4.0 CONFIG REQUIRED)
     include(Catch)
