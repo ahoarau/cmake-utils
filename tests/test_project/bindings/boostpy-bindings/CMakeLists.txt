@@ -161,3 +161,20 @@ configure_file(
     ${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp/__init__.py
     @ONLY
 )
+set(stubgen_py ${CMAKE_CURRENT_SOURCE_DIR}/../../../../external-modules/pybind11-stubgen-e48d1f1/pybind11_stubgen/__init__.py)
+cmake_path(CONVERT "${stubgen_py}" TO_CMAKE_PATH_LIST stubgen_py NORMALIZE)
+
+message(STATUS "Using stubgen main file: ${stubgen_py}")
+
+set(module_name "${PROJECT_NAME}_bp")
+set(module_path "${CMAKE_BINARY_DIR}/lib/site-packages")
+set(stubgen_output "${CMAKE_BINARY_DIR}/lib/site-packages/${PROJECT_NAME}_bp/test_project_pywrap_bp.pyi")
+add_custom_command(
+    OUTPUT ${stubgen_output}
+    COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_BINARY_DIR}/lib/site-packages $<TARGET_FILE:Python::Interpreter> ${stubgen_py} -o ${module_path} ${module_name} --boost-python --ignore-invalid signature --no-setup-py "--root-module-suffix" ""
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    DEPENDS test_project_pywrap_bp
+    VERBATIM
+    COMMENT "Generating boost python stubs for module '${module_name}'"
+)
+add_custom_target(test_project_bp_stubs ALL DEPENDS ${stubgen_output})
