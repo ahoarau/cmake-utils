@@ -9,8 +9,8 @@ project(test_project
     LANGUAGES CXX
 )
 
-# Setup the project
-xxx_setup_project()
+# Configure default binary and install directories, build type, etc.
+xxx_configure_defaults()
 
 # Declare options
 xxx_option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)

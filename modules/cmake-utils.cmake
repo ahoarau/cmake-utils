@@ -133,15 +133,12 @@ function(xxx_configure_default_install_prefix default_install_prefix)
 endfunction()
 
 # Setup the default options for a project (opinionated defaults)
-# Usage : xxx_setup_project()
-function(xxx_setup_project)
+# Usage : xxx_configure_defaults()
+function(xxx_configure_defaults)
     xxx_configure_default_build_type(Release)
     xxx_configure_default_binary_dirs()
     xxx_configure_default_install_dirs()
     xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)
-    # xxx_configure_apple_rpath()
-    xxx_use_external_modules()
-    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/BoostPython.cmake)
 endfunction()
 
 # Enable the most common warnings for MSVC, GCC and Clang
