@@ -927,6 +927,8 @@ def main(args=None):
     parser.add_argument("-o", "--output-dir", help="the root directory for output stubs", default="./stubs")
     parser.add_argument("--root-module-suffix", type=str, default="-stubs", dest='root_module_suffix',
                         help="optional suffix to disambiguate from the original package")
+    parser.add_argument("--no-root-module-suffix", action='store_const', const="", dest='root_module_suffix',
+                        help="equivalent to --root-module-suffix=\"\"")
     parser.add_argument("--root_module_suffix", type=str, default=None, dest='root_module_suffix_deprecated',
                         help="Deprecated.  Use `--root-module-suffix`")
     parser.add_argument("--no-setup-py", action='store_true')

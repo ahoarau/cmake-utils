@@ -220,7 +220,7 @@ function(boostpy_add_stubs name)
 
     add_custom_command(
         OUTPUT ${arg_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py} --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python --ignore-invalid signature --no-setup-py
+        COMMAND ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py} --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python --ignore-invalid signature --no-setup-py --no-root-module-suffix
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS ${arg_DEPENDS}
         VERBATIM
