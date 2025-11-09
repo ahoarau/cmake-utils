@@ -24,7 +24,7 @@ class DllDirectoryManager(contextlib.AbstractContextManager):
             d.close()
 
 try:
-    from .@PYTHON_MODULE_NAME@ import *  # noqa
+    from .@__MODULE_NAME__@ import *  # noqa
 except ImportError:
     import platform
 
@@ -32,9 +32,9 @@ except ImportError:
         with DllDirectoryManager() as mgr:
             module_path = os.path.dirname(__file__)
             mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
-            dll_dirs = @DLL_DIRS@
+            dll_dirs = @__DLL_DIRS__@
             for dll_dir in dll_dirs:
                 mgr.add_dll_directory(os.path.join(module_path, dll_dir))
-            from .@PYTHON_MODULE_NAME@ import *  # noqa
+            from .@__MODULE_NAME__@ import *  # noqa
     else:
         raise
