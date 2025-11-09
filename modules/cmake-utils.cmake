@@ -1,7 +1,7 @@
 # gersemi: off
 cmake_minimum_required(VERSION 3.22...4.1)
 
-function(xxx_use_external_modules)
+function(_xxx_integrate_modules)
   set(utils_ROOT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/..)
   cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
 
@@ -13,7 +13,12 @@ function(xxx_use_external_modules)
   # Adding the boosttest_discover_tests function for Boost Unit Testing
   # repo: https://github.com/DenizThatMenace/cmake-modules
   include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
+
+  # boostpy_add_module and boostpy_add_stubs
+  include(${utils_ROOT}/modules/BoostPython.cmake)
 endfunction()
+
+_xxx_integrate_modules()
 
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
