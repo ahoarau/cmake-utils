@@ -55,17 +55,18 @@ macro(xxx_include_ctest)
     include(CTest)
 endmacro()
 
-macro(xxx_configure_apple_rpath)
-  if(APPLE) # Ensure that the policy if is only applied on OSX systems
-    xxx_require_variable(CMAKE_INSTALL_PREFIX)
+# TODO: See if the following rpath configuration is still needed with modern cmake versions
+# macro(xxx_configure_apple_rpath)
+#   if(APPLE) # Ensure that the policy if is only applied on OSX systems
+#     xxx_require_variable(CMAKE_INSTALL_LIBDIR)
 
-    set(CMAKE_MACOSX_RPATH True)
-    set(CMAKE_SKIP_BUILD_RPATH False)
-    set(CMAKE_BUILD_WITH_INSTALL_RPATH False)
-    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True)
-    set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_PREFIX}/lib)
-  endif()
-endmacro()
+#     set(CMAKE_MACOSX_RPATH True CACHE BOOL "")
+#     set(CMAKE_SKIP_BUILD_RPATH False CACHE BOOL "")
+#     set(CMAKE_BUILD_WITH_INSTALL_RPATH False CACHE BOOL "")
+#     set(CMAKE_INSTALL_RPATH_USE_LINK_PATH True CACHE BOOL "")
+#     set(CMAKE_INSTALL_RPATH ${CMAKE_INSTALL_LIBDIR} CACHE PATH "")
+#   endif()
+# endmacro()
 
 # Usage: xxx_configure_default_build_type(<build_type>)
 # Usual values for <build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
@@ -133,7 +134,7 @@ macro(xxx_setup_project)
     xxx_configure_default_binary_dirs()
     xxx_configure_default_install_dirs()
     xxx_configure_default_install_prefix(${CMAKE_CURRENT_BINARY_DIR}/install)
-    xxx_configure_apple_rpath()
+    # xxx_configure_apple_rpath()
     xxx_use_external_modules()
 endmacro()
 
