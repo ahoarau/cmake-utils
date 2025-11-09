@@ -43,6 +43,12 @@ function(xxx_require_visibility visibility)
     endif()
 endfunction()
 
+function(xxx_check_file_exists filepath)
+    if(NOT EXISTS ${filepath})
+        message(FATAL_ERROR "File '${filepath}' does not exist.")
+    endif()
+endfunction()
+
 # Include CTest but simply prevent adding a lot of useless targets. Useful for IDEs.
 macro(xxx_include_ctest)
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
