@@ -96,8 +96,19 @@ function(xxx_configure_default_binary_dirs)
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # for Unix/MacOS shared libraries .so/.dylib and Windows: .lib (import libraries for shared libraries)
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # For static libraries add_library(STATIC ...) .a and Windows: .lib
 
-    # Note: MODULE libraries are dynamic libraries. On windows, python modules are MODULE libraries, whith pyd extension.
-    # They should be placed explicitely in lib/site-packages when building python extensions.
+    # /!\ MODULE libraries are dynamic libraries. On Windows, python modules are MODULE libraries, with pyd extension.
+    #     They should be placed explicitely in lib/site-packages when building python extensions.
+    xxx_configure_default_binary_dirs_for_config(Debug)
+    xxx_configure_default_binary_dirs_for_config(Release)
+    xxx_configure_default_binary_dirs_for_config(MinSizeRel)
+    xxx_configure_default_binary_dirs_for_config(RelWithDebInfo)
+endfunction()
+
+# Same as xxx_configure_default_binary_dirs but for a specific config
+function(xxx_configure_default_binary_dirs_for_config config)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/bin CACHE PATH "")
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
 endfunction()
 
 # Configures the default install directories using GNUInstallDirs (bin, lib, include, etc.)
