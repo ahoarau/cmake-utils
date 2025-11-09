@@ -52,6 +52,6 @@ install(FILES
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
 
-install(DIRECTORY find-modules modules templates
+install(DIRECTORY external-modules find-modules modules templates
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
 )
