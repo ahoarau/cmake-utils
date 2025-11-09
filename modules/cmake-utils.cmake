@@ -136,6 +136,7 @@ function(xxx_setup_project)
     xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)
     # xxx_configure_apple_rpath()
     xxx_use_external_modules()
+    include(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/BoostPython.cmake)
 endfunction()
 
 # Enable the most common warnings for MSVC, GCC and Clang
@@ -1348,96 +1349,153 @@ macro(xxx_find_nanobind)
     endif()
 endmacro()
 
-function(xxx_find_python_pytest)
-    xxx_require_target(Python::Interpreter "Python::Interpreter not found. Make sure you have the Python interpreter using xxx_find_package(Python REQUIRED COMPONENTS Interpreter).")
-    
-    if(TARGET Pytest::Pytest)
-        get_target_property(l Pytest::Pytest IMPORTED_LOCATION)
-        get_target_property(v Pytest::Pytest VERSION)
-        message(STATUS "Found pytest: ${l} (version: ${v})")
-        return()
-    endif()
-
-    # If python is installed via vcpkg and pytest installed via 
-    # C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install pytest
-    # Then pytest will be located in C:/vcpkg/installed/x64-windows/tools/python3/Scripts/pytest.exe
-    # So we add an additional hint to find_program
-
-    cmake_path(GET Python_EXECUTABLE PARENT_PATH Python_ROOT)
-    find_program(pytest_EXECUTABLE pytest HINTS ${Python_ROOT} REQUIRED)
-    
-    execute_process(COMMAND ${pytest_EXECUTABLE} --version OUTPUT_VARIABLE pytest_VERSION_FULL OUTPUT_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH "[0-9]+(\\.[0-9]+)*" pytest_VERSION "${pytest_VERSION_FULL}")
-    
-    mark_as_advanced(pytest_EXECUTABLE pytest_VERSION)
-
-    add_executable(Pytest::Pytest IMPORTED)
-    set_target_properties(Pytest::Pytest
-        PROPERTIES
-            VERSION ${pytest_VERSION}
-            IMPORTED_LOCATION ${pytest_EXECUTABLE})
-    xxx_require_target(Pytest::Pytest "Pytest::Pytest not found. Make sure you have pytest installed and accessible in your PATH.")
-    
-    message(STATUS "Found pytest: ${pytest_EXECUTABLE} (version: ${pytest_VERSION})")
-endfunction()
-
-function(xxx_python_compile_file)
-    set(options)
-    set(oneValueArgs FILE GEN_DIR)
+function(xxx_python_compile_all)
+    set(options VERBOSE)
+    set(oneValueArgs DIRECTORY)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    xxx_require_variable(arg_DIRECTORY)
 
-    xxx_require_variable(Python_EXECUTABLE)
-
-    xxx_require_variable(arg_FILE)
-    xxx_require_variable(arg_GEN_DIR)
-
-    execute_process(
-        COMMAND ${Python_EXECUTABLE} -c "import py_compile; print(py_compile.compile(r'${arg_FILE}', doraise=True), end='')"
-        OUTPUT_VARIABLE compiled_file
-        RESULT_VARIABLE result
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-    )
-
-    message(STATUS "Compiled Python file '${arg_FILE}' to '${compiled_file}'")
-
-    cmake_path(CONVERT ${compiled_file} TO_CMAKE_PATH_LIST compiled_file NORMALIZE)
-    cmake_path(GET compiled_file FILENAME output_filename)
-
-    if(NOT result EQUAL 0)
-        message(FATAL_ERROR "Failed to compile Python file '${arg_FILE}'")
+    if(arg_VERBOSE)
+        message(STATUS "Compiling all Python files in directory '${arg_DIRECTORY}'")
+        # If quiet is False or 0 (the default), the filenames and other information are printed to standard out. 
+        # Set to 1, only errors are printed. Set to 2, all output is suppressed.
+        set(quiet_flag "0")
+    else()
+        set(quiet_flag "1")
     endif()
 
-    file(COPY ${arg_FILE} DESTINATION ${arg_GEN_DIR})
-    file(COPY ${compiled_file} DESTINATION ${arg_GEN_DIR}/__pycache__)
-    set_source_files_properties(${compiled_file} PROPERTIES GENERATED True)
+    execute_process(
+        COMMAND ${Python_EXECUTABLE} -c "import compileall; compileall.compile_dir(r'${arg_DIRECTORY}', workers=0, quiet=${quiet_flag})"
+        RESULT_VARIABLE result
+        ERROR_VARIABLE error
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        WORKING_DIRECTORY ${arg_DIRECTORY}
+    )
+    if(error)
+        message(FATAL_ERROR "Failed to compile Python files in directory '${arg_DIRECTORY}': ${error}")
+    endif()
+
+    if(arg_VERBOSE)
+        message(STATUS "Compiling all Python files in directory '${arg_DIRECTORY}'... OK.")
+    endif()
 endfunction()
 
 
-function(xxx_python_compile_files)
-    set(options)
-    set(oneValueArgs GEN_DIR)
-    set(multiValueArgs FILES)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+# function(xxx_find_python_pytest)
+#     xxx_require_target(Python::Interpreter "Python::Interpreter not found. Make sure you have the Python interpreter using xxx_find_package(Python REQUIRED COMPONENTS Interpreter).")
+    
+#     if(TARGET Pytest::Pytest)
+#         get_target_property(l Pytest::Pytest IMPORTED_LOCATION)
+#         get_target_property(v Pytest::Pytest VERSION)
+#         message(STATUS "Found pytest: ${l} (version: ${v})")
+#         return()
+#     endif()
 
-    xxx_require_variable(arg_FILES)
-    xxx_require_variable(arg_GEN_DIR)
+#     # If python is installed via vcpkg and pytest installed via 
+#     # C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install pytest
+#     # Then pytest will be located in C:/vcpkg/installed/x64-windows/tools/python3/Scripts/pytest.exe
+#     # So we add an additional hint to find_program
 
-    # Each file needs to be relative to the current source dir to respect directory structure
-    foreach(file ${arg_FILES})
-        if(IS_ABSOLUTE ${file})
-            message(FATAL_ERROR "File '${file}' is absolute. Please provide relative paths to the source directory (CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}).")
-        endif()
-    endforeach()
+#     cmake_path(GET Python_EXECUTABLE PARENT_PATH Python_ROOT)
+#     find_program(pytest_EXECUTABLE pytest HINTS ${Python_ROOT} REQUIRED)
+    
+#     execute_process(COMMAND ${pytest_EXECUTABLE} --version OUTPUT_VARIABLE pytest_VERSION_FULL OUTPUT_STRIP_TRAILING_WHITESPACE)
+#     string(REGEX MATCH "[0-9]+(\\.[0-9]+)*" pytest_VERSION "${pytest_VERSION_FULL}")
+    
+#     mark_as_advanced(pytest_EXECUTABLE pytest_VERSION)
 
-    foreach(file ${arg_FILES})
-        cmake_path(GET file PARENT_PATH file_dir)
-        xxx_python_compile_file(
-            FILE ${file}
-            GEN_DIR ${arg_GEN_DIR}/${file_dir}
-        )
-    endforeach()
-endfunction()
+#     add_executable(Pytest::Pytest IMPORTED)
+#     set_target_properties(Pytest::Pytest
+#         PROPERTIES
+#             VERSION ${pytest_VERSION}
+#             IMPORTED_LOCATION ${pytest_EXECUTABLE})
+#     xxx_require_target(Pytest::Pytest "Pytest::Pytest not found. Make sure you have pytest installed and accessible in your PATH.")
+    
+#     message(STATUS "Found pytest: ${pytest_EXECUTABLE} (version: ${pytest_VERSION})")
+# endfunction()
 
+# function(xxx_python_compile_file filepath)
+#     xxx_require_variable(Python_EXECUTABLE)
+    
+#     execute_process(
+#         COMMAND ${Python_EXECUTABLE} -c "import py_compile; print(py_compile.compile(r'${filepath}', doraise=True), end='')"
+#         OUTPUT_VARIABLE compiled_filepath
+#         RESULT_VARIABLE result
+#         ERROR_VARIABLE error
+#         OUTPUT_STRIP_TRAILING_WHITESPACE
+#         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+#     )
+
+#     if(error)
+#         message(FATAL_ERROR "Failed to compile Python file '${filepath}': ${error}")
+#     endif()
+
+#     set_source_files_properties(${compiled_filepath} PROPERTIES GENERATED True)
+
+#     cmake_path(CONVERT ${compiled_filepath} TO_CMAKE_PATH_LIST compiled_filepath NORMALIZE)
+#     message(STATUS "Compiled Python file '${filepath}' to '${compiled_filepath}'")
+# endfunction()
+
+# function(xxx_python_compile_files)
+#     set(options)
+#     set(oneValueArgs GEN_DIR)
+#     set(multiValueArgs FILES)
+#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+#     xxx_require_variable(arg_FILES)
+#     xxx_require_variable(arg_GEN_DIR)
+
+#     # Each file needs to be relative to the current source dir to respect directory structure
+#     foreach(file ${arg_FILES})
+#         if(IS_ABSOLUTE ${file})
+#             message(FATAL_ERROR "File '${file}' is absolute. Please provide relative paths to the current source directory (CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}).")
+#         endif()
+#     endforeach()
+
+#     foreach(file ${arg_FILES})
+#         cmake_path(GET file PARENT_PATH file_dir)
+#         xxx_python_compile_file(
+#             FILE ${file}
+#             GEN_DIR ${arg_GEN_DIR}/${file_dir}
+#         )
+#     endforeach()
+# endfunction()
+
+# function(xxx_python_copy_files)
+#     set(options COMPILE)
+#     set(oneValueArgs OUTPUT_DIR)
+#     set(multiValueArgs FILES)
+#     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+
+#     xxx_require_variable(arg_FILES)
+#     xxx_require_variable(arg_GEN_DIR)
+
+#     foreach(file ${arg_FILES})
+#         if(IS_ABSOLUTE ${file})
+#             message(FATAL_ERROR "File '${file}' is absolute. Please provide relative paths to the current source directory (CMAKE_CURRENT_SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR}).")
+#         endif()
+#     endforeach()
+
+#     foreach(file ${arg_FILES})
+#         cmake_path(GET file PARENT_PATH file_dir)
+#         file(COPY ${file} DESTINATION ${arg_GEN_DIR}/${file_dir})
+
+#         if(arg_COMPILE)
+#             execute_process(
+#                 COMMAND ${Python_EXECUTABLE} -c "import py_compile; print(py_compile.compile(r'${file}', doraise=True), end='')"
+#                 OUTPUT_VARIABLE compiled_file
+#                 RESULT_VARIABLE result
+#                 ERROR_VARIABLE error
+#                 WORKING_DIRECTORY ${arg_GEN_DIR}
+#             )
+#             if(error)
+#                 message(FATAL_ERROR "Failed to compile Python file '${file}': ${error}")
+#             else()
+#                 message(STATUS "Compiled Python file '${file}' to '${compiled_file}'")
+#             endif()
+#         endif()
+#     endforeach()
+# endfunction()
 
 # gersemi: on
