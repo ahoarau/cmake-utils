@@ -4,6 +4,7 @@ project(cmake-utils VERSION 0.1.0)
 include(${CMAKE_CURRENT_SOURCE_DIR}/modules/cmake-utils.cmake)
 
 set(CMAKE_UTILS_BUILD_TESTS ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build the test suite")
+set(CMAKE_UTILS_BUILD_PYTHON_BINDINGS ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build the Python bindings for the test suite")
 
 if(CMAKE_UTILS_BUILD_TESTS)
     enable_testing()
