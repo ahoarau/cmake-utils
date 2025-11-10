@@ -12,7 +12,6 @@ xxx_python_generate_init_py(
     OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib/site-packages/test_project/__init__.py
 )
 
-
 nanobind_add_stub(
     test_project_pywrap_stub
     MODULE test_project

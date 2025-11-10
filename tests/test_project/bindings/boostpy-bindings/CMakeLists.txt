@@ -6,6 +6,7 @@ set_target_properties(
     test_project_pywrap_bp
     PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp
 )
+
 xxx_python_generate_init_py(
     test_project_pywrap_bp
     OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp/__init__.py
