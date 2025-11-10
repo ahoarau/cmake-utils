@@ -30,8 +30,8 @@ configure = { cmd = [
     "-DCMAKE_BUILD_TYPE=RelWithDebInfo",
     "-DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-    "-DBUILD_PYTHON_BINDINGS=ON",
-    "-DBUILD_TESTS=ON",
+    "-DCMAKE_UTILS_BUILD_PYTHON_BINDINGS=ON",
+    "-DCMAKE_UTILS_BUILD_TESTS=ON",
 ] }
 build = { cmd = "cmake --build build", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = [

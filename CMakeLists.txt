@@ -3,10 +3,12 @@ project(cmake-utils VERSION 0.1.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/modules/cmake-utils.cmake)
 
-set(BUILD_TESTS ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build the test suite")
+set(CMAKE_UTILS_BUILD_TESTS ${PROJECT_IS_TOP_LEVEL} CACHE BOOL "Build the test suite")
 
-if(BUILD_TESTS)
+if(CMAKE_UTILS_BUILD_TESTS)
     enable_testing()
+    set(TEST_PROJECT_BUILD_TESTS ${CMAKE_UTILS_BUILD_TESTS})
+    set(TEST_PROJECT_BUILD_PYTHON_BINDINGS ${CMAKE_UTILS_BUILD_PYTHON_BINDINGS})
     add_subdirectory(tests)
 endif()
 

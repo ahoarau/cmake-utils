@@ -13,11 +13,11 @@ project(test_project
 xxx_configure_defaults()
 
 # Declare options
-xxx_option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
-xxx_option(BUILD_TESTS "Build tests" ON)
+xxx_option(TEST_PROJECT_BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
+xxx_option(TEST_PROJECT_BUILD_TESTS "Build tests" ON)
 
 # Find dependencies
-if(BUILD_PYTHON_BINDINGS)
+if(TEST_PROJECT_BUILD_PYTHON_BINDINGS)
     xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
     xxx_find_nanobind(2.4.0 CONFIG REQUIRED)
 
@@ -25,11 +25,11 @@ if(BUILD_PYTHON_BINDINGS)
     xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python)
 endif()
 
-if(BUILD_PYTHON_BINDINGS AND BUILD_TESTS)
+if(TEST_PROJECT_BUILD_PYTHON_BINDINGS AND TEST_PROJECT_BUILD_TESTS)
     xxx_find_package(Pytest 8.0.0 REQUIRED)
 endif()
 
-if(BUILD_TESTS)
+if(TEST_PROJECT_BUILD_TESTS)
     xxx_find_package(Catch2 3.4.0 CONFIG REQUIRED)
     include(Catch)
 endif()
@@ -59,14 +59,14 @@ xxx_target_generate_warning_header(test_project PUBLIC)
 xxx_target_generate_deprecated_header(test_project PUBLIC)
 
 # Python bindings
-if(BUILD_PYTHON_BINDINGS)
+if(TEST_PROJECT_BUILD_PYTHON_BINDINGS)
     message(STATUS "[${PROJECT_NAME}] Building Python bindings")
     add_subdirectory(bindings/nanobind-bindings)
     add_subdirectory(bindings/boostpy-bindings)
 endif()
 
 # Tests
-if(BUILD_TESTS)
+if(TEST_PROJECT_BUILD_TESTS)
     message(STATUS "[${PROJECT_NAME}] Building tests")
     enable_testing()
     add_subdirectory(tests)
