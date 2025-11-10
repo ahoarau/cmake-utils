@@ -14,7 +14,7 @@ xxx_python_generate_init_py(
 
 boostpy_add_stubs(
     test_project_pywrap_bp_stubs
-    MODULE test_project_bp
+    MODULE test_project_bp.test_project_pywrap_bp
     OUTPUT ${CMAKE_BINARY_DIR}/lib/site-packages
     PYTHON_PATH ${CMAKE_BINARY_DIR}/lib/site-packages
     DEPENDS test_project_pywrap_bp

@@ -14,7 +14,7 @@ xxx_python_generate_init_py(
 
 nanobind_add_stub(
     test_project_pywrap_stub
-    MODULE test_project
+    MODULE test_project.test_project_pywrap
     OUTPUT ${CMAKE_BINARY_DIR}/lib/site-packages/test_project/test_project_pywrap.pyi
     PYTHON_PATH ${CMAKE_BINARY_DIR}/lib/site-packages
     DEPENDS test_project_pywrap
