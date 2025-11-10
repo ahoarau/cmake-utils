@@ -1,6 +1,7 @@
 import contextlib
 import os
 import sys
+import platform
 
 class DllDirectoryManager(contextlib.AbstractContextManager):
     """Context manager for managing DLL directories on Windows.
@@ -13,7 +14,11 @@ class DllDirectoryManager(contextlib.AbstractContextManager):
     """
     def add_dll_directory(self, dll_dir: str):
         """Add a DLL directory to the search path."""
-        self.dll_dirs.append(os.add_dll_directory(dll_dir))
+        # Check if the directory exists
+        if os.path.isdir(dll_dir):
+            self.dll_dirs.append(os.add_dll_directory(dll_dir))
+        else:
+            print(f"Warning: DLL directory '{dll_dir}' does not exist.", file=sys.stderr)
 
     def __enter__(self):
         self.dll_dirs = []
@@ -23,18 +28,13 @@ class DllDirectoryManager(contextlib.AbstractContextManager):
         for d in self.dll_dirs:
             d.close()
 
-try:
+if platform.system() == 'Windows':
+    with DllDirectoryManager() as mgr:
+        module_path = os.path.dirname(__file__)
+        mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
+        dll_dirs = @__DLL_DIRS__@
+        for dll_dir in dll_dirs:
+            mgr.add_dll_directory(os.path.join(module_path, dll_dir))
+        from .@__MODULE_NAME__@ import *  # noqa
+else:
     from .@__MODULE_NAME__@ import *  # noqa
-except ImportError:
-    import platform
-
-    if platform.system() == 'Windows':
-        with DllDirectoryManager() as mgr:
-            module_path = os.path.dirname(__file__)
-            mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
-            dll_dirs = @__DLL_DIRS__@
-            for dll_dir in dll_dirs:
-                mgr.add_dll_directory(os.path.join(module_path, dll_dir))
-            from .@__MODULE_NAME__@ import *  # noqa
-    else:
-        raise
