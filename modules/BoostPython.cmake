@@ -101,72 +101,6 @@ function(boostpy_add_module name)
     target_link_libraries(${name} PRIVATE Python::Module Boost::python)
 endfunction()
 
-function(xxx_python_generate_init_py name)
-    set(options)
-    set(oneValueArgs OUTPUT_PATH)
-    set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 1 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
-    if(NOT TARGET ${name})
-        message(FATAL_ERROR "Target '${name}' does not exist, cannot generate __init__.py")
-    endif()
-
-    if(NOT DEFINED arg_OUTPUT_PATH)
-        message(FATAL_ERROR "OUTPUT_PATH argument is required")
-    endif()
-
-    get_target_property(python_module_link_libraries ${name} LINK_LIBRARIES)
-    message(STATUS "Python module '${name}' link libraries: [${python_module_link_libraries}]")
-
-    set(dlls_to_link "")
-    list(REMOVE_DUPLICATES python_module_link_libraries)
-    foreach(target IN LISTS python_module_link_libraries)
-        get_target_property(target_type ${target} TYPE)
-        get_target_property(is_imported ${target} IMPORTED)
-        message(STATUS "Checking target '${target}' of type '${target_type}' for dll linking. Imported: '${is_imported}'")
-
-        if(target_type STREQUAL "SHARED_LIBRARY" OR target_type STREQUAL "MODULE_LIBRARY" AND NOT ${is_imported})
-            message(STATUS "Adding target '${target}' to dlls to link for python module '${name}'")
-            list(APPEND dlls_to_link ${target})
-        endif()
-    endforeach()
-
-    message(STATUS "Python module '${name}' depends on the following buildsystem dlls: [${dlls_to_link}]")
-
-    # Get the relative paths between the python module and each dll
-    set(all_rel_paths "")
-    foreach(dll_name IN LISTS dlls_to_link)
-        get_target_property(python_module_dir ${name} LIBRARY_OUTPUT_DIRECTORY)
-        xxx_require_variable(python_module_dir "LIBRARY_OUTPUT_DIRECTORY not set for target '${name}', add it using 'set_target_properties(<target> PROPERTIES LIBRARY_OUTPUT_DIRECTORY <dir>)'")
-
-        get_target_property(dll_dir ${dll_name} RUNTIME_OUTPUT_DIRECTORY)
-        xxx_require_variable(dll_dir)
-
-        file(RELATIVE_PATH rel_path
-            ${python_module_dir}
-            ${dll_dir}
-        )
-        list(APPEND all_rel_paths ${rel_path})
-    endforeach()
-
-    # Final formatting to a Python list
-    set(dll_dirs "[")
-    foreach(rel_path IN LISTS all_rel_paths)
-        string(APPEND dll_dirs "'${rel_path}',")
-    endforeach()
-    string(REGEX REPLACE ",$" "" dll_dirs "${dll_dirs}")
-    string(APPEND dll_dirs "]")
-
-    # Configure the __init__.py with PYTHON_MODULE_NAME and optional dll_dirs
-    set(__MODULE_NAME__ "${name}")
-    set(__DLL_DIRS__ "${dll_dirs}")
-    configure_file(
-        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/__init__.py.in
-        ${arg_OUTPUT_PATH}
-        @ONLY
-    )
-endfunction()
-
 function(boostpy_add_stubs name)
     set(options VERBOSE)
     set(oneValueArgs MODULE OUTPUT PYTHON_PATH DEPENDS)
@@ -199,7 +133,7 @@ function(boostpy_add_stubs name)
 
     add_custom_command(
         OUTPUT ${arg_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py} --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python --ignore-invalid signature --no-setup-py --no-root-module-suffix
+        COMMAND ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py} --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python --ignore-invalid=signature --no-setup-py --no-root-module-suffix
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS ${arg_DEPENDS}
         VERBATIM
