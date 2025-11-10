@@ -1,9 +1,10 @@
-nanobind_add_module(test_project_pywrap
-    NB_STATIC STABLE_ABI LTO
-    bindings.cpp
-)
-set_target_properties(test_project_pywrap PROPERTIES
-    LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project
+nanobind_add_module(test_project_pywrap NB_STATIC STABLE_ABI LTO bindings.cpp)
+target_link_libraries(test_project_pywrap PRIVATE test_project)
+xxx_target_set_default_compile_options(test_project_pywrap PRIVATE)
+
+set_target_properties(
+    test_project_pywrap 
+    PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project
 )
 
 xxx_python_generate_init_py(
@@ -11,8 +12,6 @@ xxx_python_generate_init_py(
     OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib/site-packages/test_project/__init__.py
 )
 
-target_link_libraries(test_project_pywrap PRIVATE test_project)
-xxx_target_set_default_compile_options(test_project_pywrap PRIVATE)
 
 nanobind_add_stub(
     test_project_pywrap_stub
