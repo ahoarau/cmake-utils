@@ -72,10 +72,7 @@ if(BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-# Declare components
-xxx_declare_component(COMPONENT test_project TARGETS test_project)
-
-# Install headers
+# Declare headers for target
 xxx_target_headers(test_project PUBLIC 
     HEADERS 
         include/test_project/Math.hpp 
@@ -83,8 +80,12 @@ xxx_target_headers(test_project PUBLIC
         include
 )
 
-# Install the project (headers, targets, config files, etc.)
-xxx_install_project()
+
+# Declare export components
+xxx_add_export_component(NAME test_project TARGETS test_project)
+
+# Export the package files (headers, targets, config files, etc.)
+xxx_export_package()
 
 # Print summaries
 xxx_print_dependencies_summary()

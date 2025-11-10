@@ -874,46 +874,58 @@ set(imported_libraries \"${all_link_libraries}\")
     )
 endfunction()
 
-# xxx_declare_component(COMPONENT <component_name> TARGETS <target1> <target2> ...)
-# Declare a component for the current project, with associated targets.
-# Each component declared and associated to a set of targets will have its own <package>-component-<component>-targets.cmake 
-# and <package>-component-<component>-dependencies.cmake generated.
-# Components are used as follow: find_package(<package> CONFIG REQUIRED COMPONENTS <component1> <component2> ...)
-function(xxx_declare_component)
+# xxx_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
+# Add an export component with associated targets that will be exported as a CMake package component.
+# Each export component will have its own <package>-component-<name>-targets.cmake 
+# and <package>-component-<name>-dependencies.cmake generated.
+# Components are used with: find_package(<package> CONFIG REQUIRED COMPONENTS <component1> <component2> ...)
+function(xxx_add_export_component)
     set(options)
-    set(oneValueArgs COMPONENT)
+    set(oneValueArgs NAME)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     xxx_require_variable(PROJECT_NAME)
     xxx_require_variable(arg_TARGETS)
-    xxx_require_variable(arg_COMPONENT)
+    xxx_require_variable(arg_NAME)
 
-    # Check component is not already declared
+    # Check export component is not already declared
     get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
-    if(${arg_COMPONENT} IN_LIST existing_components)
-        message(FATAL_ERROR "Component '${arg_COMPONENT}' is already declared for project '${PROJECT_NAME}'.")
+    if(${arg_NAME} IN_LIST existing_components)
+        message(FATAL_ERROR "Export component '${arg_NAME}' is already declared for project '${PROJECT_NAME}'.")
     endif()
 
-    # Check if target is already in a component
+    # Check if target is already in an export component
     foreach(component ${existing_components})
         get_property(component_targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
         foreach(target ${arg_TARGETS})
             if(${target} IN_LIST component_targets)
-                message(FATAL_ERROR "Target '${target}' is already part of component '${component}'. Cannot add it to component '${arg_COMPONENT}'.")
+                message(FATAL_ERROR "Target '${target}' is already part of export component '${component}'. Cannot add it to export component '${arg_NAME}'.")
             endif()
         endforeach()
     endforeach()
 
-    message("Declaring component '${arg_COMPONENT}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_COMPONENT})")
+    message("Adding export component '${arg_NAME}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_NAME})")
 
     # This option associates the installed target files with an export, without installing anything.
-    # TODO: Declare exports first like that, split the install_project() with a generation and an install step.
-    # install(TARGETS ${arg_TARGETS} EXPORT ${PROJECT_NAME}-${arg_COMPONENT})
+    # TODO: Declare exports first like that, split the xxx_export_package() with a generation and an install step.
+    # install(TARGETS ${arg_TARGETS} EXPORT ${PROJECT_NAME}-${arg_NAME})
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components ${arg_COMPONENT} APPEND)
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_COMPONENT}_targets ${arg_TARGETS})
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components ${arg_NAME} APPEND)
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
 endfunction()
+
+# Backward compatibility aliases
+function(xxx_declare_component)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "" "COMPONENT" "TARGETS")
+    if(arg_COMPONENT)
+        message(DEPRECATION "xxx_declare_component(COMPONENT ...) is deprecated. Use xxx_add_export_component(NAME ...) instead.")
+        xxx_add_export_component(NAME ${arg_COMPONENT} TARGETS ${arg_TARGETS})
+    else()
+        message(FATAL_ERROR "xxx_declare_component() requires COMPONENT argument")
+    endif()
+endfunction()
+
 
 # xxx_contains_generator_expressions(<input_string> <output_var>)
 # Check if the provided string contains generator expressions.
@@ -1051,7 +1063,7 @@ function(xxx_install_headers)
         set(components ${arg_COMPONENTS})
     else()
         if(NOT declared_components)
-            message(FATAL_ERROR "No components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_declare_component() first.")
+            message(FATAL_ERROR "No export components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_add_export_component() first.")
         endif()
         set(components ${declared_components})
         message("Installing headers for all declared components. Declared components: [${declared_components}]")
@@ -1075,16 +1087,18 @@ function(xxx_install_headers)
     endforeach()
 endfunction()
 
-# Install the project (targets, headers, package modules, etc.)
-# Generate the package modules files and installs them:
+# xxx_export_package()
+# Export the CMake package with all its components (targets, headers, package modules, etc.)
+# Generates and installs CMake package configuration files:
 #  - <package>-config.cmake
 #  - <package>-config-version.cmake
-#  - <package>-<componentA>-targets.cmake
-#  - <package>-<componentA>-dependencies.cmake
-#  - <package>-<componentB>-targets.cmake
-#  - <package>-<componentB>-dependencies.cmake
-function(xxx_install_project)
-    message(STATUS "[${PROJECT_NAME}] Installing project (${CMAKE_CURRENT_FUNCTION})")
+#  - <package>-component-<componentA>-targets.cmake
+#  - <package>-component-<componentA>-dependencies.cmake
+#  - <package>-component-<componentB>-targets.cmake
+#  - <package>-component-<componentB>-dependencies.cmake
+# NOTE: This is for CMake package export only. Python bindings are handled separately.
+function(xxx_export_package)
+    message(STATUS "[${PROJECT_NAME}] Exporting package (${CMAKE_CURRENT_FUNCTION})")
 
     # Dump package dependencies at the end of the current CMakeLists configuration step
     cmake_language(DEFER CALL _xxx_dump_package_dependencies_json())
@@ -1188,7 +1202,7 @@ endfunction()
 # _xxx_dump_package_dependencies_json()
 # Internal function to dump the package dependencies recorded with xxx_find_package()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
-# In the function xxx_install_project().
+# In the function xxx_export_package().
 function(_xxx_dump_package_dependencies_json)
     get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT package_dependencies_json)
