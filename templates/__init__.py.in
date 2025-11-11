@@ -35,6 +35,7 @@ if platform.system() == 'Windows':
         dll_dirs = @__DLL_DIRS__@
         for dll_dir in dll_dirs:
             mgr.add_dll_directory(os.path.join(module_path, dll_dir))
-        from .@__MODULE_NAME__@ import *  # noqa
-else:
-    from .@__MODULE_NAME__@ import *  # noqa
+
+from .@__MODULE_NAME__@ import *  # noqa
+if hasattr(@__MODULE_NAME__@, "__version__"):
+    __version__ = @__MODULE_NAME__@.__version__ # noqa
