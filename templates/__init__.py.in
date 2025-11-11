@@ -1,5 +1,4 @@
 import os
-import sys
 import platform
 
 class DllDirectoryManager():
@@ -11,32 +10,27 @@ class DllDirectoryManager():
     ref: https://github.com/python/cpython/issues/87339#issuecomment-1093902060
          https://docs.python.org/3/library/os.html#os.add_dll_directory
     """
-    def add_dll_directory(self, dll_dir: str):
-        """Add a DLL directory to the search path."""
-        print(f"Attempting to add DLL directory: {dll_dir}", file=sys.stderr)
+
+    def safe_add_dll_directory(self, dll_dir: str):
+        """Add a DLL directory to the search path, if path exists."""
         # Check if the directory exists
         if os.path.isdir(dll_dir):
-            print(f"Adding DLL directory: {dll_dir}", file=sys.stderr)
             self.dll_dirs.append(os.add_dll_directory(dll_dir))
-        else:
-            print(f"Warning: DLL directory '{dll_dir}' does not exist.", file=sys.stderr)
 
     def __init__(self):
         self.dll_dirs = []
 
     def __del__(self):
-        print(f"Exiting DllDirectoryManager context, cleaning up DLL directories.", file=sys.stderr)
         for d in self.dll_dirs:
-            print(f"Removing DLL directory: {d}", file=sys.stderr)
             d.close()
 
 if platform.system() == 'Windows':
     mgr = DllDirectoryManager()
     module_path = os.path.dirname(__file__)
-    mgr.add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
+    mgr.safe_add_dll_directory(os.path.join(module_path, '..', '..', '..', 'bin'))
     dll_dirs = @__DLL_DIRS__@
     for dll_dir in dll_dirs:
-        mgr.add_dll_directory(os.path.join(module_path, dll_dir))
+        mgr.safe_add_dll_directory(os.path.join(module_path, dll_dir))
 
 from .@__MODULE_NAME__@ import *  # noqa
 if hasattr(@__MODULE_NAME__@, "__version__"):
