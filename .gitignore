@@ -10,3 +10,4 @@ compile_commands.json
 .DS_Store
 cmake-profiling.json
 .pixi/
+__pycache__/
