@@ -497,8 +497,9 @@ endfunction()
 # and store info in global properties for later use (e.g. when exporting dependencies)
 # Note: this needs to be a macro so find_package can leak variables (like Python_SITELIB)
 macro(xxx_find_package)
-    string(ASCII 27 Esc)
-    message("${Esc}[1;34m" "[${ARGV0}]" "${Esc}[m")
+    execute_process(COMMAND 
+        ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold [${ARGV0}]
+    )
     message(DEBUG "Executing xxx_find_package with args ${ARGV}")
 
     set(options)
