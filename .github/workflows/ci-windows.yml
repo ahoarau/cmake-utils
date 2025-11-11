@@ -42,11 +42,11 @@ jobs:
             setapikey "${{ secrets.GITHUB_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"
 
-      - name: Install c++ vcpkg
+      - name: Install C++ dependencies (via vcpkg)
         run: |
           ${{ env.VCPKG_COMMAND }} install catch2 boost-python
 
-      - name: Install Python Dependencies
+      - name: Install Python dependencies (via pip)
         run: |
           C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m ensurepip --upgrade
           C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install nanobind pytest numpy
