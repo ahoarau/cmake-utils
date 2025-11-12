@@ -11,7 +11,7 @@ include(CheckCXXSourceCompiles)
 set(CMAKE_REQUIRED_INCLUDES ${Accelerate_INCLUDE_DIR})
 set(CMAKE_REQUIRED_LIBRARIES ${Accelerate_LIBRARY})
 check_cxx_source_compiles(
-  "#include <Accelerate.h>
+  "#include <Accelerate/Accelerate.h>
    int main() {
      SparseMatrix_Double A;
      SparseFactor(SparseFactorizationCholesky, A);
@@ -37,12 +37,17 @@ find_package_handle_standard_args(
 )
 
 if(Accelerate_FOUND)
-  add_library(Accelerate::Accelerate SHARED IMPORTED)
+  add_library(Accelerate::Accelerate INTERFACE IMPORTED)
   set_target_properties(
     Accelerate::Accelerate
     PROPERTIES
-      IMPORTED_LOCATION ${Accelerate_LIBRARY}
-      IMPORTED_INCLUDE_DIRECTORIES ${Accelerate_INCLUDE_DIR}
+      INTERFACE_LINK_OPTIONS "-framework Accelerate"
+      INTERFACE_INCLUDE_DIRECTORIES ${Accelerate_INCLUDE_DIR}
   )
+  # https://cmake.org/cmake/help/latest/prop_tgt/IMPORTED_LOCATION.html
+  # Added in version 3.28: For ordinary frameworks on Apple platforms, 
+  # this may be the location of the .framework folder itself. For XCFrameworks, 
+  # it may be the location of the .xcframework folder, in which case any target 
+  # that links against it will get the selected library's Headers directory as a usage requirement.
 endif()
 
