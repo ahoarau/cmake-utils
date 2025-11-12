@@ -41,7 +41,7 @@ if(Accelerate_FOUND)
   set_target_properties(
     Accelerate::Accelerate
     PROPERTIES
-      INTERFACE_LINK_OPTIONS "-framework Accelerate"
+      INTERFACE_LINK_LIBRARIES "-framework Accelerate"
       INTERFACE_INCLUDE_DIRECTORIES ${Accelerate_INCLUDE_DIR}
   )
   # https://cmake.org/cmake/help/latest/prop_tgt/IMPORTED_LOCATION.html
