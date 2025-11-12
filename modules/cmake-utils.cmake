@@ -260,7 +260,7 @@ function(xxx_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     xxx_require_variable(PROJECT_NAME)
     xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
@@ -321,7 +321,7 @@ function(xxx_target_generate_warning_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
     
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
@@ -350,6 +350,7 @@ function(xxx_target_generate_warning_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/warning.hpp.in
         INSTALL_DESTINATION ${install_destination}
+        VERSION ${PROJECT_VERSION}
         ${skip_install}
     )
 endfunction()
@@ -358,7 +359,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
     
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
@@ -387,6 +388,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/deprecated.hpp.in
         INSTALL_DESTINATION ${install_destination}
+        VERSION ${PROJECT_VERSION}
         ${skip_install}
     )
 endfunction()
@@ -395,7 +397,7 @@ function(xxx_target_generate_config_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
     
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_variable(PROJECT_VERSION)
@@ -423,16 +425,12 @@ function(xxx_target_generate_config_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    if(arg_VERSION)
-        set(version "VERSION ${arg_VERSION}")
-    endif()
-
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.hpp.in
         INSTALL_DESTINATION ${install_destination}
-        ${version}
+        VERSION ${arg_VERSION}
         ${skip_install}
     )
 endfunction()
@@ -441,7 +439,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
+    cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
     
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_variable(PROJECT_VERSION)
@@ -474,6 +472,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/tracy.hpp.in
         INSTALL_DESTINATION ${install_destination}
+        VERSION ${PROJECT_VERSION}
         ${skip_install}
     )
 endfunction()
