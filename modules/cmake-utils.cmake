@@ -20,6 +20,24 @@ endfunction()
 
 _xxx_integrate_modules()
 
+# Copy compile_commands.json from the binary dir to the upper source directory for clangd support
+function(copy_compile_commands_in_source_dir)
+    set(source ${CMAKE_BINARY_DIR}/compile_commands.json)
+    set(destination ${CMAKE_SOURCE_DIR}/compile_commands.json)
+
+    if(CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS ${source})
+        file(CREATE_LINK
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            ${CMAKE_SOURCE_DIR}/compile_commands.json
+            SYMBOLIC
+        )
+        message(DEBUG "Create link between '${CMAKE_BINARY_DIR}/compile_commands.json' and source directory '${CMAKE_SOURCE_DIR}/compile_commands.json'")
+    endif()
+endfunction()
+
+# Launch the copy at the end of the configuration step
+cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL copy_compile_commands_in_source_dir())
+
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
 # Example: xxx_require_variable(MY_VAR) # Will print "MY_VAR is not defined."
