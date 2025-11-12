@@ -258,7 +258,7 @@ endfunction()
 
 function(xxx_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
-    set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION)
+    set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -284,17 +284,21 @@ function(xxx_target_generate_header target_name visibility)
     # We need to define LIBRARY_NAME_UPPERCASE, TARGET_NAME, TARGET_VERSION, TARGET_VERSION_MAJOR, TARGET_VERSION_MINOR, TARGET_VERSION_PATCH
     string(TOUPPER ${LIBRARY_NAME} LIBRARY_NAME_UPPERCASE)
 
-    # Retrieve version from target
-    get_property(library_version TARGET ${target_name} PROPERTY VERSION)
-    if(NOT library_version)
-        message(WARNING "Target ${target_name} does not have a VERSION property set, using the project version instead (PROJECT_VERSION=${PROJECT_VERSION}).
-        To remove this warning, set the VERSION property on the target using:
+    if(arg_VERSION)
+        set(LIBRARY_VERSION ${arg_VERSION})
+    else()
+        # Retrieve version from target
+        get_property(LIBRARY_VERSION TARGET ${target_name} PROPERTY VERSION)
+        if(NOT LIBRARY_VERSION)
+            message(WARNING "Target ${target_name} does not have a VERSION property set, using the project version instead (PROJECT_VERSION=${PROJECT_VERSION}).
+            To remove this warning, set the VERSION property on the target using:
 
-            set_target_properties(${target_name} PROPERTIES VERSION \${PROJECT_VERSION})
-        ")
-        set(library_version ${PROJECT_VERSION})
+                set_target_properties(${target_name} PROPERTIES VERSION \${PROJECT_VERSION})
+            ")
+            set(LIBRARY_VERSION ${PROJECT_VERSION})
+        endif()
     endif()
-    set(LIBRARY_VERSION ${library_version})
+
     string(REPLACE "." ";" version_parts ${LIBRARY_VERSION})
     list(GET version_parts 0 LIBRARY_VERSION_MAJOR)
     list(GET version_parts 1 LIBRARY_VERSION_MINOR)
@@ -389,7 +393,7 @@ endfunction()
 
 function(xxx_target_generate_config_header target_name visibility)
     set(options SKIP_INSTALL)
-    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
+    set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
     
@@ -419,11 +423,16 @@ function(xxx_target_generate_config_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
+    if(arg_VERSION)
+        set(version "VERSION ${arg_VERSION}")
+    endif()
+
     xxx_target_generate_header(${target_name} ${visibility} 
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.hpp.in
         INSTALL_DESTINATION ${install_destination}
+        ${version}
         ${skip_install}
     )
 endfunction()
