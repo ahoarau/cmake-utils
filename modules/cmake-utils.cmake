@@ -36,7 +36,14 @@ function(copy_compile_commands_in_source_dir)
 endfunction()
 
 # Launch the copy at the end of the configuration step
-cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} CALL copy_compile_commands_in_source_dir())
+function(xxx_configure_copy_compile_commands_in_source_dir)
+    cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} GET_CALL_IDS _ids)
+    set(call_id 03e6a81d-6918-4da7-a4f4-a3dd74f61cef)
+    if(NOT _ids OR NOT ${call_id} IN_LIST _ids)
+        message(DEBUG "Configuring copy of compile_commands.json to source directory (CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}) at end of configuration step.")
+        cmake_language(DEFER ID ${call_id} DIRECTORY ${CMAKE_SOURCE_DIR} CALL copy_compile_commands_in_source_dir())
+    endif()
+endfunction()
 
 # Usage: xxx_require_variable(<var> [<message>])
 # Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
