@@ -2,20 +2,25 @@
 cmake_minimum_required(VERSION 3.22...4.1)
 
 function(_xxx_integrate_modules)
-  set(utils_ROOT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/..)
-  cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
+    set(utils_ROOT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/..)
+    cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
 
-  # Adding the pytest_discover_tests function for pytest
-  # repo: https://github.com/python-cmake/pytest-cmake
-  include(${utils_ROOT}/external-modules/pytest-cmake/PytestAddTests.cmake)
-  include(${utils_ROOT}/external-modules/pytest-cmake/PytestDiscoverTests.cmake)
+    # Adding the pytest_discover_tests function for pytest
+    # repo: https://github.com/python-cmake/pytest-cmake
+    include(${utils_ROOT}/external-modules/pytest-cmake/PytestAddTests.cmake)
+    include(${utils_ROOT}/external-modules/pytest-cmake/PytestDiscoverTests.cmake)
 
-  # Adding the boosttest_discover_tests function for Boost Unit Testing
-  # repo: https://github.com/DenizThatMenace/cmake-modules
-  include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
+    # Adding the boosttest_discover_tests function for Boost Unit Testing
+    # repo: https://github.com/DenizThatMenace/cmake-modules
+    include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
 
-  # boostpy_add_module and boostpy_add_stubs
-  include(${utils_ROOT}/modules/BoostPython.cmake)
+    # boostpy_add_module and boostpy_add_stubs
+    include(${utils_ROOT}/modules/BoostPython.cmake)
+
+    if(xxx_USE_STAGING_MODULES)
+        message(STATUS "Using staging modules from: ${utils_ROOT}/staging-modules")
+        include(${utils_ROOT}/staging-modules/PrintSystemInfo.cmake)
+    endif()
 endfunction()
 
 _xxx_integrate_modules()
