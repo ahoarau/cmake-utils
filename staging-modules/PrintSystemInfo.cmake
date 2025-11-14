@@ -1,4 +1,4 @@
-function(xxx_print_full_system_and_compiler_info loglevel)
+function(print_full_system_and_compiler_info loglevel)
     set(log_msg "")
 
     macro(_log msg)
