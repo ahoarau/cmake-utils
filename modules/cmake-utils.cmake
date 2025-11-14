@@ -17,11 +17,8 @@ function(_xxx_integrate_modules)
     # boostpy_add_module and boostpy_add_stubs
     include(${utils_ROOT}/modules/BoostPython.cmake)
 
-    if(xxx_USE_STAGING_MODULES)
-        message(STATUS "Using staging modules from: ${utils_ROOT}/staging-modules")
-        include(${utils_ROOT}/staging-modules/PrintSystemInfo.cmake)
-        include(${utils_ROOT}/staging-modules/CheckPythonModuleName.cmake)
-    endif()
+    include(${utils_ROOT}/modules/PrintSystemInfo.cmake)
+    include(${utils_ROOT}/modules/CheckPythonModuleName.cmake)
 endfunction()
 
 _xxx_integrate_modules()

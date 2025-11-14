@@ -1,4 +1,4 @@
-function(check_python_module_name target)
+function(xxx_check_python_module_name target)
   if(NOT TARGET Python::Interpreter)
     message(FATAL_ERROR "Python::Interpreter is not defined. Please use find_package(Python REQUIRED COMPONENTS Interpreter)")
   endif()
@@ -6,7 +6,7 @@ function(check_python_module_name target)
   get_target_property(target_type ${target} TYPE)
 
   if(NOT target_type STREQUAL "MODULE_LIBRARY")
-    message(FATAL_ERROR "check_python_module_name() can only be called on a MODULE_LIBRARY target.")
+    message(FATAL_ERROR "xxx_check_python_module_name() can only be called on a MODULE_LIBRARY target.")
   endif()
 
   set(python_module_check_script "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/check_python_module_name.py")
