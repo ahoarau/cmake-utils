@@ -20,6 +20,7 @@ function(_xxx_integrate_modules)
     if(xxx_USE_STAGING_MODULES)
         message(STATUS "Using staging modules from: ${utils_ROOT}/staging-modules")
         include(${utils_ROOT}/staging-modules/PrintSystemInfo.cmake)
+        include(${utils_ROOT}/staging-modules/CheckPythonModuleName.cmake)
     endif()
 endfunction()
 
