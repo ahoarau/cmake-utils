@@ -164,6 +164,7 @@ function(xxx_configure_defaults)
     xxx_configure_default_binary_dirs()
     xxx_configure_default_install_dirs()
     xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)
+    xxx_configure_copy_compile_commands_in_source_dir()
 endfunction()
 
 # Enable the most common warnings for MSVC, GCC and Clang
