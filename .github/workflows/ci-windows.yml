@@ -55,8 +55,8 @@ jobs:
 
       - name: Install Python dependencies (via pip)
         run: |
-          C:/vcpkg/installed/${{ matrix.vcpkg_triplet }}/tools/python3/python.exe -m ensurepip --upgrade
-          C:/vcpkg/installed/${{ matrix.vcpkg_triplet }}/tools/python3/python.exe -m pip install nanobind pytest numpy
+          python -m ensurepip --upgrade
+          python -m pip install nanobind pytest numpy
 
       - name: Configure project
         run: cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
