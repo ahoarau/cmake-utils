@@ -1414,6 +1414,38 @@ endfunction()
 # Example: xxx_option(BUILD_TESTING "Build the tests" ON)
 # Override cmake option() to get a nice summary at the end of the configuration step
 function(xxx_option option_name description default_value)
+    if(DEFINED ${option_name})
+        set(val ${${option_name}})
+    else()
+        set(val ${default_value})
+    endif()
+
+    set(booleans
+        TRUE
+        FALSE
+        ON
+        OFF
+        YES
+        NO
+        1
+        0
+    )
+    string(TOUPPER "${val}" val_upper)
+    if(${val_upper} IN_LIST booleans)
+        set(type BOOL)
+    else()
+        get_property(type CACHE ${option_name} PROPERTY TYPE)
+        if(NOT type)
+            set(type STRING)
+        endif()
+    endif()
+
+    message(
+        # DEBUG
+        "Declaring option '${option_name}' (type: ${type}, default: ${default_value}) with value: ${val}"
+    )
+    set(${option_name} ${val} CACHE ${type} "${description}" FORCE)
+
     option(${ARGV})
 
     set_property(
@@ -1429,9 +1461,41 @@ function(
     description
     default_value
     condition
-    else-value
+    else_value
 )
+    if(DEFINED ${option_name})
+        set(val ${${option_name}})
+    else()
+        set(val ${default_value})
+    endif()
+
+    set(booleans
+        TRUE
+        FALSE
+        ON
+        OFF
+        YES
+        NO
+        1
+        0
+    )
+    string(TOUPPER "${val}" val_upper)
+    if(${val_upper} IN_LIST booleans)
+        set(type BOOL)
+    else()
+        get_property(type CACHE ${option_name} PROPERTY TYPE)
+        if(NOT type)
+            set(type STRING)
+        endif()
+    endif()
+
+    set(${option_name} ${val} CACHE ${type} "${description}" FORCE)
+
     include(CMakeDependentOption)
+
+    message(
+        "Declaring option '${option_name}' (type: ${type}, default: ${default_value}) with value: ${val}, that depends on condition: ${condition}, else value: ${else_value}"
+    )
     cmake_dependent_option(${ARGV})
 
     set_property(
