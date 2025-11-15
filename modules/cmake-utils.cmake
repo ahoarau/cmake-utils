@@ -1629,7 +1629,7 @@ function(xxx_python_generate_init_py name)
     endif()
 
     get_target_property(python_module_link_libraries ${name} LINK_LIBRARIES)
-    message(STATUS "Python module '${name}' link libraries: [${python_module_link_libraries}]")
+    message(DEBUG "Python module '${name}' link libraries: [${python_module_link_libraries}]")
 
     set(dlls_to_link "")
     list(REMOVE_DUPLICATES python_module_link_libraries)
@@ -1637,7 +1637,7 @@ function(xxx_python_generate_init_py name)
         get_target_property(target_type ${target} TYPE)
         get_target_property(is_imported ${target} IMPORTED)
         message(
-            STATUS
+            DEBUG
             "Checking target '${target}' of type '${target_type}' for dll linking. Imported: '${is_imported}'"
         )
 
@@ -1646,13 +1646,16 @@ function(xxx_python_generate_init_py name)
             OR target_type STREQUAL "MODULE_LIBRARY"
             AND NOT ${is_imported}
         )
-            message(STATUS "Adding target '${target}' to dlls to link for python module '${name}'")
+            message(
+                DEBUG
+                "    => Adding target '${target}' to dlls to link for python module '${name}'"
+            )
             list(APPEND dlls_to_link ${target})
         endif()
     endforeach()
 
     message(
-        STATUS
+        DEBUG
         "Python module '${name}' depends on the following buildsystem dlls: [${dlls_to_link}]"
     )
 
