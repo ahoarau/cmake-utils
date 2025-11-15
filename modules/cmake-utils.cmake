@@ -140,9 +140,38 @@ endfunction()
 
 # Same as xxx_configure_default_binary_dirs but for a specific config
 function(xxx_configure_default_binary_dirs_for_config config)
+    string(TOUPPER ${config} config)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/bin CACHE PATH "")
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
+endfunction()
+
+function(xxx_target_set_output_directory target_name dir)
+    xxx_require_target(${target_name})
+
+    set_target_properties(${target_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY ${dir}
+        LIBRARY_OUTPUT_DIRECTORY ${dir}
+        ARCHIVE_OUTPUT_DIRECTORY ${dir}
+    )
+
+    set_target_properties(${target_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir}
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG ${dir}
+        ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir}
+
+        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir}
+        LIBRARY_OUTPUT_DIRECTORY_RELEASE ${dir}
+        ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir}
+
+        RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+        LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+        ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+
+        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+        LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+        ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+    )
 endfunction()
 
 # Configures the default install directories using GNUInstallDirs (bin, lib, include, etc.)
