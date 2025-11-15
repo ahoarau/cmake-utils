@@ -2,11 +2,7 @@ boostpy_add_module(test_project_pywrap_bp bindings.cpp)
 xxx_check_python_module_name(test_project_pywrap_bp)
 target_link_libraries(test_project_pywrap_bp PRIVATE test_project)
 xxx_target_set_default_compile_options(test_project_pywrap_bp PRIVATE)
-
-set_target_properties(
-    test_project_pywrap_bp
-    PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp
-)
+xxx_target_set_output_directory(test_project_pywrap_bp ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp)
 
 xxx_python_generate_init_py(
     test_project_pywrap_bp
@@ -22,7 +18,7 @@ boostpy_add_stubs(
     VERBOSE
 )
 
-xxx_python_compile_all(DIRECTORY 
+xxx_python_compile_all(DIRECTORY
     ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp
     VERBOSE
 )
@@ -30,10 +26,10 @@ xxx_python_compile_all(DIRECTORY
 install(
     DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/site-packages
-    FILES_MATCHING 
-        PATTERN "*.py" 
-        PATTERN "*.pyc" 
-        PATTERN "*.typed" 
-        PATTERN "*.so" 
-        PATTERN "*.pyd"
+    FILES_MATCHING
+    PATTERN "*.py"
+    PATTERN "*.pyc"
+    PATTERN "*.typed"
+    PATTERN "*.so"
+    PATTERN "*.pyd"
 )
