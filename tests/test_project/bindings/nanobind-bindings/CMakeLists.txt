@@ -23,9 +23,10 @@ xxx_python_compile_all(DIRECTORY
     VERBOSE
 )
 
+xxx_python_compute_install_dir(python_install_dir)
 install(
     DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/site-packages
+    DESTINATION ${python_install_dir}
     FILES_MATCHING
     PATTERN "*.py"
     PATTERN "*.pyc"
