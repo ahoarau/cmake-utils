@@ -1414,7 +1414,23 @@ endfunction()
 # Example: xxx_option(BUILD_TESTING "Build the tests" ON)
 # Override cmake option() to get a nice summary at the end of the configuration step
 function(xxx_option option_name description default_value)
-    option(${ARGV})
+    option(${option_name} "${description}" ${default_value})
+
+    cmake_parse_arguments(arg "" "COMPATIBILITY_OPTION" "" ${ARGN})
+    if(arg_COMPATIBILITY_OPTION)
+        set_property(
+            GLOBAL
+            PROPERTY
+                _xxx_${PROJECT_NAME}_option_${option_name}_compat_option ${arg_COMPATIBILITY_OPTION}
+        )
+        if(DEFINED ${arg_COMPATIBILITY_OPTION})
+            message(
+                WARNING
+                "Option ${arg_COMPATIBILITY_OPTION} is deprecated. Please use ${option_name} instead."
+            )
+            set(${option_name} ${${arg_COMPATIBILITY_OPTION}} CACHE BOOL "${description}" FORCE)
+        endif()
+    endif()
 
     set_property(
         GLOBAL
@@ -1472,6 +1488,7 @@ function(xxx_print_options_summary)
     message("")
     message("================= Configuration Summary ======================================")
     message("")
+
     pad_string("Option"      40 _menu_option)
     pad_string("Type"        5  _menu_type)
     pad_string("Value"       8  _menu_value)
@@ -1489,6 +1506,11 @@ function(xxx_print_options_summary)
             PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value
         )
         get_property(_help CACHE ${option_name} PROPERTY HELPSTRING)
+        get_property(
+            _compat_option
+            GLOBAL
+            PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_compat_option
+        )
 
         pad_string("${option_name}"      40 _name)
         pad_string("${_type}"     5 _type)
@@ -1497,6 +1519,9 @@ function(xxx_print_options_summary)
         pad_string("${_help}"     25 _help)
 
         message("${_name} | ${_type} | ${_val} | ${_help} (${_default})")
+        if(_compat_option)
+            message("  (Compatibility option: ${_compat_option})")
+        endif()
     endforeach()
 
     message("------------------------------------------------------------------------------")
