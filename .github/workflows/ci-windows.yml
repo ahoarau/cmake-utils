@@ -29,8 +29,6 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: x64
 
       - name: Add NuGet sources
         shell: pwsh
