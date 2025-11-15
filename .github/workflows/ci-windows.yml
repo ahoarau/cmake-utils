@@ -13,14 +13,18 @@ env:
 
 jobs:
   windows-with-vcpkg:
-    name: Windows ${{ matrix.os }}
-    runs-on: windows-${{ matrix.os }}
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: 2022
-          - os: 2025
+          - image: windows-2022
+            name: Windows Server 2022
+          - image: windows-2025
+            name: Windows Server 2025
+          - image: windows-11-arm
+            name: Windows 11 ARM64
 
     steps:
       - uses: actions/checkout@v5
