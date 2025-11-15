@@ -23,6 +23,8 @@ jobs:
       - uses: actions/checkout@v5
       - name: Install dependencies (via brew)
         run: |
+          brew update
+          brew upgrade
           brew install catch2 boost-python3 nanobind pytest numpy
 
       - name: Configure project
