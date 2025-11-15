@@ -5,7 +5,7 @@ class DllDirectoryManager():
     """Context manager for managing DLL directories on Windows.
     On Windows with Python 3.8+, Python doesn't search DLL in PATH anymore
     We must specify DLL search path manually with `os.add_dll_directory`
-    On Linux and MacOS, we can use DYLD_LIBRARY_PATH and LD_LIBRARY_PATH 
+    On Linux and MacOS, we can use DYLD_LIBRARY_PATH and LD_LIBRARY_PATH
     environment variables, or simply the rpath search for shared libraries.
     ref: https://github.com/python/cpython/issues/87339#issuecomment-1093902060
          https://docs.python.org/3/library/os.html#os.add_dll_directory

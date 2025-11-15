@@ -1,4 +1,3 @@
-# gersemi: off
 cmake_minimum_required(VERSION 3.22...4.1)
 
 function(_xxx_integrate_modules)
@@ -29,12 +28,16 @@ function(copy_compile_commands_in_source_dir)
     set(destination ${CMAKE_SOURCE_DIR}/compile_commands.json)
 
     if(CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS ${source})
-        file(CREATE_LINK
-            ${CMAKE_BINARY_DIR}/compile_commands.json
-            ${CMAKE_SOURCE_DIR}/compile_commands.json
+        file(
+            CREATE_LINK
+                ${CMAKE_BINARY_DIR}/compile_commands.json
+                ${CMAKE_SOURCE_DIR}/compile_commands.json
             SYMBOLIC
         )
-        message(DEBUG "Create link between '${CMAKE_BINARY_DIR}/compile_commands.json' and source directory '${CMAKE_SOURCE_DIR}/compile_commands.json'")
+        message(
+            DEBUG
+            "Create link between '${CMAKE_BINARY_DIR}/compile_commands.json' and source directory '${CMAKE_SOURCE_DIR}/compile_commands.json'"
+        )
     endif()
 endfunction()
 
@@ -43,8 +46,15 @@ function(xxx_configure_copy_compile_commands_in_source_dir)
     cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} GET_CALL_IDS _ids)
     set(call_id 03e6a81d-6918-4da7-a4f4-a3dd74f61cef)
     if(NOT _ids OR NOT ${call_id} IN_LIST _ids)
-        message(DEBUG "Configuring copy of compile_commands.json to source directory (CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}) at end of configuration step.")
-        cmake_language(DEFER ID ${call_id} DIRECTORY ${CMAKE_SOURCE_DIR} CALL copy_compile_commands_in_source_dir())
+        message(
+            DEBUG
+            "Configuring copy of compile_commands.json to source directory (CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}) at end of configuration step."
+        )
+        cmake_language(
+            DEFER ID ${call_id} DIRECTORY ${CMAKE_SOURCE_DIR}
+            CALL copy_compile_commands_in_source_dir
+            ()
+        )
     endif()
 endfunction()
 
@@ -72,7 +82,10 @@ endfunction()
 function(xxx_require_visibility visibility)
     set(vs PRIVATE PUBLIC INTERFACE)
     if(NOT ${visibility} IN_LIST vs)
-        message(FATAL_ERROR "visibility (${visibility}) must be one of PRIVATE, PUBLIC or INTERFACE")
+        message(
+            FATAL_ERROR
+            "visibility (${visibility}) must be one of PRIVATE, PUBLIC or INTERFACE"
+        )
     endif()
 endfunction()
 
@@ -105,14 +118,12 @@ endmacro()
 # Usual values for <build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
 # Example: xxx_configure_default_build_type(RelWithDebInfo)
 function(xxx_configure_default_build_type build_type)
-    set(standard_build_types
-        Debug
-        Release
-        MinSizeRel
-        RelWithDebInfo
-    )
+    set(standard_build_types Debug Release MinSizeRel RelWithDebInfo)
     if(NOT build_type IN_LIST standard_build_types)
-        message(AUTHOR_WARNING "Unusual build type provided: ${build_type}, standard values are: ${standard_build_types}")
+        message(
+            AUTHOR_WARNING
+            "Unusual build type provided: ${build_type}, standard values are: ${standard_build_types}"
+        )
     endif()
 
     if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -149,28 +160,29 @@ endfunction()
 function(xxx_target_set_output_directory target_name dir)
     xxx_require_target(${target_name})
 
-    set_target_properties(${target_name} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY ${dir}
-        LIBRARY_OUTPUT_DIRECTORY ${dir}
-        ARCHIVE_OUTPUT_DIRECTORY ${dir}
+    set_target_properties(
+        ${target_name}
+        PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY ${dir}
+            LIBRARY_OUTPUT_DIRECTORY ${dir}
+            ARCHIVE_OUTPUT_DIRECTORY ${dir}
     )
 
-    set_target_properties(${target_name} PROPERTIES
-        RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir}
-        LIBRARY_OUTPUT_DIRECTORY_DEBUG ${dir}
-        ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir}
-
-        RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir}
-        LIBRARY_OUTPUT_DIRECTORY_RELEASE ${dir}
-        ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir}
-
-        RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-        LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-        ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-
-        RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
-        LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
-        ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+    set_target_properties(
+        ${target_name}
+        PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir}
+            LIBRARY_OUTPUT_DIRECTORY_DEBUG ${dir}
+            ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir}
+            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir}
+            LIBRARY_OUTPUT_DIRECTORY_RELEASE ${dir}
+            ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir}
+            RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+            LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+            ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
+            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+            LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
+            ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
     )
 endfunction()
 
@@ -184,7 +196,12 @@ endfunction()
 function(xxx_configure_default_install_prefix default_install_prefix)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         message(STATUS "Setting default install prefix to '${default_install_prefix}'")
-        set(CMAKE_INSTALL_PREFIX ${default_install_prefix} CACHE PATH "Install path prefix, prepended onto install directories." FORCE)
+        set(CMAKE_INSTALL_PREFIX
+            ${default_install_prefix}
+            CACHE PATH
+            "Install path prefix, prepended onto install directories."
+            FORCE
+        )
         mark_as_advanced(CMAKE_INSTALL_PREFIX)
     endif()
 endfunction()
@@ -220,8 +237,10 @@ function(xxx_target_set_default_compile_options target_name visibility)
     endif()
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${target_name} ${visibility}
-            /W4     # Enable most warnings
+        target_compile_options(
+            ${target_name}
+            ${visibility}
+            /W4 # Enable most warnings
             /wd4250 # "Inherits via dominance" - happens with diamond inheritance, not really an issue
             /wd4706 # assignment within conditional expression
             /wd5030 # pointer or reference to potentially throwing function used in noexcept context
@@ -230,17 +249,21 @@ function(xxx_target_set_default_compile_options target_name visibility)
             /we4062 # enumerator 'xyz' in switch of enum 'abc' is not handled
         )
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(${target_name} ${visibility}
-            -Wall           # Enable most warnings
-            -Wextra         # Enable extra warnings
-            -Wconversion    # Warn on type conversions that may lose information
-            -Wpedantic      # Warn on non-standard C++ usage
+        target_compile_options(
+            ${target_name}
+            ${visibility}
+            -Wall # Enable most warnings
+            -Wextra # Enable extra warnings
+            -Wconversion # Warn on type conversions that may lose information
+            -Wpedantic # Warn on non-standard C++ usage
         )
     else()
-        message(WARNING "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. No default compile options set.")
+        message(
+            WARNING
+            "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. No default compile options set."
+        )
     endif()
 endfunction()
-
 
 # Description: Enforce MSVC c++ conformance mode so msvc behaves more like gcc and clang
 # Usage: xxx_target_enforce_msvc_conformance(<target_name> <visibility>)
@@ -257,11 +280,13 @@ function(xxx_target_enforce_msvc_conformance target_name visibility)
         return()
     endif()
 
-    target_compile_options(${target_name} ${visibility}
-        /permissive-    # Standards conformance
+    target_compile_options(
+        ${target_name}
+        ${visibility}
+        /permissive- # Standards conformance
         /Zc:__cplusplus # Needed to have __cplusplus set correctly
-        /EHsc           # Enable C++ exceptions standard conformance
-        /bigobj         # To avoid "fatal error C1128: number of sections exceeded object file format limit"
+        /EHsc # Enable C++ exceptions standard conformance
+        /bigobj # To avoid "fatal error C1128: number of sections exceeded object file format limit"
     )
 endfunction()
 
@@ -278,21 +303,20 @@ function(xxx_target_treat_all_warnings_as_errors target_name visibility)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
     endif()
-    
+
     if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(CMAKE_CXX_COMPILER_ID "Clang")
     endif()
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-        target_compile_options(${target_name} ${visibility}
-            /WX
-        )
+        target_compile_options(${target_name} ${visibility} /WX)
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-        target_compile_options(${target_name} ${visibility}
-            -Werror
-        )
+        target_compile_options(${target_name} ${visibility} -Werror)
     else()
-        message(WARNING "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. No warning as error flag set.")
+        message(
+            WARNING
+            "Unknown compiler '${CMAKE_CXX_COMPILER_ID}'. No warning as error flag set."
+        )
     endif()
 endfunction()
 
@@ -316,7 +340,13 @@ endfunction()
 
 function(xxx_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
-    set(oneValueArgs FILENAME HEADER_DIR TEMPLATE_FILE INSTALL_DESTINATION VERSION)
+    set(oneValueArgs
+        FILENAME
+        HEADER_DIR
+        TEMPLATE_FILE
+        INSTALL_DESTINATION
+        VERSION
+    )
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -325,7 +355,7 @@ function(xxx_target_generate_header target_name visibility)
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_target(${target_name})
     xxx_require_visibility(${visibility})
-    
+
     xxx_require_variable(arg_FILENAME)
     xxx_require_variable(arg_HEADER_DIR)
     xxx_require_variable(arg_TEMPLATE_FILE)
@@ -348,11 +378,14 @@ function(xxx_target_generate_header target_name visibility)
         # Retrieve version from target
         get_property(LIBRARY_VERSION TARGET ${target_name} PROPERTY VERSION)
         if(NOT LIBRARY_VERSION)
-            message(WARNING "Target ${target_name} does not have a VERSION property set, using the project version instead (PROJECT_VERSION=${PROJECT_VERSION}).
+            message(
+                WARNING
+                "Target ${target_name} does not have a VERSION property set, using the project version instead (PROJECT_VERSION=${PROJECT_VERSION}).
             To remove this warning, set the VERSION property on the target using:
 
                 set_target_properties(${target_name} PROPERTIES VERSION \${PROJECT_VERSION})
-            ")
+            "
+            )
             set(LIBRARY_VERSION ${PROJECT_VERSION})
         endif()
     endif()
@@ -364,9 +397,7 @@ function(xxx_target_generate_header target_name visibility)
 
     configure_file(${arg_TEMPLATE_FILE} ${output_file} @ONLY)
 
-    target_include_directories(${target_name} ${visibility} 
-        $<BUILD_INTERFACE:${arg_HEADER_DIR}>
-    )
+    target_include_directories(${target_name} ${visibility} $<BUILD_INTERFACE:${arg_HEADER_DIR}>)
 
     if(arg_SKIP_INSTALL)
         return()
@@ -380,7 +411,7 @@ function(xxx_target_generate_warning_header target_name visibility)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
+
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/warning.hpp)
@@ -403,7 +434,7 @@ function(xxx_target_generate_warning_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility} 
+    xxx_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/warning.hpp.in
@@ -418,7 +449,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
+
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/deprecated.hpp)
@@ -441,7 +472,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility} 
+    xxx_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/deprecated.hpp.in
@@ -456,7 +487,7 @@ function(xxx_target_generate_config_header target_name visibility)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
+
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_variable(PROJECT_VERSION)
     xxx_require_variable(PROJECT_VERSION_MAJOR)
@@ -483,7 +514,7 @@ function(xxx_target_generate_config_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility} 
+    xxx_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.hpp.in
@@ -498,7 +529,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 2 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
+
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
     xxx_require_variable(PROJECT_VERSION)
     xxx_require_variable(PROJECT_VERSION_MAJOR)
@@ -525,7 +556,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility} 
+    xxx_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/tracy.hpp.in
@@ -563,8 +594,8 @@ endfunction()
 # and store info in global properties for later use (e.g. when exporting dependencies)
 # Note: this needs to be a macro so find_package can leak variables (like Python_SITELIB)
 macro(xxx_find_package)
-    execute_process(COMMAND 
-        ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold [${ARGV0}]
+    execute_process(
+        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold [${ARGV0}]
     )
     message(DEBUG "Executing xxx_find_package with args ${ARGV}")
 
@@ -580,7 +611,11 @@ macro(xxx_find_package)
     set(execute_find_package true)
     string(SHA256 find_package_args_hash "${find_package_args}")
     set(existing_find_package_hashes "")
-    get_property(existing_find_package_hashes GLOBAL PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes)
+    get_property(
+        existing_find_package_hashes
+        GLOBAL
+        PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes
+    )
 
     # TODO: re-enable optimization. So far it's only depending on <pkg>_FOUND, which might not be enough.
     # if(${package_name}_FOUND AND find_package_args_hash IN_LIST existing_find_package_hashes)
@@ -601,7 +636,10 @@ macro(xxx_find_package)
         if(arg_MODULE_PATH)
             set(module_file "${arg_MODULE_PATH}/Find${package_name}.cmake")
             if(NOT EXISTS ${module_file})
-                message(FATAL_ERROR "Custom module file provided with MODULE_PATH ${module_file} does not exist.")
+                message(
+                    FATAL_ERROR
+                    "Custom module file provided with MODULE_PATH ${module_file} does not exist."
+                )
             endif()
         else()
             # search for the module file only is CONFIG is not in the find_package args
@@ -613,13 +651,17 @@ macro(xxx_find_package)
         if(module_file)
             cmake_path(CONVERT "${module_file}" TO_CMAKE_PATH_LIST module_file NORMALIZE)
             set(using_custom_module true)
-        else() 
+        else()
             set(using_custom_module false)
         endif()
 
         if(module_file)
             # Copy the module file to the generated cmake directory in the build dir
-            file(COPY ${module_file} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name})
+            file(
+                COPY ${module_file}
+                DESTINATION
+                    ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name}
+            )
 
             # Add the parent path to the CMAKE_MODULE_PATH
             cmake_path(GET module_file PARENT_PATH module_dir)
@@ -633,11 +675,15 @@ macro(xxx_find_package)
         unset(fp_pp)
 
         # Saving the list of imported targets and variables BEFORE the call to find_package
-        get_property(imported_targets_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+        get_property(
+            imported_targets_before
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PROPERTY IMPORTED_TARGETS
+        )
         get_property(variables_before DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
-    
+
         find_package(${find_package_args}) # TODO: handle QUIET properly
-    
+
         if(${package_name}_FOUND)
             message("   Executing find_package()...✅")
         else()
@@ -651,10 +697,14 @@ macro(xxx_find_package)
 
         # Getting the list of imported targets and variables AFTER the call to find_package
         get_property(package_variables DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VARIABLES)
-        get_property(package_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY IMPORTED_TARGETS)
+        get_property(
+            package_targets
+            DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            PROPERTY IMPORTED_TARGETS
+        )
         list(REMOVE_ITEM package_variables ${variables_before} variables_before)
         list(REMOVE_ITEM package_targets ${imported_targets_before})
-        
+
         if(${package_name}_VERSION)
             message("   Version found: ${${package_name}_VERSION}")
         endif()
@@ -665,7 +715,7 @@ macro(xxx_find_package)
         else()
             message("   No new variables detected.")
         endif()
-        
+
         string(REPLACE ";" ", " package_targets_pp "${package_targets}")
         if(package_targets)
             message("   Imported targets detected: ${package_targets_pp}")
@@ -681,11 +731,25 @@ macro(xxx_find_package)
         set(package_json "{}")
         string(REPLACE ";" " " find_package_args "${find_package_args}")
         string(JSON package_json SET "${package_json}" "package_name" "\"${package_name}\"")
-        string(JSON package_json SET "${package_json}" "find_package_args" "\"${find_package_args}\"")
-        string(JSON package_json SET "${package_json}" "package_variables" "\"${package_variables}\"")
+        string(
+            JSON package_json
+            SET "${package_json}"
+            "find_package_args"
+            "\"${find_package_args}\""
+        )
+        string(
+            JSON package_json
+            SET "${package_json}"
+            "package_variables"
+            "\"${package_variables}\""
+        )
         string(JSON package_json SET "${package_json}" "package_targets" "\"${package_targets}\"")
-        string(JSON package_json SET "${package_json}" "using_custom_module" "\"${using_custom_module}\"")
-
+        string(
+            JSON package_json
+            SET "${package_json}"
+            "using_custom_module"
+            "\"${using_custom_module}\""
+        )
 
         string(JSON deps_length LENGTH "${deps}" "package_dependencies")
         string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
@@ -714,9 +778,9 @@ function(xxx_print_dependencies_summary)
         return()
     endif()
 
-    message( "")
-    message( "================= External Dependencies ======================================")
-    message( "")
+    message("")
+    message("================= External Dependencies ======================================")
+    message("")
 
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
     math(EXPR max_idx "${num_deps} - 1")
@@ -728,7 +792,9 @@ function(xxx_print_dependencies_summary)
         # Replace ; by , for better readability
         string(REPLACE ";" ", " package_targets_pp "${package_targets}")
         math(EXPR i "${i} + 1")
-        message("${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]")
+        message(
+            "${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]"
+        )
 
         # Print target properties
         if(package_targets STREQUAL "")
@@ -764,127 +830,138 @@ endfunction()
 # Usage: xxx_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>])
 # This is taken and adapted from cmake's own cmake_print_properties function to add verbosity control and print only found properties.
 function(xxx_cmake_print_properties)
-  set(options )
-  set(oneValueArgs VERBOSITY)
-  set(cpp_multiValueArgs PROPERTIES)
-  set(cppmode_multiValueArgs TARGETS SOURCES TESTS DIRECTORIES CACHE_ENTRIES )
+    set(options)
+    set(oneValueArgs VERBOSITY)
+    set(cpp_multiValueArgs PROPERTIES)
+    set(cppmode_multiValueArgs
+        TARGETS
+        SOURCES
+        TESTS
+        DIRECTORIES
+        CACHE_ENTRIES
+    )
 
-  string(JOIN " " _mode_names ${cppmode_multiValueArgs})
-  set(_missing_mode_message
-    "Mode keyword missing in xxx_cmake_print_properties() call, there must be exactly one of ${_mode_names}")
+    string(JOIN " " _mode_names ${cppmode_multiValueArgs})
+    set(_missing_mode_message
+        "Mode keyword missing in xxx_cmake_print_properties() call, there must be exactly one of ${_mode_names}"
+    )
 
-  cmake_parse_arguments(
-    CPP "${options}" "${oneValueArgs}" "${cpp_multiValueArgs}" ${ARGN})
+    cmake_parse_arguments(CPP "${options}" "${oneValueArgs}" "${cpp_multiValueArgs}" ${ARGN})
 
-  if(NOT CPP_PROPERTIES)
-    message(FATAL_ERROR
-      "Required argument PROPERTIES missing in xxx_cmake_print_properties() call")
-    return()
-  endif()
-
-  set(verbosity)
-  if(CPP_VERBOSITY)
-    set(verbosity ${CPP_VERBOSITY})
-  endif()
-
-  if(NOT CPP_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR "${_missing_mode_message}")
-    return()
-  endif()
-
-  cmake_parse_arguments(
-    CPPMODE "${options}" "${oneValueArgs}" "${cppmode_multiValueArgs}"
-    ${CPP_UNPARSED_ARGUMENTS})
-
-  if(CPPMODE_UNPARSED_ARGUMENTS)
-    message(FATAL_ERROR
-      "Unknown keywords given to cmake_print_properties(): \"${CPPMODE_UNPARSED_ARGUMENTS}\"")
-    return()
-  endif()
-
-  set(mode)
-  set(items)
-  set(keyword)
-
-  if(CPPMODE_TARGETS)
-    set(items ${CPPMODE_TARGETS})
-    set(mode ${mode} TARGETS)
-    set(keyword TARGET)
-  endif()
-
-  if(CPPMODE_SOURCES)
-    set(items ${CPPMODE_SOURCES})
-    set(mode ${mode} SOURCES)
-    set(keyword SOURCE)
-  endif()
-
-  if(CPPMODE_TESTS)
-    set(items ${CPPMODE_TESTS})
-    set(mode ${mode} TESTS)
-    set(keyword TEST)
-  endif()
-
-  if(CPPMODE_DIRECTORIES)
-    set(items ${CPPMODE_DIRECTORIES})
-    set(mode ${mode} DIRECTORIES)
-    set(keyword DIRECTORY)
-  endif()
-
-  if(CPPMODE_CACHE_ENTRIES)
-    set(items ${CPPMODE_CACHE_ENTRIES})
-    set(mode ${mode} CACHE_ENTRIES)
-    # This is a workaround for the fact that passing `CACHE` as an argument to
-    # set() causes a cache variable to be set.
-    set(keyword "")
-    string(APPEND keyword CACHE)
-  endif()
-
-  if(NOT mode)
-    message(FATAL_ERROR "${_missing_mode_message}")
-    return()
-  endif()
-
-  list(LENGTH mode modeLength)
-  if("${modeLength}" GREATER 1)
-    message(FATAL_ERROR
-      "Multiple mode keywords used in cmake_print_properties() call, there must be exactly one of ${_mode_names}.")
-    return()
-  endif()
-
-  set(msg "\n")
-  foreach(item ${items})
-
-    set(itemExists TRUE)
-    if(keyword STREQUAL "TARGET")
-      if(NOT TARGET ${item})
-        set(itemExists FALSE)
-        string(APPEND msg "\n No such TARGET \"${item}\" !\n\n")
-      endif()
+    if(NOT CPP_PROPERTIES)
+        message(
+            FATAL_ERROR
+            "Required argument PROPERTIES missing in xxx_cmake_print_properties() call"
+        )
+        return()
     endif()
 
-    if (itemExists)
-      string(APPEND msg " Properties for ${keyword} ${item}:\n")
-      foreach(prop ${CPP_PROPERTIES})
+    set(verbosity)
+    if(CPP_VERBOSITY)
+        set(verbosity ${CPP_VERBOSITY})
+    endif()
 
-        get_property(propertySet ${keyword} ${item} PROPERTY "${prop}" SET)
+    if(NOT CPP_UNPARSED_ARGUMENTS)
+        message(FATAL_ERROR "${_missing_mode_message}")
+        return()
+    endif()
 
-        if(propertySet)
-          get_property(property ${keyword} ${item} PROPERTY "${prop}")
-        #   string(APPEND msg "   ${item}.${prop} = \"${property}\"\n")
-          pad_string("${prop}"      40 _prop)
-          string(APPEND msg "   ${_prop} = ${property}\n")
-        else()
-          # EDIT: Do not print unset properties
-          # string(APPEND msg "   ${item}.${prop} = <NOTFOUND>\n")
+    cmake_parse_arguments(
+        CPPMODE
+        "${options}"
+        "${oneValueArgs}"
+        "${cppmode_multiValueArgs}"
+        ${CPP_UNPARSED_ARGUMENTS}
+    )
+
+    if(CPPMODE_UNPARSED_ARGUMENTS)
+        message(
+            FATAL_ERROR
+            "Unknown keywords given to cmake_print_properties(): \"${CPPMODE_UNPARSED_ARGUMENTS}\""
+        )
+        return()
+    endif()
+
+    set(mode)
+    set(items)
+    set(keyword)
+
+    if(CPPMODE_TARGETS)
+        set(items ${CPPMODE_TARGETS})
+        set(mode ${mode} TARGETS)
+        set(keyword TARGET)
+    endif()
+
+    if(CPPMODE_SOURCES)
+        set(items ${CPPMODE_SOURCES})
+        set(mode ${mode} SOURCES)
+        set(keyword SOURCE)
+    endif()
+
+    if(CPPMODE_TESTS)
+        set(items ${CPPMODE_TESTS})
+        set(mode ${mode} TESTS)
+        set(keyword TEST)
+    endif()
+
+    if(CPPMODE_DIRECTORIES)
+        set(items ${CPPMODE_DIRECTORIES})
+        set(mode ${mode} DIRECTORIES)
+        set(keyword DIRECTORY)
+    endif()
+
+    if(CPPMODE_CACHE_ENTRIES)
+        set(items ${CPPMODE_CACHE_ENTRIES})
+        set(mode ${mode} CACHE_ENTRIES)
+        # This is a workaround for the fact that passing `CACHE` as an argument to
+        # set() causes a cache variable to be set.
+        set(keyword "")
+        string(APPEND keyword CACHE)
+    endif()
+
+    if(NOT mode)
+        message(FATAL_ERROR "${_missing_mode_message}")
+        return()
+    endif()
+
+    list(LENGTH mode modeLength)
+    if("${modeLength}" GREATER 1)
+        message(
+            FATAL_ERROR
+            "Multiple mode keywords used in cmake_print_properties() call, there must be exactly one of ${_mode_names}."
+        )
+        return()
+    endif()
+
+    set(msg "\n")
+    foreach(item ${items})
+        set(itemExists TRUE)
+        if(keyword STREQUAL "TARGET")
+            if(NOT TARGET ${item})
+                set(itemExists FALSE)
+                string(APPEND msg "\n No such TARGET \"${item}\" !\n\n")
+            endif()
         endif()
-      endforeach()
-    endif()
 
-  endforeach()
-  message(${verbosity} "${msg}")
+        if(itemExists)
+            string(APPEND msg " Properties for ${keyword} ${item}:\n")
+            foreach(prop ${CPP_PROPERTIES})
+                get_property(propertySet ${keyword} ${item} PROPERTY "${prop}" SET)
 
+                if(propertySet)
+                    get_property(property ${keyword} ${item} PROPERTY "${prop}")
+                    #   string(APPEND msg "   ${item}.${prop} = \"${property}\"\n")
+                    pad_string("${prop}"      40 _prop)
+                    string(APPEND msg "   ${_prop} = ${property}\n")
+                else()
+                    # EDIT: Do not print unset properties
+                    # string(APPEND msg "   ${item}.${prop} = <NOTFOUND>\n")
+                endif()
+            endforeach()
+        endif()
+    endforeach()
+    message(${verbosity} "${msg}")
 endfunction()
-
 
 # Usage: xxx_export_dependencies(TARGETS <target1> <target2> ... DESTINATION <destination> GEN_DIR <gen_dir> COMPONENT <component>)
 # This function analyzes the link libraries of the provided targets,
@@ -905,10 +982,17 @@ function(xxx_export_dependencies)
 
     # Get all BUILDSYSTEM_TARGETS of the current project (i.e. added via add_library/add_executable)
     # We need this to filter out internal targets when analyzing link libraries
-    get_property(buildsystem_targets DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY BUILDSYSTEM_TARGETS)
+    get_property(
+        buildsystem_targets
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        PROPERTY BUILDSYSTEM_TARGETS
+    )
     foreach(target ${arg_TARGETS})
         if(NOT target IN_LIST buildsystem_targets)
-            message(FATAL_ERROR "Target '${target}' is not a buildsystem target of the current project. Cannot export dependencies for it.")
+            message(
+                FATAL_ERROR
+                "Target '${target}' is not a buildsystem target of the current project. Cannot export dependencies for it."
+            )
         endif()
     endforeach()
 
@@ -922,11 +1006,13 @@ function(xxx_export_dependencies)
         endif()
     endforeach()
 
-    message("All link libraries for targets '${arg_TARGETS}': ${all_link_libraries}") 
+    message("All link libraries for targets '${arg_TARGETS}': ${all_link_libraries}")
 
-    file(GENERATE 
-        OUTPUT "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
-        CONTENT "
+    file(
+        GENERATE OUTPUT
+            "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
+        CONTENT
+            "
 # Generated file - do not edit
 # This file contains the list of buildsystem targets and all imported libraries linked by the exported targets
 set(buildsystem_targets \"${buildsystem_targets}\")
@@ -934,16 +1020,23 @@ set(imported_libraries \"${all_link_libraries}\")
 "
     )
 
-    configure_file(${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/generate-dependencies.cmake.in ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake @ONLY)
-    install(SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake)
-    install(FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
+    configure_file(
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/generate-dependencies.cmake.in
+        ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
+        @ONLY
+    )
+    install(
+        SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
+    )
+    install(
+        FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
         DESTINATION ${arg_DESTINATION}
     )
 endfunction()
 
 # xxx_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
 # Add an export component with associated targets that will be exported as a CMake package component.
-# Each export component will have its own <package>-component-<name>-targets.cmake 
+# Each export component will have its own <package>-component-<name>-targets.cmake
 # and <package>-component-<name>-dependencies.cmake generated.
 # Components are used with: find_package(<package> CONFIG REQUIRED COMPONENTS <component1> <component2> ...)
 function(xxx_add_export_component)
@@ -959,7 +1052,10 @@ function(xxx_add_export_component)
     # Check export component is not already declared
     get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
     if(${arg_NAME} IN_LIST existing_components)
-        message(FATAL_ERROR "Export component '${arg_NAME}' is already declared for project '${PROJECT_NAME}'.")
+        message(
+            FATAL_ERROR
+            "Export component '${arg_NAME}' is already declared for project '${PROJECT_NAME}'."
+        )
     endif()
 
     # Check if target is already in an export component
@@ -967,12 +1063,17 @@ function(xxx_add_export_component)
         get_property(component_targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
         foreach(target ${arg_TARGETS})
             if(${target} IN_LIST component_targets)
-                message(FATAL_ERROR "Target '${target}' is already part of export component '${component}'. Cannot add it to export component '${arg_NAME}'.")
+                message(
+                    FATAL_ERROR
+                    "Target '${target}' is already part of export component '${component}'. Cannot add it to export component '${arg_NAME}'."
+                )
             endif()
         endforeach()
     endforeach()
 
-    message("Adding export component '${arg_NAME}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_NAME})")
+    message(
+        "Adding export component '${arg_NAME}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_NAME})"
+    )
 
     # This option associates the installed target files with an export, without installing anything.
     # TODO: Declare exports first like that, split the xxx_export_package() with a generation and an install step.
@@ -986,13 +1087,15 @@ endfunction()
 function(xxx_declare_component)
     cmake_parse_arguments(PARSE_ARGV 0 arg "" "COMPONENT" "TARGETS")
     if(arg_COMPONENT)
-        message(DEPRECATION "xxx_declare_component(COMPONENT ...) is deprecated. Use xxx_add_export_component(NAME ...) instead.")
+        message(
+            DEPRECATION
+            "xxx_declare_component(COMPONENT ...) is deprecated. Use xxx_add_export_component(NAME ...) instead."
+        )
         xxx_add_export_component(NAME ${arg_COMPONENT} TARGETS ${arg_TARGETS})
     else()
         message(FATAL_ERROR "xxx_declare_component() requires COMPONENT argument")
     endif()
 endfunction()
-
 
 # xxx_contains_generator_expressions(<input_string> <output_var>)
 # Check if the provided string contains generator expressions.
@@ -1063,9 +1166,11 @@ function(xxx_target_install_headers target)
         return()
     endif()
 
-    file(GENERATE 
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake
-        CONTENT "
+    file(
+        GENERATE OUTPUT
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake
+        CONTENT
+            "
 # Generated file - do not edit
 # This file contains the list of headers declared for target '${target}' with visibility '${visibility}'
 set(headers \"${headers}\")
@@ -1096,7 +1201,10 @@ foreach(header \${headers})
 endforeach()
 "
     )
-    install(SCRIPT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake)
+    install(
+        SCRIPT
+            ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${target}-install-headers.cmake
+    )
 endfunction()
 
 # xxx_install_headers(
@@ -1130,15 +1238,23 @@ function(xxx_install_headers)
         set(components ${arg_COMPONENTS})
     else()
         if(NOT declared_components)
-            message(FATAL_ERROR "No export components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_add_export_component() first.")
+            message(
+                FATAL_ERROR
+                "No export components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_add_export_component() first."
+            )
         endif()
         set(components ${declared_components})
-        message("Installing headers for all declared components. Declared components: [${declared_components}]")
+        message(
+            "Installing headers for all declared components. Declared components: [${declared_components}]"
+        )
     endif()
 
     foreach(component ${components})
         if(NOT component IN_LIST declared_components)
-            message(FATAL_ERROR "Component '${component}' is not declared for project '${PROJECT_NAME}'.")
+            message(
+                FATAL_ERROR
+                "Component '${component}' is not declared for project '${PROJECT_NAME}'."
+            )
         endif()
 
         get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
@@ -1148,7 +1264,9 @@ function(xxx_install_headers)
         endif()
 
         foreach(target ${targets})
-            message("Installing headers for target '${target}' of component '${component}' to '${install_destination}'")
+            message(
+                "Installing headers for target '${target}' of component '${component}' to '${install_destination}'"
+            )
             xxx_target_install_headers(${target} DESTINATION ${install_destination})
         endforeach()
     endforeach()
@@ -1168,7 +1286,7 @@ function(xxx_export_package)
     message(STATUS "[${PROJECT_NAME}] Exporting package (${CMAKE_CURRENT_FUNCTION})")
 
     # Dump package dependencies at the end of the current CMakeLists configuration step
-    cmake_language(DEFER CALL _xxx_dump_package_dependencies_json())
+    cmake_language(DEFER CALL _xxx_dump_package_dependencies_json ())
 
     set(options)
     set(oneValueArgs)
@@ -1189,9 +1307,13 @@ function(xxx_export_package)
 
     # NOTE: Expose as options if needed
     set(PACKAGE_CONFIG_INPUT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
-    set(PACKAGE_CONFIG_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config.cmake)
+    set(PACKAGE_CONFIG_OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config.cmake
+    )
     set(PACKAGE_VERSION ${PROJECT_VERSION})
-    set(PACKAGE_VERSION_OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config-version.cmake)
+    set(PACKAGE_VERSION_OUTPUT
+        ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config-version.cmake
+    )
     set(PACKAGE_VERSION_COMPATIBILITY AnyNewerVersion)
     set(PACKAGE_VERSION_ARCH_INDEPENDENT "")
     set(DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
@@ -1206,36 +1328,32 @@ function(xxx_export_package)
 
     # <package>-config.cmake
     configure_package_config_file(
-      ${PACKAGE_CONFIG_INPUT}
-      ${PACKAGE_CONFIG_OUTPUT}
-      INSTALL_DESTINATION ${DESTINATION}
-      ${NO_SET_AND_CHECK_MACRO}
-      ${NO_CHECK_REQUIRED_COMPONENTS_MACRO}
+        ${PACKAGE_CONFIG_INPUT}
+        ${PACKAGE_CONFIG_OUTPUT}
+        INSTALL_DESTINATION ${DESTINATION}
+        ${NO_SET_AND_CHECK_MACRO}
+        ${NO_CHECK_REQUIRED_COMPONENTS_MACRO}
     )
-    install(
-        FILES ${PACKAGE_CONFIG_OUTPUT}
-        DESTINATION ${DESTINATION}
-    )
+    install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${DESTINATION})
 
-    # find-modules/Find<pkg>.cmake 
+    # find-modules/Find<pkg>.cmake
     # Install the find-modules used for this component
     # TODO: only install the ones that are actually used
-    install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
+    install(
+        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
         DESTINATION ${DESTINATION}
-        FILES_MATCHING PATTERN "Find*.cmake"
+        FILES_MATCHING
+        PATTERN "Find*.cmake"
     )
 
     # <package>-config-version.cmake
     write_basic_package_version_file(
-      ${PACKAGE_VERSION_OUTPUT}
-      VERSION ${PACKAGE_VERSION}
-      COMPATIBILITY ${PACKAGE_VERSION_COMPATIBILITY}
-      ${PACKAGE_VERSION_ARCH_INDEPENDENT}
+        ${PACKAGE_VERSION_OUTPUT}
+        VERSION ${PACKAGE_VERSION}
+        COMPATIBILITY ${PACKAGE_VERSION_COMPATIBILITY}
+        ${PACKAGE_VERSION_ARCH_INDEPENDENT}
     )
-    install(
-        FILES ${OUTPUT}
-        DESTINATION ${DESTINATION}
-    )
+    install(FILES ${OUTPUT} DESTINATION ${DESTINATION})
 
     foreach(component ${declared_components})
         message("Generating cmake module files for component '${component}'")
@@ -1250,7 +1368,8 @@ function(xxx_export_package)
             NAMESPACE ${NAMESPACE}
         )
         # Create the export for the component targets
-        install(TARGETS ${targets}
+        install(
+            TARGETS ${targets}
             EXPORT ${PROJECT_NAME}-${component}
             RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -1258,7 +1377,8 @@ function(xxx_export_package)
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
         # <package>-component-<component>-targets.cmake
-        install(EXPORT ${PROJECT_NAME}-${component}
+        install(
+            EXPORT ${PROJECT_NAME}-${component}
             FILE ${PROJECT_NAME}-component-${component}-targets.cmake
             NAMESPACE ${NAMESPACE}
             DESTINATION ${DESTINATION}
@@ -1271,13 +1391,22 @@ endfunction()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
 # In the function xxx_export_package().
 function(_xxx_dump_package_dependencies_json)
-    get_property(package_dependencies_json GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
+    get_property(
+        package_dependencies_json
+        GLOBAL
+        PROPERTY _xxx_${PROJECT_NAME}_package_dependencies
+    )
     if(NOT package_dependencies_json)
         message(STATUS "No package dependencies recorded with xxx_find_package().")
         return()
     endif()
-    set(package_dependencies_file "${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json")
-    message(STATUS "[${PROJECT_NAME}] Dumping package dependencies JSON to ${package_dependencies_file}")
+    set(package_dependencies_file
+        "${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json"
+    )
+    message(
+        STATUS
+        "[${PROJECT_NAME}] Dumping package dependencies JSON to ${package_dependencies_file}"
+    )
     file(WRITE ${package_dependencies_file} "${package_dependencies_json}")
 endfunction()
 
@@ -1287,18 +1416,30 @@ endfunction()
 function(xxx_option option_name description default_value)
     option(${ARGV})
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value})
+    set_property(
+        GLOBAL
+        PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
+    )
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
 endfunction()
 
-function(xxx_cmake_dependent_option option_name description default_value condition else-value)
+function(
+    xxx_cmake_dependent_option
+    option_name
+    description
+    default_value
+    condition
+    else-value
+)
     include(CMakeDependentOption)
     cmake_dependent_option(${ARGV})
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value})
+    set_property(
+        GLOBAL
+        PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
+    )
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
 endfunction()
-
 
 # Helper function: pad or truncate a string to a fixed width
 function(pad_string input width output_var)
@@ -1319,7 +1460,6 @@ function(pad_string input width output_var)
     set(${output_var} "${_padded}" PARENT_SCOPE)
 endfunction()
 
-
 # Print all options defined via xxx_option() in a nice table
 # Usage: xxx_print_options_summary()
 function(xxx_print_options_summary)
@@ -1329,21 +1469,25 @@ function(xxx_print_options_summary)
         return()
     endif()
 
-    message( "")
-    message( "================= Configuration Summary ======================================")
-    message( "")
+    message("")
+    message("================= Configuration Summary ======================================")
+    message("")
     pad_string("Option"      40 _menu_option)
     pad_string("Type"        5  _menu_type)
     pad_string("Value"       8  _menu_value)
     pad_string("Default"     5  _menu_default)
     pad_string("Description (default)" 25 _menu_description)
-    message( "${_menu_option} | ${_menu_type} | ${_menu_value} | ${_menu_description}")
-    message( "------------------------------------------------------------------------------")
+    message("${_menu_option} | ${_menu_type} | ${_menu_value} | ${_menu_description}")
+    message("------------------------------------------------------------------------------")
 
     foreach(option_name ${option_names})
         get_property(_type CACHE ${option_name} PROPERTY TYPE)
         get_property(_val CACHE ${option_name} PROPERTY VALUE)
-        get_property(_default GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value)
+        get_property(
+            _default
+            GLOBAL
+            PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value
+        )
         get_property(_help CACHE ${option_name} PROPERTY HELPSTRING)
 
         pad_string("${option_name}"      40 _name)
@@ -1352,11 +1496,11 @@ function(xxx_print_options_summary)
         pad_string("${_default}"  5 _default)
         pad_string("${_help}"     25 _help)
 
-        message( "${_name} | ${_type} | ${_val} | ${_help} (${_default})")
+        message("${_name} | ${_type} | ${_val} | ${_help} (${_default})")
     endforeach()
 
-    message( "------------------------------------------------------------------------------")
-    message( "")
+    message("------------------------------------------------------------------------------")
+    message("")
 endfunction()
 
 # Shortcut to find Python package and check main variables
@@ -1385,26 +1529,27 @@ endmacro()
 macro(xxx_find_nanobind)
     string(REPLACE ";" " " args_pp "${ARGN}")
     xxx_require_variable(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
-        
+
     Please call xxx_find_python(<args>) first, e.g.:
 
         xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
         xxx_find_package(nanobind ${args_pp})
-    ")
+    "
+    )
     unset(args_pp)
 
     # Detect the installed nanobind package and import it into CMake
     # ref: https://nanobind.readthedocs.io/en/latest/building.html#finding-nanobind
     execute_process(
-      COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      OUTPUT_VARIABLE nanobind_ROOT
-      ERROR_VARIABLE nanobind_error
+        COMMAND ${Python_EXECUTABLE} -m nanobind --cmake_dir
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        OUTPUT_VARIABLE nanobind_ROOT
+        ERROR_VARIABLE nanobind_error
     )
-    
+
     if(nanobind_error)
         unset(nanobind_ROOT)
-    
+
         # On Ubuntu 24.04, nanobind installed via apt is located in /usr/share/nanobind
         find_path(nanobind_INCLUDE_DIR NAMES nanobind/nanobind.h HINTS /usr/share/nanobind/include)
         if(nanobind_INCLUDE_DIR)
@@ -1416,9 +1561,9 @@ macro(xxx_find_nanobind)
     if(NOT nanobind_ROOT)
         message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
     endif()
-    
+
     xxx_find_package(nanobind ${ARGN})
-    
+
     message("   Nanobind CMake directory: ${nanobind_ROOT}")
 
     # If you install nanobind with pip, it will include tsl-robin-map in <nanobind>/ext/robin_map
@@ -1441,7 +1586,7 @@ function(xxx_python_compile_all)
 
     if(arg_VERBOSE)
         message(STATUS "Compiling all Python files in directory '${arg_DIRECTORY}'")
-        # If quiet is False or 0 (the default), the filenames and other information are printed to standard out. 
+        # If quiet is False or 0 (the default), the filenames and other information are printed to standard out.
         # Set to 1, only errors are printed. Set to 2, all output is suppressed.
         set(quiet_flag "0")
     else()
@@ -1449,14 +1594,19 @@ function(xxx_python_compile_all)
     endif()
 
     execute_process(
-        COMMAND ${Python_EXECUTABLE} -c "import compileall; compileall.compile_dir(r'${arg_DIRECTORY}', workers=0, quiet=${quiet_flag})"
+        COMMAND
+            ${Python_EXECUTABLE} -c
+            "import compileall; compileall.compile_dir(r'${arg_DIRECTORY}', workers=0, quiet=${quiet_flag})"
         RESULT_VARIABLE result
         ERROR_VARIABLE error
         OUTPUT_STRIP_TRAILING_WHITESPACE
         WORKING_DIRECTORY ${arg_DIRECTORY}
     )
     if(error)
-        message(FATAL_ERROR "Failed to compile Python files in directory '${arg_DIRECTORY}': ${error}")
+        message(
+            FATAL_ERROR
+            "Failed to compile Python files in directory '${arg_DIRECTORY}': ${error}"
+        )
     endif()
 
     if(arg_VERBOSE)
@@ -1464,13 +1614,12 @@ function(xxx_python_compile_all)
     endif()
 endfunction()
 
-
 function(xxx_python_generate_init_py name)
     set(options)
     set(oneValueArgs OUTPUT_PATH)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 1 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
-    
+
     if(NOT TARGET ${name})
         message(FATAL_ERROR "Target '${name}' does not exist, cannot generate __init__.py")
     endif()
@@ -1487,15 +1636,25 @@ function(xxx_python_generate_init_py name)
     foreach(target IN LISTS python_module_link_libraries)
         get_target_property(target_type ${target} TYPE)
         get_target_property(is_imported ${target} IMPORTED)
-        message(STATUS "Checking target '${target}' of type '${target_type}' for dll linking. Imported: '${is_imported}'")
+        message(
+            STATUS
+            "Checking target '${target}' of type '${target_type}' for dll linking. Imported: '${is_imported}'"
+        )
 
-        if(target_type STREQUAL "SHARED_LIBRARY" OR target_type STREQUAL "MODULE_LIBRARY" AND NOT ${is_imported})
+        if(
+            target_type STREQUAL "SHARED_LIBRARY"
+            OR target_type STREQUAL "MODULE_LIBRARY"
+            AND NOT ${is_imported}
+        )
             message(STATUS "Adding target '${target}' to dlls to link for python module '${name}'")
             list(APPEND dlls_to_link ${target})
         endif()
     endforeach()
 
-    message(STATUS "Python module '${name}' depends on the following buildsystem dlls: [${dlls_to_link}]")
+    message(
+        STATUS
+        "Python module '${name}' depends on the following buildsystem dlls: [${dlls_to_link}]"
+    )
 
     # Get the relative paths between the python module and each dll
     set(all_rel_paths "")
@@ -1506,10 +1665,7 @@ function(xxx_python_generate_init_py name)
         get_target_property(dll_dir ${dll_name} RUNTIME_OUTPUT_DIRECTORY)
         xxx_require_variable(dll_dir)
 
-        file(RELATIVE_PATH rel_path
-            ${python_module_dir}
-            ${dll_dir}
-        )
+        file(RELATIVE_PATH rel_path ${python_module_dir} ${dll_dir})
         list(APPEND all_rel_paths ${rel_path})
     endforeach()
 
@@ -1536,39 +1692,39 @@ endfunction()
 # Usage: xxx_check_python_module(<module_name> [REQUIRED] [QUIET])
 # Example: xxx_check_python_module(numpy REQUIRED)
 function(xxx_check_python_module module_name)
-  set(options REQUIRED QUIET)
-  cmake_parse_arguments(ARG "${options}" "" "" ${ARGN})
+    set(options REQUIRED QUIET)
+    cmake_parse_arguments(ARG "${options}" "" "" ${ARGN})
 
-  if(NOT TARGET Python::Interpreter)
-    message(
-      FATAL_ERROR
-      "Python::Interpreter target not found. Please find_package(Python COMPONENTS Interpreter) first."
+    if(NOT TARGET Python::Interpreter)
+        message(
+            FATAL_ERROR
+            "Python::Interpreter target not found. Please find_package(Python COMPONENTS Interpreter) first."
+        )
+    endif()
+    get_target_property(python Python::Interpreter LOCATION)
+    execute_process(
+        COMMAND ${python} -c "import ${module_name}"
+        RESULT_VARIABLE module_found
+        ERROR_QUIET
     )
-  endif()
-  get_target_property(python Python::Interpreter LOCATION)
-  execute_process(
-    COMMAND ${python} -c "import ${module_name}"
-    RESULT_VARIABLE module_found
-    ERROR_QUIET
-  )
-  if(module_found STREQUAL 0)
-    set(${module_name}_FOUND true PARENT_SCOPE)
-    if(NOT ARG_QUIET)
-      message(STATUS "Python module '${module_name}' found.")
+    if(module_found STREQUAL 0)
+        set(${module_name}_FOUND true PARENT_SCOPE)
+        if(NOT ARG_QUIET)
+            message(STATUS "Python module '${module_name}' found.")
+        endif()
+    else()
+        set(${module_name}_FOUND false PARENT_SCOPE)
+        if(ARG_REQUIRED)
+            message(FATAL_ERROR "Required Python module '${module_name}' not found.")
+        elseif(NOT ARG_QUIET)
+            message(WARNING "Python module '${module_name}' not found.")
+        endif()
     endif()
-  else()
-    set(${module_name}_FOUND false PARENT_SCOPE)
-    if(ARG_REQUIRED)
-      message(FATAL_ERROR "Required Python module '${module_name}' not found.")
-    elseif(NOT ARG_QUIET)
-      message(WARNING "Python module '${module_name}' not found.")
-    endif()
-  endif()
 endfunction()
 
 # function(xxx_find_python_pytest)
 #     xxx_require_target(Python::Interpreter "Python::Interpreter not found. Make sure you have the Python interpreter using xxx_find_package(Python REQUIRED COMPONENTS Interpreter).")
-    
+
 #     if(TARGET Pytest::Pytest)
 #         get_target_property(l Pytest::Pytest IMPORTED_LOCATION)
 #         get_target_property(v Pytest::Pytest VERSION)
@@ -1576,17 +1732,17 @@ endfunction()
 #         return()
 #     endif()
 
-#     # If python is installed via vcpkg and pytest installed via 
+#     # If python is installed via vcpkg and pytest installed via
 #     # C:/vcpkg/installed/x64-windows/tools/python3/python.exe -m pip install pytest
 #     # Then pytest will be located in C:/vcpkg/installed/x64-windows/tools/python3/Scripts/pytest.exe
 #     # So we add an additional hint to find_program
 
 #     cmake_path(GET Python_EXECUTABLE PARENT_PATH Python_ROOT)
 #     find_program(pytest_EXECUTABLE pytest HINTS ${Python_ROOT} REQUIRED)
-    
+
 #     execute_process(COMMAND ${pytest_EXECUTABLE} --version OUTPUT_VARIABLE pytest_VERSION_FULL OUTPUT_STRIP_TRAILING_WHITESPACE)
 #     string(REGEX MATCH "[0-9]+(\\.[0-9]+)*" pytest_VERSION "${pytest_VERSION_FULL}")
-    
+
 #     mark_as_advanced(pytest_EXECUTABLE pytest_VERSION)
 
 #     add_executable(Pytest::Pytest IMPORTED)
@@ -1595,13 +1751,13 @@ endfunction()
 #             VERSION ${pytest_VERSION}
 #             IMPORTED_LOCATION ${pytest_EXECUTABLE})
 #     xxx_require_target(Pytest::Pytest "Pytest::Pytest not found. Make sure you have pytest installed and accessible in your PATH.")
-    
+
 #     message(STATUS "Found pytest: ${pytest_EXECUTABLE} (version: ${pytest_VERSION})")
 # endfunction()
 
 # function(xxx_python_compile_file filepath)
 #     xxx_require_variable(Python_EXECUTABLE)
-    
+
 #     execute_process(
 #         COMMAND ${Python_EXECUTABLE} -c "import py_compile; print(py_compile.compile(r'${filepath}', doraise=True), end='')"
 #         OUTPUT_VARIABLE compiled_filepath
@@ -1681,5 +1837,3 @@ endfunction()
 #         endif()
 #     endforeach()
 # endfunction()
-
-# gersemi: on

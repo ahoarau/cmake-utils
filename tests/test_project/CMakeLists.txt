@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.22...4.1)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/../../modules/cmake-utils.cmake)
 
-project(test_project 
+project(
+    test_project
     VERSION 1.0.0
     DESCRIPTION "A test project for cmake-utils"
     HOMEPAGE_URL "https://example.com/test_project"
@@ -34,16 +35,12 @@ if(TEST_PROJECT_BUILD_TESTS)
     include(Catch)
 endif()
 
-
 # Create libraries
 add_library(test_project SHARED)
-target_sources(test_project PRIVATE
-    src/Math.cpp
-    src/StringUtils.cpp
-)
-target_include_directories(test_project PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:include>
+target_sources(test_project PRIVATE src/Math.cpp src/StringUtils.cpp)
+target_include_directories(
+    test_project
+    PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
 )
 target_compile_features(test_project PUBLIC cxx_std_17)
 
@@ -73,13 +70,12 @@ if(TEST_PROJECT_BUILD_TESTS)
 endif()
 
 # Declare headers for target
-xxx_target_headers(test_project PUBLIC 
-    HEADERS 
-        include/test_project/Math.hpp 
-    BASE_DIRS 
+xxx_target_headers(test_project PUBLIC
+    HEADERS
+        include/test_project/Math.hpp
+    BASE_DIRS
         include
 )
-
 
 # Declare export components
 xxx_add_export_component(NAME test_project TARGETS test_project)

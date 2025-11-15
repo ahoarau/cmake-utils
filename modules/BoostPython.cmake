@@ -6,17 +6,23 @@ function(boostpy_add_module name)
     cmake_parse_arguments(PARSE_ARGV 1 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     if(NOT TARGET Python::Module)
-        message(FATAL_ERROR "
-            Python::Module target not found. 
+        message(
+            FATAL_ERROR
+            "
+            Python::Module target not found.
             Please call find_package(Python REQUIRED COMPONENTS Interpreter Development) prior to calling boostpy_add_module.
-        ")
+        "
+        )
     endif()
 
     if(NOT TARGET Boost::python)
-        message(FATAL_ERROR "
-            Boost::python target not found. 
+        message(
+            FATAL_ERROR
+            "
+            Boost::python target not found.
             Please call find_package(Boost REQUIRED COMPONENTS python) prior to calling boostpy_add_module.
-        ")
+        "
+        )
     endif()
 
     # We always need to know the extension
@@ -132,15 +138,23 @@ function(boostpy_add_stubs name)
         set(loglevel "--log-level=DEBUG")
     endif()
 
-    set(stubgen_py ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../external-modules/pybind11-stubgen-e48d1f1/pybind11_stubgen.py)
+    set(stubgen_py
+        ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../external-modules/pybind11-stubgen-e48d1f1/pybind11_stubgen.py
+    )
     if(NOT EXISTS ${stubgen_py})
-        message(FATAL_ERROR "Could not find 'pybind11_stubgen.py' at expected location: ${stubgen_py}")
+        message(
+            FATAL_ERROR
+            "Could not find 'pybind11_stubgen.py' at expected location: ${stubgen_py}"
+        )
     endif()
     cmake_path(CONVERT ${stubgen_py} TO_CMAKE_PATH_LIST stubgen_py NORMALIZE)
 
     add_custom_command(
         OUTPUT ${arg_OUTPUT}
-        COMMAND ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py} --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python --ignore-invalid=signature --no-setup-py --no-root-module-suffix
+        COMMAND
+            ${CMAKE_COMMAND} -E env ${pythonpath} $<TARGET_FILE:Python::Interpreter> ${stubgen_py}
+            --output-dir ${arg_OUTPUT} ${arg_MODULE} ${loglevel} --boost-python
+            --ignore-invalid=signature --no-setup-py --no-root-module-suffix
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS ${arg_DEPENDS}
         VERBATIM

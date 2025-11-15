@@ -20,7 +20,8 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     #
     # System Info
     #
-    foreach(V
+    foreach(
+        V
         CMAKE_SYSTEM_NAME
         CMAKE_SYSTEM_VERSION
         CMAKE_SYSTEM_PROCESSOR
@@ -35,7 +36,8 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     #
     # CMake / Generator Info
     #
-    foreach(V
+    foreach(
+        V
         CMAKE_VERSION
         CMAKE_GENERATOR
         CMAKE_GENERATOR_PLATFORM
@@ -50,11 +52,21 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     # Per-language compiler info (greatly extended)
     #
     _log("================== LANGUAGE COMPILERS ==================")
-    foreach(LANG C CXX CUDA OBJC OBJCXX Fortran ASM)
+    foreach(
+        LANG
+        C
+        CXX
+        CUDA
+        OBJC
+        OBJCXX
+        Fortran
+        ASM
+    )
         if(CMAKE_${LANG}_COMPILER)
             _log("----------- ${LANG} FULL COMPILER INFO -----------")
 
-            foreach(V
+            foreach(
+                V
                 CMAKE_${LANG}_COMPILER
                 CMAKE_${LANG}_COMPILER_ID
                 CMAKE_${LANG}_COMPILER_VERSION
@@ -80,20 +92,24 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     # Compiler Frontend Raw Version Output
     #
     _log("================== COMPILER FRONTENDS ==================")
-    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         _log("Frontend Detected: Clang")
-        execute_process(COMMAND ${CMAKE_CXX_COMPILER} --version
-                        OUTPUT_VARIABLE FRONTEND_OUT
-                        OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(
+            COMMAND ${CMAKE_CXX_COMPILER} --version
+            OUTPUT_VARIABLE FRONTEND_OUT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
         _log("CLANG_RAW_VERSION (value) :\n${FRONTEND_OUT}")
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         _log("Frontend Detected: GCC")
-        execute_process(COMMAND ${CMAKE_CXX_COMPILER} -v
-                        OUTPUT_VARIABLE FRONTEND_OUT
-                        ERROR_VARIABLE FRONTEND_OUT
-                        OUTPUT_STRIP_TRAILING_WHITESPACE)
+        execute_process(
+            COMMAND ${CMAKE_CXX_COMPILER} -v
+            OUTPUT_VARIABLE FRONTEND_OUT
+            ERROR_VARIABLE FRONTEND_OUT
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
         _log("GCC_RAW_VERSION (value) :\n${FRONTEND_OUT}")
-    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
         _log("Frontend Detected: MSVC")
         _log_var(MSVC_VERSION)
     endif()
@@ -124,7 +140,7 @@ function(xxx_print_full_system_and_compiler_info loglevel)
         # Detect AppleClang
         #
         set(DETECTED_APPLECLANG FALSE)
-        
+
         # Signature 1: version header includes "Apple LLVM version" or "Apple clang version"
         if(CLANG_V_OUT MATCHES "Apple[ ]+(LLVM|clang) version")
             set(DETECTED_APPLECLANG TRUE)
@@ -150,7 +166,6 @@ function(xxx_print_full_system_and_compiler_info loglevel)
             _log("CLANG_FLAVOR (value) : Upstream Clang/LLVM")
         endif()
     endif()
-
 
     #
     # --- Dump compiler target triplets ---
@@ -202,7 +217,8 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     # Target / Cross Compilation Info
     #
     _log("================== TARGET INFO ==================")
-    foreach(V
+    foreach(
+        V
         CMAKE_CROSSCOMPILING
         CMAKE_CROSSCOMPILING_EMULATOR
         CMAKE_SYSTEM_PROCESSOR
@@ -221,7 +237,8 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     # Toolchain / Linker Tools
     #
     _log("================== TOOLCHAIN INFO ==================")
-    foreach(V
+    foreach(
+        V
         CMAKE_LINKER
         CMAKE_AR
         CMAKE_RANLIB
@@ -237,7 +254,8 @@ function(xxx_print_full_system_and_compiler_info loglevel)
     # Environment Variables
     #
     _log("================== ENVIRONMENT ==================")
-    foreach(V
+    foreach(
+        V
         PATH
         CC
         CXX

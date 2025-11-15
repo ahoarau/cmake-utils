@@ -1,4 +1,4 @@
-# Part of pytest-cmake 
+# Part of pytest-cmake
 
 function(pytest_discover_tests NAME)
     if(NOT TARGET Pytest::Pytest)
