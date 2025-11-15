@@ -657,11 +657,11 @@ macro(xxx_find_package)
 
         if(module_file)
             # Copy the module file to the generated cmake directory in the build dir
-            file(
-                COPY ${module_file}
-                DESTINATION
-                    ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name}
-            )
+            # file(
+            #     COPY ${module_file}
+            #     DESTINATION
+            #         ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name}
+            # )
 
             # Add the parent path to the CMAKE_MODULE_PATH
             cmake_path(GET module_file PARENT_PATH module_dir)
@@ -750,6 +750,7 @@ macro(xxx_find_package)
             "using_custom_module"
             "\"${using_custom_module}\""
         )
+        string(JSON package_json SET "${package_json}" "module_file" "\"${module_file}\"")
 
         string(JSON deps_length LENGTH "${deps}" "package_dependencies")
         string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
@@ -1015,6 +1016,7 @@ function(xxx_export_dependencies)
             "
 # Generated file - do not edit
 # This file contains the list of buildsystem targets and all imported libraries linked by the exported targets
+set(targets \"${arg_TARGETS}\")
 set(buildsystem_targets \"${buildsystem_targets}\")
 set(imported_libraries \"${all_link_libraries}\")
 "
@@ -1028,10 +1030,14 @@ set(imported_libraries \"${all_link_libraries}\")
     install(
         SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
     )
-    install(
-        FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
-        DESTINATION ${arg_DESTINATION}
-    )
+    # install(
+    #     DIRECTORY ${arg_GEN_DIR}/find-modules 
+    #     DESTINATION ${arg_DESTINATION}
+    # )
+    # install(
+    #     FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
+    #     DESTINATION ${arg_DESTINATION}
+    # )
 endfunction()
 
 # xxx_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
@@ -1081,20 +1087,6 @@ function(xxx_add_export_component)
 
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components ${arg_NAME} APPEND)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
-endfunction()
-
-# Backward compatibility aliases
-function(xxx_declare_component)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "" "COMPONENT" "TARGETS")
-    if(arg_COMPONENT)
-        message(
-            DEPRECATION
-            "xxx_declare_component(COMPONENT ...) is deprecated. Use xxx_add_export_component(NAME ...) instead."
-        )
-        xxx_add_export_component(NAME ${arg_COMPONENT} TARGETS ${arg_TARGETS})
-    else()
-        message(FATAL_ERROR "xxx_declare_component() requires COMPONENT argument")
-    endif()
 endfunction()
 
 # xxx_contains_generator_expressions(<input_string> <output_var>)
@@ -1336,15 +1328,15 @@ function(xxx_export_package)
     )
     install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${DESTINATION})
 
-    # find-modules/Find<pkg>.cmake
-    # Install the find-modules used for this component
-    # TODO: only install the ones that are actually used
-    install(
-        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
-        DESTINATION ${DESTINATION}
-        FILES_MATCHING
-        PATTERN "Find*.cmake"
-    )
+    # # find-modules/Find<pkg>.cmake
+    # # Install the find-modules used for this component
+    # # TODO: only install the ones that are actually used
+    # install(
+    #     DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
+    #     DESTINATION ${DESTINATION}
+    #     FILES_MATCHING
+    #     PATTERN "Find*.cmake"
+    # )
 
     # <package>-config-version.cmake
     write_basic_package_version_file(
