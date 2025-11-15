@@ -22,16 +22,20 @@ jobs:
           - image: windows-2022
             name: Windows Server 2022
             vcpkg_triplet: x64-windows
+
           - image: windows-2025
             name: Windows Server 2025
-            vcpkg_triplet: x64-windows
+            arch: x64
+
           - image: windows-11-arm
             name: Windows 11 ARM64
-            vcpkg_triplet: arm64-windows
+            arch: arm64
 
     steps:
       - uses: actions/checkout@v5
       - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
 
       - name: Add NuGet sources
         shell: pwsh
@@ -53,8 +57,8 @@ jobs:
 
       - name: Install Python dependencies (via pip)
         run: |
-          C:/vcpkg/installed/${{ matrix.vcpkg_triplet }}/tools/python3/python.exe -m ensurepip --upgrade
-          C:/vcpkg/installed/${{ matrix.vcpkg_triplet }}/tools/python3/python.exe -m pip install nanobind pytest numpy
+          C:/vcpkg/installed/${{ matrix.arch }}-windows/tools/python3/python.exe -m ensurepip --upgrade
+          C:/vcpkg/installed/${{ matrix.arch }}-windows/tools/python3/python.exe -m pip install nanobind pytest numpy
 
       - name: Configure project
         run: cmake -G Ninja -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
