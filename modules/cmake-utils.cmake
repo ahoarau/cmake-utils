@@ -1723,15 +1723,16 @@ function(xxx_check_python_module module_name)
     set(options REQUIRED QUIET)
     cmake_parse_arguments(ARG "${options}" "" "" ${ARGN})
 
-    if(NOT TARGET Python::Interpreter)
+    if(NOT Python_EXECUTABLE)
         message(
             FATAL_ERROR
-            "Python::Interpreter target not found. Please find_package(Python COMPONENTS Interpreter) first."
+            "Python_EXECUTABLE not defined.
+        Please use xxx_find_package(Python REQUIRED COMPONENT Interpreter)"
         )
     endif()
-    get_target_property(python Python::Interpreter LOCATION)
+
     execute_process(
-        COMMAND ${python} -c "import ${module_name}"
+        COMMAND ${Python_EXECUTABLE} -c "import ${module_name}"
         RESULT_VARIABLE module_found
         ERROR_QUIET
     )
@@ -1748,6 +1749,47 @@ function(xxx_check_python_module module_name)
             message(WARNING "Python module '${module_name}' not found.")
         endif()
     endif()
+endfunction()
+
+function(xxx_python_compute_install_dir output)
+    if(DEFINED ${PROJECT_NAME}_PYTHON_INSTALL_DIR)
+        message(
+            "${PROJECT_NAME}_PYTHON_INSTALL_DIR is defined, using its value: ${${PROJECT_NAME}_PYTHON_INSTALL_DIR} as python install dir"
+        )
+        set(${output} ${${PROJECT_NAME}_PYTHON_INSTALL_DIR} PARENT_SCOPE)
+        return()
+    endif()
+
+    if(NOT Python_EXECUTABLE)
+        message(
+            FATAL_ERROR
+            "Python_EXECUTABLE not defined.
+        Please use xxx_find_package(Python REQUIRED COMPONENT Interpreter)"
+        )
+    endif()
+
+    # purelib: directory for site-specific, non-platform-specific files (‘pure’ Python).
+    # data: directory for data files (i.e. The root directory of the Python interpreter).
+    # This should return Lib/site-packages on Windows and lib/pythonX.Y/site-packages on Linux
+    execute_process(
+        COMMAND
+            ${Python_EXECUTABLE} -c
+            "import sysconfig; from pathlib import Path; print(Path(sysconfig.get_path('purelib')).relative_to(sysconfig.get_path('data')))"
+        OUTPUT_VARIABLE relative_python_sitelib_wrt_python_root_dir
+        ERROR_VARIABLE error
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    if(error)
+        message(
+            FATAL_ERROR
+            "Error while trying to compute the python binding install dir: ${error}"
+        )
+    endif()
+
+    set(${output} "${relative_python_sitelib_wrt_python_root_dir}" PARENT_SCOPE)
+
+    message("Computed python install dir ${output}=${relative_python_sitelib_wrt_python_root_dir}")
 endfunction()
 
 # function(xxx_find_python_pytest)
