@@ -46,6 +46,8 @@ jobs:
           .$(${{ env.VCPKG_COMMAND }} fetch nuget) `
             setapikey "${{ secrets.GITHUB_TOKEN }}" `
             -Source "${{ env.FEED_URL }}"
+      - name: Integrate vcpkg system-wide
+        run: ${{ env.VCPKG_COMMAND }} integrate install
 
       - name: Install C++ dependencies (via vcpkg)
         run: |
@@ -57,7 +59,7 @@ jobs:
           C:/vcpkg/installed/${{ matrix.vcpkg_triplet }}/tools/python3/python.exe -m pip install nanobind pytest numpy
 
       - name: Configure project
-        run: cmake -G Ninja -S . -B build -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
+        run: cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
 
       - name: Build project
         run: cmake --build build
