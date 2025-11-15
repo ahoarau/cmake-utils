@@ -1502,6 +1502,41 @@ function(xxx_python_generate_init_py name)
     )
 endfunction()
 
+# Find if a python module is available, fills <module_name>_FOUND variable
+# Displays messages based on REQUIRED and QUIET options
+# Usage: xxx_check_python_module(<module_name> [REQUIRED] [QUIET])
+# Example: xxx_check_python_module(numpy REQUIRED)
+function(xxx_check_python_module module_name)
+  set(options REQUIRED QUIET)
+  cmake_parse_arguments(ARG "${options}" "" "" ${ARGN})
+
+  if(NOT TARGET Python::Interpreter)
+    message(
+      FATAL_ERROR
+      "Python::Interpreter target not found. Please find_package(Python COMPONENTS Interpreter) first."
+    )
+  endif()
+  get_target_property(python Python::Interpreter LOCATION)
+  execute_process(
+    COMMAND ${python} -c "import ${module_name}"
+    RESULT_VARIABLE module_found
+    ERROR_QUIET
+  )
+  if(module_found STREQUAL 0)
+    set(${module_name}_FOUND true PARENT_SCOPE)
+    if(NOT ARG_QUIET)
+      message(STATUS "Python module '${module_name}' found.")
+    endif()
+  else()
+    set(${module_name}_FOUND false PARENT_SCOPE)
+    if(ARG_REQUIRED)
+      message(FATAL_ERROR "Required Python module '${module_name}' not found.")
+    elseif(NOT ARG_QUIET)
+      message(WARNING "Python module '${module_name}' not found.")
+    endif()
+  endif()
+endfunction()
+
 # function(xxx_find_python_pytest)
 #     xxx_require_target(Python::Interpreter "Python::Interpreter not found. Make sure you have the Python interpreter using xxx_find_package(Python REQUIRED COMPONENTS Interpreter).")
     
