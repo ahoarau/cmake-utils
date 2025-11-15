@@ -4,13 +4,21 @@ on: push
 
 jobs:
   macos:
-    name: ${{ matrix.target.name }}
-    runs-on: ${{ matrix.target.os }}
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.image }}
     strategy:
       fail-fast: false
       matrix:
-        target: [{os: macos-26, name: macOS (Apple Silicon)}
-               , {os: macos-15-intel, name: macOS (Intel)}]
+        include:
+          - image: macos-26
+            name: macOS 26 (Apple Silicon)
+
+          - image: macos-15
+            name: macOS 15 (Apple Silicon)
+
+          - image: macos-15-intel
+            name: macOS 15 (Intel)
+
     steps:
       - uses: actions/checkout@v5
       - name: Install dependencies (via brew)
