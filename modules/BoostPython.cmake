@@ -6,10 +6,17 @@ function(boostpy_add_module name)
     cmake_parse_arguments(PARSE_ARGV 1 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     if(NOT TARGET Python::Module)
-        message(
-            FATAL_ERROR
-            "You must invoke 'find_package(Python COMPONENTS Interpreter Development REQUIRED)' prior to including boostpy."
-        )
+        message(FATAL_ERROR "
+            Python::Module target not found. 
+            Please call find_package(Python REQUIRED COMPONENTS Interpreter Development) prior to calling boostpy_add_module.
+        ")
+    endif()
+
+    if(NOT TARGET Boost::python)
+        message(FATAL_ERROR "
+            Boost::python target not found. 
+            Please call find_package(Boost REQUIRED COMPONENTS python) prior to calling boostpy_add_module.
+        ")
     endif()
 
     # We always need to know the extension
