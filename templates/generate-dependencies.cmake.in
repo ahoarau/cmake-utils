@@ -85,12 +85,13 @@ string(PREPEND fd "# Generated file - do not edit
 # Read existing file and compare
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake)
     file(READ ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake existing_fd)
-    if(fd STREQUAL existing_fd)
-        message("       No changes detected in dependencies for component '@component@', skipping generation.")
-    else()
-        message("       Generating ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake")
-        file(WRITE ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake "${fd}")
-    endif()
+endif()
+
+if(fd STREQUAL existing_fd)
+    message("       No changes detected in dependencies for component '@component@', skipping generation.")
+else()
+    message("       Generating ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake")
+    file(WRITE ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake "${fd}")
 endif()
 
 # New Method: install the files directly
