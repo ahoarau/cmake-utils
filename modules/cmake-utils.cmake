@@ -1028,7 +1028,7 @@ function(xxx_add_export_component)
     xxx_require_variable(arg_NAME)
 
     # Check export component is not already declared
-    get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
+    get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
     if(${arg_NAME} IN_LIST existing_components)
         message(
             FATAL_ERROR
@@ -1057,7 +1057,7 @@ function(xxx_add_export_component)
     # TODO: Declare exports first like that, split the xxx_export_package() with a generation and an install step.
     # install(TARGETS ${arg_TARGETS} EXPORT ${PROJECT_NAME}-${arg_NAME})
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components ${arg_NAME} APPEND)
+    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components ${arg_NAME} APPEND)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
 endfunction()
 
@@ -1195,7 +1195,7 @@ function(xxx_install_headers)
         set(install_destination ${arg_DESTINATION})
     endif()
 
-    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
+    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
 
     set(components "")
     if(arg_COMPONENTS)
@@ -1264,7 +1264,7 @@ function(xxx_export_package)
     xxx_require_variable(CMAKE_INSTALL_LIBDIR)
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
-    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
+    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
     if(NOT declared_components)
         message(
             FATAL_ERROR
