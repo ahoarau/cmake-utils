@@ -1330,7 +1330,7 @@ function(xxx_export_package)
         "
         )
     endif()
-    
+
     # <package>-config.cmake
     # Needs the variable PROJECT_COMPONENTS
     set(PROJECT_COMPONENTS ${declared_components})
