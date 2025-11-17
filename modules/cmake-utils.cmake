@@ -1307,7 +1307,7 @@ function(xxx_export_package)
         COMPATIBILITY ${PACKAGE_VERSION_COMPATIBILITY}
         ${PACKAGE_VERSION_ARCH_INDEPENDENT}
     )
-    install(FILES ${OUTPUT} DESTINATION ${DESTINATION})
+    install(FILES ${PACKAGE_VERSION_OUTPUT} DESTINATION ${DESTINATION})
 
     foreach(component ${declared_components})
         message("Generating cmake module files for component '${component}'")
