@@ -944,22 +944,37 @@ function(xxx_cmake_print_properties)
     message(${verbosity} "${msg}")
 endfunction()
 
-# Usage: xxx_export_dependencies(TARGETS <target1> <target2> ... DESTINATION <destination> GEN_DIR <gen_dir> COMPONENT <component>)
+# Usage: xxx_export_dependencies(TARGETS [target1...] GEN_DIR <gen_dir> INSTALL_DESTINATION <destination>)
 # This function analyzes the link libraries of the provided targets,
 # determines which packages are needed and generates a <export_name>-dependencies.cmake file
 function(xxx_export_dependencies)
     set(options)
-    set(oneValueArgs DESTINATION GEN_DIR COMPONENT)
+    set(oneValueArgs INSTALL_DESTINATION GEN_DIR PACKAGE_DEPENDENCIES_FILE)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
     xxx_require_variable(arg_TARGETS)
-    xxx_require_variable(arg_DESTINATION)
-    xxx_require_variable(arg_COMPONENT)
+    xxx_require_variable(arg_PACKAGE_DEPENDENCIES_FILE)
 
-    if(NOT arg_GEN_DIR)
-        set(arg_GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
+    if(arg_GEN_DIR)
+        set(GEN_DIR ${arg_GEN_DIR})
+    else()
+        set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
     endif()
+
+    if(arg_INSTALL_DESTINATION)
+        set(INSTALL_DESTINATION ${arg_INSTALL_DESTINATION})
+    else()
+        set(INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+    endif()
+
+    if(arg_FILENAME)
+        set(FILENAME ${arg_FILENAME})
+    else()
+        set(FILENAME ${PROJECT_NAME}-dependencies.cmake)
+    endif()
+
+    set(PACKAGE_DEPENDENCIES_FILE ${arg_PACKAGE_DEPENDENCIES_FILE})
 
     # Get all BUILDSYSTEM_TARGETS of the current project (i.e. added via add_library/add_executable)
     # We need this to filter out internal targets when analyzing link libraries
@@ -977,39 +992,52 @@ function(xxx_export_dependencies)
         endif()
     endforeach()
 
-    set(all_link_libraries "")
+    set(all_imported_libraries "")
     foreach(target ${arg_TARGETS})
         get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
         if(NOT interface_link_libraries)
             message("Target '${target}' has no INTERFACE_LINK_LIBRARIES.")
-        else()
-            list(APPEND all_link_libraries ${interface_link_libraries})
+            continue()
         endif()
+        foreach(lib ${interface_link_libraries})
+            if(lib IN_LIST buildsystem_targets)
+                continue()
+            endif()
+
+            if(lib IN_LIST all_imported_libraries)
+                continue()
+            endif()
+
+            list(APPEND all_imported_libraries ${lib})
+        endforeach()
     endforeach()
 
-    message("All link libraries for targets '${arg_TARGETS}': ${all_link_libraries}")
+    message("All link libraries for targets '${arg_TARGETS}': ${all_imported_libraries}")
+
+    message("Reading package dependencies JSON ${PACKAGE_DEPENDENCIES_FILE}")
+    file(READ ${PACKAGE_DEPENDENCIES_FILE} package_dependencies_json_content)
 
     file(
-        GENERATE OUTPUT
-            "${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-link-libraries.cmake"
+        GENERATE OUTPUT ${GEN_DIR}/imported-libraries.cmake
         CONTENT
             "
 # Generated file - do not edit
-# This file contains the list of buildsystem targets and all imported libraries linked by the exported targets
-set(targets \"${arg_TARGETS}\")
-set(buildsystem_targets \"${buildsystem_targets}\")
-set(imported_libraries \"${all_link_libraries}\")
+# This file contains the list of imported libraries that needs to be exported
+set(imported_libraries [[${all_imported_libraries}]])
+set(package_dependencies_json_content [[${package_dependencies_json_content}]])
+
+# For debugging purposes
+set(targets [[${arg_TARGETS}]])
+set(buildsystem_targets [[${buildsystem_targets}]])
 "
     )
-
+    # needs @INSTALL_DESTINATION@
     configure_file(
         ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/generate-dependencies.cmake.in
-        ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
+        ${GEN_DIR}/generate-dependencies.cmake
         @ONLY
     )
-    install(
-        SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
-    )
+    install(SCRIPT ${GEN_DIR}/generate-dependencies.cmake)
 endfunction()
 
 # xxx_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
@@ -1249,11 +1277,8 @@ endfunction()
 function(xxx_export_package)
     message(STATUS "[${PROJECT_NAME}] Exporting package (${CMAKE_CURRENT_FUNCTION})")
 
-    # Dump package dependencies at the end of the current CMakeLists configuration step
-    cmake_language(DEFER CALL _xxx_dump_package_dependencies_json ())
-
     set(options)
-    set(oneValueArgs)
+    set(oneValueArgs PACKAGE_CONFIG_TEMPLATE CMAKE_FILES_INSTALL_DIR)
     set(multiValueArgs)
     cmake_parse_arguments(PARSE_ARGV 0 arg "${options}" "${oneValueArgs}" "${multiValueArgs}")
 
@@ -1264,46 +1289,59 @@ function(xxx_export_package)
     xxx_require_variable(CMAKE_INSTALL_LIBDIR)
     xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
 
-    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
-    if(NOT declared_components)
-        message(
-            FATAL_ERROR
-            "No export component declared for project '${PROJECT_NAME}'.
-        Please use xxx_add_export_component(NAME <comp_name> TARGETS [target1...])
-        "
-        )
+    if(arg_PACKAGE_CONFIG_TEMPLATE)
+        set(PACKAGE_CONFIG_TEMPLATE ${arg_PACKAGE_CONFIG_TEMPLATE})
+    else()
+        set(PACKAGE_CONFIG_TEMPLATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
+        set(using_default_template True)
+    endif()
+
+    if(arg_CMAKE_FILES_INSTALL_DIR)
+        set(CMAKE_FILES_INSTALL_DIR ${arg_CMAKE_FILES_INSTALL_DIR})
+    else()
+        set(CMAKE_FILES_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
     endif()
 
     # NOTE: Expose as options if needed
-    set(PACKAGE_CONFIG_INPUT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
-    set(PACKAGE_CONFIG_OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config.cmake
-    )
+    set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
+    set(PACKAGE_CONFIG_OUTPUT ${GEN_DIR}/${PROJECT_NAME}-config.cmake)
     set(PACKAGE_VERSION ${PROJECT_VERSION})
-    set(PACKAGE_VERSION_OUTPUT
-        ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-config-version.cmake
-    )
+    set(PACKAGE_VERSION_OUTPUT ${GEN_DIR}/${PROJECT_NAME}-config-version.cmake)
     set(PACKAGE_VERSION_COMPATIBILITY AnyNewerVersion)
     set(PACKAGE_VERSION_ARCH_INDEPENDENT "")
-    set(DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
     set(NO_SET_AND_CHECK_MACRO "NO_SET_AND_CHECK_MACRO")
     set(NO_CHECK_REQUIRED_COMPONENTS_MACRO "NO_CHECK_REQUIRED_COMPONENTS_MACRO")
     set(NAMESPACE "${PROJECT_NAME}::")
 
-    string(REPLACE ";" " " xxx_project_components "${declared_components}")
+    # Dump package dependencies recorded with xxx_find_package()
+    _xxx_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
 
-    # Install headers for all declared components
-    xxx_install_headers()
-
+    # Get declared export components
+    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
+    if(using_default_template AND NOT declared_components)
+        message(
+            FATAL_ERROR
+            "No export component declared for project '${PROJECT_NAME}'.
+        The default config.cmake.in template requires at least one export component.
+        Either add export-components via:
+            xxx_add_export_component(NAME <comp_name> TARGETS [target1...])
+        Or provide your own config template:
+            xxx_export_package(PACKAGE_CONFIG_TEMPLATE <config-template.cmake.in>)
+        "
+        )
+    endif()
+    
     # <package>-config.cmake
+    # Needs the variable PROJECT_COMPONENTS
+    set(PROJECT_COMPONENTS ${declared_components})
     configure_package_config_file(
-        ${PACKAGE_CONFIG_INPUT}
+        ${PACKAGE_CONFIG_TEMPLATE}
         ${PACKAGE_CONFIG_OUTPUT}
-        INSTALL_DESTINATION ${DESTINATION}
+        INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}
         ${NO_SET_AND_CHECK_MACRO}
         ${NO_CHECK_REQUIRED_COMPONENTS_MACRO}
     )
-    install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${DESTINATION})
+    install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
 
     # <package>-config-version.cmake
     write_basic_package_version_file(
@@ -1312,19 +1350,21 @@ function(xxx_export_package)
         COMPATIBILITY ${PACKAGE_VERSION_COMPATIBILITY}
         ${PACKAGE_VERSION_ARCH_INDEPENDENT}
     )
-    install(FILES ${PACKAGE_VERSION_OUTPUT} DESTINATION ${DESTINATION})
+    install(FILES ${PACKAGE_VERSION_OUTPUT} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
 
     foreach(component ${declared_components})
         message("Generating cmake module files for component '${component}'")
 
         get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
 
+        xxx_target_install_headers(${targets} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
         # <package>-component-<component>-dependencies.cmake
         xxx_export_dependencies(
             TARGETS ${targets}
-            COMPONENT ${component}
-            DESTINATION ${DESTINATION}
-            NAMESPACE ${NAMESPACE}
+            GEN_DIR ${GEN_DIR}/${component}
+            PACKAGE_DEPENDENCIES_FILE ${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json
+            INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
         )
         # Create the export for the component targets
         install(
@@ -1338,9 +1378,9 @@ function(xxx_export_package)
         # <package>-component-<component>-targets.cmake
         install(
             EXPORT ${PROJECT_NAME}-${component}
-            FILE ${PROJECT_NAME}-component-${component}-targets.cmake
+            FILE targets.cmake
             NAMESPACE ${NAMESPACE}
-            DESTINATION ${DESTINATION}
+            DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
         )
     endforeach()
 endfunction()
@@ -1349,24 +1389,18 @@ endfunction()
 # Internal function to dump the package dependencies recorded with xxx_find_package()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
 # In the function xxx_export_package().
-function(_xxx_dump_package_dependencies_json)
+function(_xxx_dump_package_dependencies_json output)
     get_property(
         package_dependencies_json
         GLOBAL
         PROPERTY _xxx_${PROJECT_NAME}_package_dependencies
     )
     if(NOT package_dependencies_json)
-        message(STATUS "No package dependencies recorded with xxx_find_package().")
+        message(STATUS "No package dependencies recorded with xxx_find_package()")
         return()
     endif()
-    set(package_dependencies_file
-        "${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/${PROJECT_NAME}-package-dependencies.json"
-    )
-    message(
-        STATUS
-        "[${PROJECT_NAME}] Dumping package dependencies JSON to ${package_dependencies_file}"
-    )
-    file(WRITE ${package_dependencies_file} "${package_dependencies_json}")
+    message(STATUS "[${PROJECT_NAME}] Dumping package dependencies JSON to ${output}")
+    file(WRITE ${output} "${package_dependencies_json}")
 endfunction()
 
 # xxx_option(<option_name> <description> <default_value>)

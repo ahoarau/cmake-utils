@@ -1,19 +1,14 @@
-message("       Including ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-link-libraries.cmake")
-include("${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-link-libraries.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/imported-libraries.cmake")
+
 if(NOT DEFINED imported_libraries)
-    message(FATAL_ERROR "imported_libraries variable is not defined.")
-endif()
-if(NOT DEFINED buildsystem_targets)
-    message(FATAL_ERROR "buildsystem_targets variable is not defined.")
+    message(FATAL_ERROR "imported_libraries variable is not defined in @IMPORTED_LIBRARIES_TO_EXPORT_FILE@.")
 endif()
 
-message("       Export component '@component@' contains targets: ${targets}")
-message("           imported_libraries for targets: ${imported_libraries}")
-message("           (all buildsystem_targets: ${buildsystem_targets})")
+if(NOT DEFINED package_dependencies_json_content)
+    message(FATAL_ERROR "package_dependencies_json_content variable is not defined in @IMPORTED_LIBRARIES_TO_EXPORT_FILE@.")
+endif()
 
-message("       Reading package dependencies JSON ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-package-dependencies.json")
-file(READ ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-package-dependencies.json package_dependencies_json)
-string(JSON package_dependencies GET "${package_dependencies_json}" "package_dependencies")
+string(JSON package_dependencies GET "${package_dependencies_json_content}" "package_dependencies")
 string(JSON num_deps LENGTH "${package_dependencies}")
 math(EXPR max_idx "${num_deps} - 1")
 
@@ -24,11 +19,6 @@ foreach(imported_lib IN LISTS imported_libraries)
     endif()
 
     message("       Processing imported library: ${imported_lib}")
-
-    if(${imported_lib} IN_LIST buildsystem_targets)
-        message("           Skipping imported library '${imported_lib}' as it is part of the buildsystem targets.")
-        continue()
-    endif()
 
     # Find the corresponding package dependency JSON info
     set(package_json "")
@@ -61,7 +51,7 @@ foreach(imported_lib IN LISTS imported_libraries)
         string(APPEND fd "list(APPEND CMAKE_MODULE_PATH \${CMAKE_CURRENT_LIST_DIR}/find-modules/${package_name})\n\n")
 
         # New Method: install the files directly
-        file(INSTALL DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/@PROJECT_NAME@/find-modules/${package_name} TYPE FILE FILES ${module_file})
+        file(INSTALL DESTINATION ${CMAKE_INSTALL_PREFIX}/@INSTALL_DESTINATION@/find-modules/${package_name} TYPE FILE FILES ${module_file})
     endif()
 
     string(REPLACE ";" " " find_package_args "${find_package_args}")
@@ -79,20 +69,19 @@ foreach(imported_lib IN LISTS imported_libraries)
     endif()
 endforeach()
 
-string(PREPEND fd "# Generated file - do not edit
-# This file contains the generated dependencies for component '@component@'\n")
+string(PREPEND fd "# Generated file - do not edit\n")
 
 # Read existing file and compare
-if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake)
-    file(READ ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake existing_fd)
+if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake)
+    file(READ ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake existing_fd)
 endif()
 
 if(fd STREQUAL existing_fd)
-    message("       No changes detected in dependencies for component '@component@', skipping generation.")
+    message("       Same content generated for ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake, not overwriting.")
 else()
-    message("       Generating ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake")
-    file(WRITE ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake "${fd}")
+    message("       Writing ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake")
+    file(WRITE ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake "${fd}")
 endif()
 
 # New Method: install the files directly
-file(INSTALL DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/cmake/@PROJECT_NAME@ TYPE FILE FILES ${CMAKE_CURRENT_LIST_DIR}/@PROJECT_NAME@-component-@component@-dependencies.cmake)
+file(INSTALL DESTINATION ${CMAKE_INSTALL_PREFIX}/@INSTALL_DESTINATION@ TYPE FILE FILES ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake)
