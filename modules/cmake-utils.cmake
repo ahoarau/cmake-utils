@@ -1083,20 +1083,6 @@ function(xxx_add_export_component)
     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
 endfunction()
 
-# Backward compatibility aliases
-function(xxx_declare_component)
-    cmake_parse_arguments(PARSE_ARGV 0 arg "" "COMPONENT" "TARGETS")
-    if(arg_COMPONENT)
-        message(
-            DEPRECATION
-            "xxx_declare_component(COMPONENT ...) is deprecated. Use xxx_add_export_component(NAME ...) instead."
-        )
-        xxx_add_export_component(NAME ${arg_COMPONENT} TARGETS ${arg_TARGETS})
-    else()
-        message(FATAL_ERROR "xxx_declare_component() requires COMPONENT argument")
-    endif()
-endfunction()
-
 # xxx_contains_generator_expressions(<input_string> <output_var>)
 # Check if the provided string contains generator expressions.
 # Sets output_var to True or False.
