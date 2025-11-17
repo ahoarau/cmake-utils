@@ -1,4 +1,4 @@
-name: Prek checks
+name: Prek CI
 on: [push, pull_request]
 
 jobs:

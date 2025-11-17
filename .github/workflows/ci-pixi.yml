@@ -1,6 +1,6 @@
 name: Pixi CI
 
-on: push
+on: [push, pull_request]
 
 jobs:
   pixi-ci:
