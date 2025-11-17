@@ -932,7 +932,7 @@ function(xxx_cmake_print_properties)
                 if(propertySet)
                     get_property(property ${keyword} ${item} PROPERTY "${prop}")
                     #   string(APPEND msg "   ${item}.${prop} = \"${property}\"\n")
-                    pad_string("${prop}"      40 _prop)
+                    _pad_string("${prop}"      40 _prop)
                     string(APPEND msg "   ${_prop} = ${property}\n")
                 else()
                     # EDIT: Do not print unset properties
@@ -1399,7 +1399,7 @@ function(
     description
     default_value
     condition
-    else-value
+    else_value
 )
     include(CMakeDependentOption)
     cmake_dependent_option(${ARGV})
@@ -1412,7 +1412,7 @@ function(
 endfunction()
 
 # Helper function: pad or truncate a string to a fixed width
-function(pad_string input width output_var)
+function(_pad_string input width output_var)
     string(LENGTH "${input}" _len)
     if(_len GREATER width)
         # Truncate if too long
@@ -1440,16 +1440,20 @@ function(xxx_print_options_summary)
     endif()
 
     message("")
-    message("================= Configuration Summary ======================================")
+    message(
+        "================= Configuration Summary =========================================================="
+    )
     message("")
 
-    pad_string("Option"      40 _menu_option)
-    pad_string("Type"        5  _menu_type)
-    pad_string("Value"       8  _menu_value)
-    pad_string("Default"     5  _menu_default)
-    pad_string("Description (default)" 25 _menu_description)
+    _pad_string("Option"      40 _menu_option)
+    _pad_string("Type"        8  _menu_type)
+    _pad_string("Value"       5  _menu_value)
+    _pad_string("Default"     5  _menu_default)
+    _pad_string("Description (default)" 25 _menu_description)
     message("${_menu_option} | ${_menu_type} | ${_menu_value} | ${_menu_description}")
-    message("------------------------------------------------------------------------------")
+    message(
+        "--------------------------------------------------------------------------------------------------"
+    )
 
     foreach(option_name ${option_names})
         get_property(_type CACHE ${option_name} PROPERTY TYPE)
@@ -1466,11 +1470,11 @@ function(xxx_print_options_summary)
             PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_compat_option
         )
 
-        pad_string("${option_name}"      40 _name)
-        pad_string("${_type}"     5 _type)
-        pad_string("${_val}"      8 _val)
-        pad_string("${_default}"  5 _default)
-        pad_string("${_help}"     25 _help)
+        _pad_string("${option_name}"      40 _name)
+        _pad_string("${_type}"     8 _type)
+        _pad_string("${_val}"      5 _val)
+        _pad_string("${_help}"     30 _help)
+        _pad_string("${_default}"  3 _default)
 
         message("${_name} | ${_type} | ${_val} | ${_help} (${_default})")
         if(_compat_option)
@@ -1478,7 +1482,9 @@ function(xxx_print_options_summary)
         endif()
     endforeach()
 
-    message("------------------------------------------------------------------------------")
+    message(
+        "--------------------------------------------------------------------------------------------------"
+    )
     message("")
 endfunction()
 
