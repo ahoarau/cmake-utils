@@ -1266,7 +1266,12 @@ function(xxx_export_package)
 
     get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_components)
     if(NOT declared_components)
-        message(FATAL_ERROR "No components declared for project '${PROJECT_NAME}'.")
+        message(
+            FATAL_ERROR
+            "No export component declared for project '${PROJECT_NAME}'.
+        Please use xxx_add_export_component(NAME <comp_name> TARGETS [target1...])
+        "
+        )
     endif()
 
     # NOTE: Expose as options if needed
