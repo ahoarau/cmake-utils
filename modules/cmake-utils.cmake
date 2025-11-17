@@ -650,19 +650,6 @@ macro(xxx_find_package)
 
         if(module_file)
             cmake_path(CONVERT "${module_file}" TO_CMAKE_PATH_LIST module_file NORMALIZE)
-            set(using_custom_module true)
-        else()
-            set(using_custom_module false)
-        endif()
-
-        if(module_file)
-            # Copy the module file to the generated cmake directory in the build dir
-            file(
-                COPY ${module_file}
-                DESTINATION
-                    ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules/${package_name}
-            )
-
             # Add the parent path to the CMAKE_MODULE_PATH
             cmake_path(GET module_file PARENT_PATH module_dir)
             list(APPEND CMAKE_MODULE_PATH ${module_dir})
@@ -744,13 +731,7 @@ macro(xxx_find_package)
             "\"${package_variables}\""
         )
         string(JSON package_json SET "${package_json}" "package_targets" "\"${package_targets}\"")
-        string(
-            JSON package_json
-            SET "${package_json}"
-            "using_custom_module"
-            "\"${using_custom_module}\""
-        )
-
+        string(JSON package_json SET "${package_json}" "module_file" "\"${module_file}\"")
         string(JSON deps_length LENGTH "${deps}" "package_dependencies")
         string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
 
@@ -1015,6 +996,7 @@ function(xxx_export_dependencies)
             "
 # Generated file - do not edit
 # This file contains the list of buildsystem targets and all imported libraries linked by the exported targets
+set(targets \"${arg_TARGETS}\")
 set(buildsystem_targets \"${buildsystem_targets}\")
 set(imported_libraries \"${all_link_libraries}\")
 "
@@ -1027,10 +1009,6 @@ set(imported_libraries \"${all_link_libraries}\")
     )
     install(
         SCRIPT ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-generate-dependencies.cmake
-    )
-    install(
-        FILES ${arg_GEN_DIR}/${PROJECT_NAME}-component-${arg_COMPONENT}-dependencies.cmake
-        DESTINATION ${arg_DESTINATION}
     )
 endfunction()
 
@@ -1321,16 +1299,6 @@ function(xxx_export_package)
         ${NO_CHECK_REQUIRED_COMPONENTS_MACRO}
     )
     install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${DESTINATION})
-
-    # find-modules/Find<pkg>.cmake
-    # Install the find-modules used for this component
-    # TODO: only install the ones that are actually used
-    install(
-        DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME}/find-modules
-        DESTINATION ${DESTINATION}
-        FILES_MATCHING
-        PATTERN "Find*.cmake"
-    )
 
     # <package>-config-version.cmake
     write_basic_package_version_file(
