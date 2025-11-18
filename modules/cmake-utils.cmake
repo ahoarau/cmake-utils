@@ -29,9 +29,7 @@ function(copy_compile_commands_in_source_dir)
 
     if(CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS ${source})
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                ${source}
-                ${destination}
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${source} ${destination}
         )
     endif()
 endfunction()
