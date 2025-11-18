@@ -1,5 +1,5 @@
-nanobind_add_module(test_project_pywrap 
-    NB_STATIC STABLE_ABI LTO NB_SUPPRESS_WARNINGS 
+nanobind_add_module(test_project_pywrap
+    NB_STATIC STABLE_ABI LTO NB_SUPPRESS_WARNINGS
     bindings.cpp
 )
 xxx_check_python_module_name(test_project_pywrap)
