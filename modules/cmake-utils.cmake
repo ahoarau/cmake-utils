@@ -28,6 +28,11 @@ function(copy_compile_commands_in_source_dir)
     set(destination ${CMAKE_SOURCE_DIR}/compile_commands.json)
 
     if(CMAKE_EXPORT_COMPILE_COMMANDS AND EXISTS ${source})
+        file(READ ${source} compile_commands_content)
+        if(NOT compile_commands_content)
+            return()
+        endif()
+
         file(
             CREATE_LINK
                 ${CMAKE_BINARY_DIR}/compile_commands.json
