@@ -4,8 +4,17 @@ on: [push, pull_request]
 
 jobs:
   ubuntu22:
-    name: Ubuntu 22.04
-    runs-on: ubuntu-22.04
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            name: Ubuntu 22.04
+
+          - os: ubuntu-22.04-arm
+            name: Ubuntu 22.04 ARM64
 
     steps:
       - uses: actions/checkout@v5
@@ -48,8 +57,17 @@ jobs:
         run: ctest --test-dir build --output-on-failure
 
   ubuntu24:
-    name: Ubuntu 24.04
-    runs-on: ubuntu-24.04
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            name: Ubuntu 24.04
+
+          - os: ubuntu-24.04-arm
+            name: Ubuntu 24.04 ARM64
 
     steps:
       - uses: actions/checkout@v5
