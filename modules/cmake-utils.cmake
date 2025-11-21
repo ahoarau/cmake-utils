@@ -123,22 +123,23 @@ function(xxx_configure_default_binary_dirs)
 
     # /!\ MODULE libraries are dynamic libraries. On Windows, python modules are MODULE libraries, with pyd extension.
     #     They should be placed explicitely in lib/site-packages when building python extensions.
-    xxx_configure_default_binary_dirs_for_config(Debug)
-    xxx_configure_default_binary_dirs_for_config(Release)
-    xxx_configure_default_binary_dirs_for_config(MinSizeRel)
-    xxx_configure_default_binary_dirs_for_config(RelWithDebInfo)
+    foreach(config Debug Release MinSizeRel RelWithDebInfo)
+        string(TOUPPER ${config} config)
+        set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/bin CACHE PATH "")
+        set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
+        set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
+    endforeach()
 endfunction()
 
-# Same as xxx_configure_default_binary_dirs but for a specific config
-function(xxx_configure_default_binary_dirs_for_config config)
-    string(TOUPPER ${config} config)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/bin CACHE PATH "")
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config} ${CMAKE_BINARY_DIR}/lib CACHE PATH "")
-endfunction()
+function(xxx_target_set_output_directory target_name)
+    set(options)
+    set(oneValueArgs OUTPUT_DIRECTORY)
+    set(multiValueArgs)
+    cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+    xxx_check_target_exists(${target_name})
+    xxx_check_var_defined(arg_OUTPUT_DIRECTORY)
 
-function(xxx_target_set_output_directory target_name dir)
-    xxx_require_target(${target_name})
+    set(dir ${arg_OUTPUT_DIRECTORY})
 
     set_target_properties(
         ${target_name}
@@ -148,22 +149,16 @@ function(xxx_target_set_output_directory target_name dir)
             ARCHIVE_OUTPUT_DIRECTORY ${dir}
     )
 
-    set_target_properties(
-        ${target_name}
-        PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY_DEBUG ${dir}
-            LIBRARY_OUTPUT_DIRECTORY_DEBUG ${dir}
-            ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${dir}
-            RUNTIME_OUTPUT_DIRECTORY_RELEASE ${dir}
-            LIBRARY_OUTPUT_DIRECTORY_RELEASE ${dir}
-            ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${dir}
-            RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-            LIBRARY_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-            ARCHIVE_OUTPUT_DIRECTORY_MINSIZEREL ${dir}
-            RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
-            LIBRARY_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
-            ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${dir}
-    )
+    foreach(config Debug Release MinSizeRel RelWithDebInfo)
+        string(TOUPPER ${config} config)
+        set_target_properties(
+            ${target_name}
+            PROPERTIES
+                RUNTIME_OUTPUT_DIRECTORY_${config} ${dir}
+                LIBRARY_OUTPUT_DIRECTORY_${config} ${dir}
+                ARCHIVE_OUTPUT_DIRECTORY_${config} ${dir}
+        )
+    endforeach()
 endfunction()
 
 # Configures the default install directories using GNUInstallDirs (bin, lib, include, etc.)
