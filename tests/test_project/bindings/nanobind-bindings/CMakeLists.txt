@@ -5,7 +5,7 @@ nanobind_add_module(test_project_pywrap
 xxx_check_python_module_name(test_project_pywrap)
 target_link_libraries(test_project_pywrap PRIVATE test_project)
 xxx_target_set_default_compile_options(test_project_pywrap PRIVATE)
-xxx_target_set_output_directory(test_project_pywrap ${CMAKE_BINARY_DIR}/lib/site-packages/test_project)
+xxx_target_set_output_directory(test_project_pywrap OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib/site-packages/test_project)
 
 xxx_python_generate_init_py(
     test_project_pywrap
