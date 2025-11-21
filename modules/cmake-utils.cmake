@@ -51,10 +51,10 @@ function(xxx_configure_copy_compile_commands_in_source_dir)
     endif()
 endfunction()
 
-# Usage: xxx_require_variable(<var> [<message>])
-# Example: xxx_require_variable(MY_VAR "MY_VAR must be set to build this project")
-# Example: xxx_require_variable(MY_VAR) # Will print "MY_VAR is not defined."
-function(xxx_require_variable var)
+# Usage: xxx_check_var_defined(<var> [<message>])
+# Example: xxx_check_var_defined(MY_VAR "MY_VAR must be set to build this project")
+# Example: xxx_check_var_defined(MY_VAR) # Will print "MY_VAR is not defined."
+function(xxx_check_var_defined var)
     if(NOT DEFINED ${var})
         if(ARGC EQUAL 1)
             set(msg "Required variable '${ARGV0}' is not defined.")
@@ -66,13 +66,13 @@ function(xxx_require_variable var)
 endfunction()
 
 # Check if a target exists, otherwise raise a fatal error
-function(xxx_require_target target_name)
+function(xxx_check_target_exists target_name)
     if(NOT TARGET ${target_name})
         message(FATAL_ERROR "Target '${target_name}' does not exist.")
     endif()
 endfunction()
 
-function(xxx_require_visibility visibility)
+function(xxx_check_valid_visibility visibility)
     set(vs PRIVATE PUBLIC INTERFACE)
     if(NOT ${visibility} IN_LIST vs)
         message(
@@ -197,10 +197,10 @@ endfunction()
 # visibility is either PRIVATE, PUBLIC or INTERFACE
 # Example: xxx_target_set_default_compile_options(my_target INTERFACE)
 function(xxx_target_set_default_compile_options target_name visibility)
-    xxx_require_target(${target_name})
-    xxx_require_visibility(${visibility})
+    xxx_check_target_exists(${target_name})
+    xxx_check_valid_visibility(${visibility})
 
-    # In CMake >= 3.26, use CMAKE_CXX_COMPILER_FRONTEND_VARIANT¶
+    # In CMake >= 3.26, use CMAKE_CXX_COMPILER_FRONTEND_VARIANT
     # ref: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_FRONTEND_VARIANT.html
     # ref: https://gitlab.kitware.com/cmake/cmake/-/issues/19724
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
@@ -245,7 +245,7 @@ endfunction()
 # visibility is either PRIVATE, PUBLIC or INTERFACE
 # Example: xxx_target_enforce_msvc_conformance(my_target INTERFACE)
 function(xxx_target_enforce_msvc_conformance target_name visibility)
-    xxx_require_visibility(${visibility})
+    xxx_check_valid_visibility(${visibility})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
@@ -273,7 +273,7 @@ endfunction()
 # Example: xxx_target_treat_all_warnings_as_errors(my_target PRIVATE)
 # NOTE: in CMake 3.24, we have the new CMAKE_COMPILE_WARNING_AS_ERROR option, but for the whole project and subprojects
 function(xxx_target_treat_all_warnings_as_errors target_name visibility)
-    xxx_require_visibility(${visibility})
+    xxx_check_valid_visibility(${visibility})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
@@ -325,16 +325,16 @@ function(xxx_target_generate_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(PROJECT_NAME)
-    xxx_require_variable(CMAKE_CURRENT_BINARY_DIR)
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_require_target(${target_name})
-    xxx_require_visibility(${visibility})
+    xxx_check_var_defined(PROJECT_NAME)
+    xxx_check_var_defined(CMAKE_CURRENT_BINARY_DIR)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_target_exists(${target_name})
+    xxx_check_valid_visibility(${visibility})
 
-    xxx_require_variable(arg_FILENAME)
-    xxx_require_variable(arg_HEADER_DIR)
-    xxx_require_variable(arg_TEMPLATE_FILE)
-    xxx_require_variable(arg_INSTALL_DESTINATION)
+    xxx_check_var_defined(arg_FILENAME)
+    xxx_check_var_defined(arg_HEADER_DIR)
+    xxx_check_var_defined(arg_TEMPLATE_FILE)
+    xxx_check_var_defined(arg_INSTALL_DESTINATION)
 
     if(NOT EXISTS ${arg_TEMPLATE_FILE})
         message(FATAL_ERROR "Input file ${arg_TEMPLATE_FILE} does not exist.")
@@ -387,7 +387,7 @@ function(xxx_target_generate_warning_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/warning.hpp)
     if(arg_FILENAME)
@@ -425,7 +425,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/deprecated.hpp)
     if(arg_FILENAME)
@@ -463,11 +463,11 @@ function(xxx_target_generate_config_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_require_variable(PROJECT_VERSION)
-    xxx_require_variable(PROJECT_VERSION_MAJOR)
-    xxx_require_variable(PROJECT_VERSION_MINOR)
-    xxx_require_variable(PROJECT_VERSION_PATCH)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_var_defined(PROJECT_VERSION)
+    xxx_check_var_defined(PROJECT_VERSION_MAJOR)
+    xxx_check_var_defined(PROJECT_VERSION_MINOR)
+    xxx_check_var_defined(PROJECT_VERSION_PATCH)
 
     set(filename ${target_name}/config.hpp)
     if(arg_FILENAME)
@@ -505,11 +505,11 @@ function(xxx_target_generate_tracy_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_require_variable(PROJECT_VERSION)
-    xxx_require_variable(PROJECT_VERSION_MAJOR)
-    xxx_require_variable(PROJECT_VERSION_MINOR)
-    xxx_require_variable(PROJECT_VERSION_PATCH)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_var_defined(PROJECT_VERSION)
+    xxx_check_var_defined(PROJECT_VERSION_MAJOR)
+    xxx_check_var_defined(PROJECT_VERSION_MINOR)
+    xxx_check_var_defined(PROJECT_VERSION_PATCH)
 
     set(filename ${target_name}/tracy.hpp)
     if(arg_FILENAME)
@@ -928,8 +928,8 @@ function(xxx_export_dependencies)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(arg_TARGETS)
-    xxx_require_variable(arg_PACKAGE_DEPENDENCIES_FILE)
+    xxx_check_var_defined(arg_TARGETS)
+    xxx_check_var_defined(arg_PACKAGE_DEPENDENCIES_FILE)
 
     if(arg_GEN_DIR)
         set(GEN_DIR ${arg_GEN_DIR})
@@ -1026,9 +1026,9 @@ function(xxx_add_export_component)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(PROJECT_NAME)
-    xxx_require_variable(arg_TARGETS)
-    xxx_require_variable(arg_NAME)
+    xxx_check_var_defined(PROJECT_NAME)
+    xxx_check_var_defined(arg_TARGETS)
+    xxx_check_var_defined(arg_NAME)
 
     # Check export component is not already declared
     get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
@@ -1090,9 +1090,9 @@ function(xxx_target_headers target visibility)
     set(multiValueArgs HEADERS BASE_DIRS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(arg_HEADERS)
-    xxx_require_target(${target})
-    xxx_require_visibility(${visibility})
+    xxx_check_var_defined(arg_HEADERS)
+    xxx_check_target_exists(${target})
+    xxx_check_valid_visibility(${visibility})
 
     if(NOT arg_BASE_DIRS)
         set(arg_BASE_DIRS "")
@@ -1117,7 +1117,7 @@ function(xxx_target_install_headers target)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_target(${target})
+    xxx_check_target_exists(${target})
 
     if(NOT arg_DESTINATION)
         set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
@@ -1186,7 +1186,7 @@ function(xxx_install_headers)
     set(multiValueArgs COMPONENTS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(PROJECT_NAME)
+    xxx_check_var_defined(PROJECT_NAME)
 
     if(arg_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "Unrecognized arguments: ${arg_UNPARSED_ARGUMENTS}")
@@ -1258,11 +1258,11 @@ function(xxx_export_package)
     message(STATUS "[${PROJECT_NAME}] Exporting package (${CMAKE_CURRENT_FUNCTION})")
 
     include(CMakePackageConfigHelpers)
-    xxx_require_variable(PROJECT_NAME)
-    xxx_require_variable(PROJECT_VERSION)
-    xxx_require_variable(CMAKE_INSTALL_BINDIR)
-    xxx_require_variable(CMAKE_INSTALL_LIBDIR)
-    xxx_require_variable(CMAKE_INSTALL_INCLUDEDIR)
+    xxx_check_var_defined(PROJECT_NAME)
+    xxx_check_var_defined(PROJECT_VERSION)
+    xxx_check_var_defined(CMAKE_INSTALL_BINDIR)
+    xxx_check_var_defined(CMAKE_INSTALL_LIBDIR)
+    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     if(arg_PACKAGE_CONFIG_TEMPLATE)
         set(PACKAGE_CONFIG_TEMPLATE ${arg_PACKAGE_CONFIG_TEMPLATE})
@@ -1531,7 +1531,7 @@ endmacro()
 # Usage: xxx_find_nanobind()
 macro(xxx_find_nanobind)
     string(REPLACE ";" " " args_pp "${ARGN}")
-    xxx_require_variable(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
+    xxx_check_var_defined(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
 
     Please call xxx_find_python(<args>) first, e.g.:
 
@@ -1586,7 +1586,7 @@ function(xxx_python_compile_all)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_require_variable(arg_DIRECTORY)
+    xxx_check_var_defined(arg_DIRECTORY)
 
     if(arg_VERBOSE)
         message(STATUS "Compiling all Python files in directory '${arg_DIRECTORY}'")
@@ -1667,10 +1667,10 @@ function(xxx_python_generate_init_py name)
     set(all_rel_paths "")
     foreach(dll_name IN LISTS dlls_to_link)
         get_target_property(python_module_dir ${name} LIBRARY_OUTPUT_DIRECTORY)
-        xxx_require_variable(python_module_dir "LIBRARY_OUTPUT_DIRECTORY not set for target '${name}', add it using 'set_target_properties(<target> PROPERTIES LIBRARY_OUTPUT_DIRECTORY <dir>)'")
+        xxx_check_var_defined(python_module_dir "LIBRARY_OUTPUT_DIRECTORY not set for target '${name}', add it using 'set_target_properties(<target> PROPERTIES LIBRARY_OUTPUT_DIRECTORY <dir>)'")
 
         get_target_property(dll_dir ${dll_name} RUNTIME_OUTPUT_DIRECTORY)
-        xxx_require_variable(dll_dir)
+        xxx_check_var_defined(dll_dir)
 
         file(RELATIVE_PATH rel_path ${python_module_dir} ${dll_dir})
         list(APPEND all_rel_paths ${rel_path})
