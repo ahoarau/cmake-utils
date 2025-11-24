@@ -914,12 +914,11 @@ endfunction()
 # determines which packages are needed and generates a <export_name>-dependencies.cmake file
 function(xxx_export_dependencies)
     set(options)
-    set(oneValueArgs INSTALL_DESTINATION GEN_DIR PACKAGE_DEPENDENCIES_FILE)
+    set(oneValueArgs INSTALL_DESTINATION GEN_DIR)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     xxx_check_var_defined(arg_TARGETS)
-    xxx_check_var_defined(arg_PACKAGE_DEPENDENCIES_FILE)
 
     if(arg_GEN_DIR)
         set(GEN_DIR ${arg_GEN_DIR})
@@ -938,8 +937,6 @@ function(xxx_export_dependencies)
     else()
         set(FILENAME ${PROJECT_NAME}-dependencies.cmake)
     endif()
-
-    set(PACKAGE_DEPENDENCIES_FILE ${arg_PACKAGE_DEPENDENCIES_FILE})
 
     # Get all BUILDSYSTEM_TARGETS of the current project (i.e. added via add_library/add_executable)
     # We need this to filter out internal targets when analyzing link libraries
@@ -979,8 +976,17 @@ function(xxx_export_dependencies)
 
     message("All link libraries for targets '${arg_TARGETS}': ${all_imported_libraries}")
 
-    message("Reading package dependencies JSON ${PACKAGE_DEPENDENCIES_FILE}")
-    file(READ ${PACKAGE_DEPENDENCIES_FILE} package_dependencies_json_content)
+    get_property(
+        package_dependencies_json_content
+        GLOBAL
+        PROPERTY _xxx_${PROJECT_NAME}_package_dependencies
+    )
+    if(all_imported_libraries AND NOT package_dependencies_json_content)
+        message(
+            FATAL_ERROR
+            "Imported libraries found, but no package dependencies recorded with xxx_find_package()"
+        )
+    endif()
 
     file(
         GENERATE OUTPUT ${GEN_DIR}/imported-libraries.cmake
@@ -1328,7 +1334,6 @@ function(xxx_export_package)
         xxx_export_dependencies(
             TARGETS ${targets}
             GEN_DIR ${GEN_DIR}/${component}
-            PACKAGE_DEPENDENCIES_FILE ${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json
             INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
         )
         # Create the export for the component targets
