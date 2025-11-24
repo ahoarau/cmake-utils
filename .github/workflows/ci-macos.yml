@@ -20,7 +20,7 @@ jobs:
             name: macOS 15 (Intel)
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install dependencies (via brew)
         run: |
           # Update brew to avoid installing robin-map manually
