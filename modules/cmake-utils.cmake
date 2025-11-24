@@ -591,16 +591,6 @@ macro(xxx_find_package)
         GLOBAL
         PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes
     )
-
-    # TODO: re-enable optimization. So far it's only depending on <pkg>_FOUND, which might not be enough.
-    # if(${package_name}_FOUND AND find_package_args_hash IN_LIST existing_find_package_hashes)
-    #     string(REPLACE ";" " " fp_pp "${find_package_args}")
-    #     message("   Package '${package_name}' already found with the same arguments, skipping find_package(${fp_pp})")
-    #     set(execute_find_package false)
-    # else()
-    #     set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_find_package_hashes "${find_package_args_hash}" APPEND)
-    # endif()
-
     unset(existing_find_package_hashes)
     unset(find_package_args_hash)
 
