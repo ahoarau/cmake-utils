@@ -14,7 +14,7 @@ if(CMAKE_UTILS_BUILD_TESTS)
     enable_testing()
     set(TEST_PROJECT_BUILD_TESTS ${CMAKE_UTILS_BUILD_TESTS})
     set(TEST_PROJECT_BUILD_PYTHON_BINDINGS ${CMAKE_UTILS_BUILD_PYTHON_BINDINGS})
-    add_subdirectory(tests)
+    add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
 if(NOT PROJECT_IS_TOP_LEVEL)
