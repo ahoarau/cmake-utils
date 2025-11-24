@@ -1778,7 +1778,7 @@ function(xxx_check_python_module_name target)
         POST_BUILD
         COMMAND
             ${CMAKE_COMMAND} -DMODULE_FILE=$<TARGET_FILE:${target}> -DEXPECTED_MODULE_NAME=${target}
-            -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/PythonCheckModuleNameScript.cmake
+            -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CheckPythonModuleNameScript.cmake
         COMMENT "Checking Python module name for ${target}"
         VERBATIM
     )
