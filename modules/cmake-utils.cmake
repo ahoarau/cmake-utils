@@ -17,7 +17,6 @@ function(_xxx_integrate_modules)
     include(${utils_ROOT}/modules/BoostPython.cmake)
 
     include(${utils_ROOT}/modules/PrintSystemInfo.cmake)
-    include(${utils_ROOT}/modules/CheckPythonModuleName.cmake)
 endfunction()
 
 _xxx_integrate_modules()
@@ -1766,4 +1765,21 @@ function(xxx_python_compute_install_dir output)
     set(${output} "${relative_python_sitelib_wrt_python_root_dir}" PARENT_SCOPE)
 
     message("Computed python install dir ${output}=${relative_python_sitelib_wrt_python_root_dir}")
+endfunction()
+
+# Check that the python module defined with NB_MODULE(<module_name>)
+# or BOOST_PYTHON_MODULE(<module_name>) has the same name as the target: <module_name>.cpython-XY.so
+# Usage: xxx_check_python_module_name(<module_target>)
+function(xxx_check_python_module_name target)
+    xxx_check_target_exists(${target})
+
+    add_custom_command(
+        TARGET ${target}
+        POST_BUILD
+        COMMAND
+            ${CMAKE_COMMAND} -DMODULE_FILE=$<TARGET_FILE:${target}> -DEXPECTED_MODULE_NAME=${target}
+            -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/PythonCheckModuleNameScript.cmake
+        COMMENT "Checking Python module name for ${target}"
+        VERBATIM
+    )
 endfunction()
