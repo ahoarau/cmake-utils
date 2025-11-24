@@ -987,6 +987,10 @@ function(xxx_export_dependencies)
         )
     endif()
 
+    if(NOT package_dependencies_json_content)
+        message(DEBUG "No package dependencies recorded with xxx_find_package()")
+    endif()
+
     file(
         GENERATE OUTPUT ${GEN_DIR}/imported-libraries.cmake
         CONTENT

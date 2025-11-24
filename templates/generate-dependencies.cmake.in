@@ -8,9 +8,11 @@ if(NOT DEFINED package_dependencies_json_content)
     message(FATAL_ERROR "package_dependencies_json_content variable is not defined in @IMPORTED_LIBRARIES_TO_EXPORT_FILE@.")
 endif()
 
-string(JSON package_dependencies GET "${package_dependencies_json_content}" "package_dependencies")
-string(JSON num_deps LENGTH "${package_dependencies}")
-math(EXPR max_idx "${num_deps} - 1")
+if(package_dependencies_json_content)
+    string(JSON package_dependencies GET "${package_dependencies_json_content}" "package_dependencies")
+    string(JSON num_deps LENGTH "${package_dependencies}")
+    math(EXPR max_idx "${num_deps} - 1")
+endif()
 
 set(fd "")
 foreach(imported_lib IN LISTS imported_libraries)
@@ -74,6 +76,8 @@ string(PREPEND fd "# Generated file - do not edit\n")
 # Read existing file and compare
 if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake)
     file(READ ${CMAKE_CURRENT_LIST_DIR}/dependencies.cmake existing_fd)
+else()
+    set(existing_fd "")
 endif()
 
 if(fd STREQUAL existing_fd)
