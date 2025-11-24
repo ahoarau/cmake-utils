@@ -1238,12 +1238,12 @@ endfunction()
 # xxx_export_package()
 # Export the CMake package with all its components (targets, headers, package modules, etc.)
 # Generates and installs CMake package configuration files:
-#  - <package>-config.cmake
-#  - <package>-config-version.cmake
-#  - <package>-component-<componentA>-targets.cmake
-#  - <package>-component-<componentA>-dependencies.cmake
-#  - <package>-component-<componentB>-targets.cmake
-#  - <package>-component-<componentB>-dependencies.cmake
+#  - <INSTALL_DIR>/<package>/<package>-config.cmake
+#  - <INSTALL_DIR>/<package>/<package>-config-version.cmake
+#  - <INSTALL_DIR>/<package>/<package>/<componentA>/targets.cmake
+#  - <INSTALL_DIR>/<package>/<package>/<componentA>/dependencies.cmake
+#  - <INSTALL_DIR>/<package>/<package>/<componentB>/targets.cmake
+#  - <INSTALL_DIR>/<package>/<package>/<componentB>/dependencies.cmake
 # NOTE: This is for CMake package export only. Python bindings are handled separately.
 function(xxx_export_package)
     set(options)
@@ -1330,7 +1330,7 @@ function(xxx_export_package)
 
         xxx_target_install_headers(${targets} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
-        # <package>-component-<component>-dependencies.cmake
+        # <package>/<component>/dependencies.cmake
         xxx_export_dependencies(
             TARGETS ${targets}
             GEN_DIR ${GEN_DIR}/${component}
@@ -1345,7 +1345,7 @@ function(xxx_export_package)
             ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
             INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         )
-        # <package>-component-<component>-targets.cmake
+        # <package>/<component>/targets.cmake
         install(
             EXPORT ${PROJECT_NAME}-${component}
             FILE targets.cmake
