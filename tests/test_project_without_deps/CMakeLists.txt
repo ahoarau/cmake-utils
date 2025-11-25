@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.22)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/../../modules/cmake-utils.cmake)
+if(CMAKE_UTILS_SOURCE_DIR)
+    add_subdirectory(${CMAKE_UTILS_SOURCE_DIR} cmake-utils)
+else()
+    find_package(cmake-utils CONFIG REQUIRED)
+endif()
 
 project(myproj VERSION 1.2.3 LANGUAGES CXX)
 
