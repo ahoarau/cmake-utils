@@ -20,7 +20,8 @@ function(add_cmake_test dir)
     add_test(
         NAME ${test_step}
         COMMAND
-            ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_CURRENT_BINARY_DIR}/${dir}/build --output-on-failure
+            ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_CURRENT_BINARY_DIR}/${dir}/build
+            --output-on-failure
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     )
     set_tests_properties(${test_step} PROPERTIES DEPENDS ${build_step})
