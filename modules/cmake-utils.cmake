@@ -620,6 +620,14 @@ macro(xxx_find_package)
             message("   Using custom module file: ${module_file}")
         endif()
 
+        # User defined pre-hooks
+        set(pre_hook xxx_find_package_${package_name}_pre_hook)
+        if(COMMAND ${pre_hook})
+            message("   Executing user defined pre hook ${pre_hook}()")
+            cmake_language(CALL ${pre_hook})
+        endif()
+        unset(pre_hook)
+
         # Call find_package with the provided arguments
         string(REPLACE ";" " " fp_pp "${find_package_args}")
         message("   Executing find_package(${fp_pp})")
@@ -658,6 +666,16 @@ macro(xxx_find_package)
 
         if(${package_name}_VERSION)
             message("   Version found: ${${package_name}_VERSION}")
+        endif()
+
+        # User defined post-hooks
+        if(${package_name}_FOUND)
+            set(post_hook xxx_find_package_${package_name}_post_hook)
+            if(COMMAND ${post_hook})
+                message("   Executing user defined post hook ${post_hook}()")
+                cmake_language(CALL ${post_hook})
+            endif()
+            unset(post_hook)
         endif()
 
         string(REPLACE ";" ", " package_variables_pp "${package_variables}")
@@ -1507,9 +1525,7 @@ endfunction()
 # Shortcut to find Python package and check main variables
 # Usage: xxx_find_python([version] [REQUIRED] [COMPONENTS ...])
 # Example: xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
-macro(xxx_find_python)
-    xxx_find_package(Python ${ARGN})
-
+function(xxx_find_package_Python_post_hook)
     # On Windows, Python_SITELIB returns \. Let's convert it to /.
     cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
 
@@ -1523,11 +1539,11 @@ macro(xxx_find_python)
     message("   Python_NumPy_FOUND       : ${Python_NumPy_FOUND}")
     message("   Python_NumPy_VERSION     : ${Python_NumPy_VERSION}")
     message("   Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
-endmacro()
+endfunction()
 
 # Shortcut to find the nanobind package
 # Usage: xxx_find_nanobind()
-macro(xxx_find_nanobind)
+macro(xxx_find_package_nanobind_pre_hook)
     string(REPLACE ";" " " args_pp "${ARGN}")
     xxx_check_var_defined(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
 
@@ -1562,9 +1578,9 @@ macro(xxx_find_nanobind)
     if(NOT nanobind_ROOT)
         message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
     endif()
+endmacro()
 
-    xxx_find_package(nanobind ${ARGN})
-
+macro(xxx_find_package_nanobind_post_hook)
     message("   Nanobind CMake directory: ${nanobind_ROOT}")
 
     # If you install nanobind with pip, it will include tsl-robin-map in <nanobind>/ext/robin_map
