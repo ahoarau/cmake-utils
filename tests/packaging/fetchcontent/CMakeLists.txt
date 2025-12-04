@@ -5,6 +5,7 @@ FetchContent_Declare(
     cmake-utils
     GIT_REPOSITORY https://github.com/ahoarau/cmake-utils.git
     GIT_TAG main
+    GIT_SHALLOW True
 )
 FetchContent_MakeAvailable(cmake-utils)
 
