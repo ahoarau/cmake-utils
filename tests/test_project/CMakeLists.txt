@@ -1,10 +1,6 @@
 cmake_minimum_required(VERSION 3.22...4.1)
 
-if(CMAKE_UTILS_SOURCE_DIR)
-    add_subdirectory(${CMAKE_UTILS_SOURCE_DIR} cmake-utils)
-else()
-    find_package(cmake-utils CONFIG REQUIRED)
-endif()
+find_package(cmake-utils CONFIG REQUIRED)
 
 project(
     test_project
