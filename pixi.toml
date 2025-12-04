@@ -36,7 +36,9 @@ install = { cmd = "cmake --install build", depends-on = ["build"] }
 prek = { cmd = "prek run -a" }
 
 # Example Project
-_test_project_configure = { cmd = "cmake -G Ninja -S tests/test_project -B build/test_project -DCMAKE_BUILD_TYPE=Release" }
+_test_project_configure = { cmd = "cmake -G Ninja -S tests/test_project -B build/test_project -DCMAKE_BUILD_TYPE=Release", depends-on = [
+    "install",
+] }
 _test_project_build = { cmd = "cmake --build build/test_project", depends-on = [
     "_test_project_configure",
 ] }
@@ -56,14 +58,18 @@ _test_fetchcontent_install = { cmd = "cmake --install build/packaging/fetchconte
 test_fetchcontent = { depends-on = ["_test_fetchcontent_install"] }
 
 # Example Project without dependencies
-_test_project_without_deps_configure = { cmd = "cmake -G Ninja -S tests/test_project_without_deps -B build/test_project_without_deps -DCMAKE_BUILD_TYPE=Release" }
+_test_project_without_deps_configure = { cmd = "cmake -G Ninja -S tests/test_project_without_deps -B build/test_project_without_deps -DCMAKE_BUILD_TYPE=Release", depends-on = [
+    "install",
+] }
 _test_project_without_deps_build = { cmd = "cmake --build build/test_project_without_deps", depends-on = [
     "_test_project_without_deps_configure",
 ] }
 _test_project_without_deps_install = { cmd = "cmake --install build/test_project_without_deps --prefix install/test_project_without_deps", depends-on = [
     "_test_project_without_deps_build",
 ] }
-test_project_without_deps = { depends-on = ["_test_project_without_deps_install"] }
+test_project_without_deps = { depends-on = [
+    "_test_project_without_deps_install",
+] }
 
 # All tests
 test = { depends-on = [
