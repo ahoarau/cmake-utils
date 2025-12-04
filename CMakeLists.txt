@@ -9,9 +9,18 @@ endif()
 
 include(GNUInstallDirs)
 
+# Where to install the <project>-config.cmake and related files
+# Here we choose <prefix>/share/cmake/<project>
+set(CMAKE_FILES_INSTALL_DIR ${CMAKE_INSTALL_DATAROOTDIR}/cmake/${PROJECT_NAME})
+
 install(
     DIRECTORY external-modules find-modules modules templates
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    DESTINATION ${CMAKE_FILES_INSTALL_DIR}
 )
 
-xxx_export_package(PACKAGE_CONFIG_TEMPLATE config.cmake.in)
+xxx_export_package(
+    PACKAGE_CONFIG_TEMPLATE
+        config.cmake.in
+    CMAKE_FILES_INSTALL_DIR
+        ${CMAKE_FILES_INSTALL_DIR}
+)
