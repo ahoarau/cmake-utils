@@ -39,7 +39,7 @@ test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["conf
 dependencies = { cmake-utils = { path = "." }, cmake = ">=3.22" }
 
 [feature.test-pixi-build.tasks]
-test-packaging-pixi-build = "cmake -S tests/packaging/pixi_build -B build_test_pixi_build"
+test-packaging-pixi-build = "cmake -S tests/packaging/pixi_build -B build/pixi_build"
 
 [environments]
 test-pixi-build = { features = ["test-pixi-build"], no-default-feature = true }
