@@ -23,11 +23,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install dependencies (via brew)
         run: |
-          # Update brew to avoid installing robin-map manually
-          # ref: https://github.com/Homebrew/homebrew-core/commit/bf0095fdd7e03bd3239afda4584951ee9305dc40
-          brew update
-          brew upgrade
-          brew install catch2 boost-python3 nanobind pytest numpy
+          brew install catch2 boost-python3 robin-map nanobind pytest numpy
 
       - name: Configure project
         run: cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_PYTHON_BINDINGS=ON -DBUILD_TESTS=ON
