@@ -357,7 +357,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/rhash-1.4.6-hb9d3cd8_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/zstd-1.5.7-hb78ec9c_6.conda
       - conda: .
-        subdir: linux-64
+        build: hb0f4dca_0
       osx-64:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/bzip2-1.0.8-h500dc9f_8.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/c-ares-1.34.5-hf13058a_0.conda
@@ -379,7 +379,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-64/rhash-1.4.6-h6e16a3a_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-64/zstd-1.5.7-h3eecb57_6.conda
       - conda: .
-        subdir: osx-64
+        build: h0dc7051_0
       osx-arm64:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/bzip2-1.0.8-hd037594_8.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/c-ares-1.34.5-h5505292_0.conda
@@ -401,7 +401,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/rhash-1.4.6-h5505292_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/zstd-1.5.7-hbf9d68e_6.conda
       - conda: .
-        subdir: osx-arm64
+        build: h60d57d3_0
       win-64:
       - conda: https://conda.anaconda.org/conda-forge/win-64/bzip2-1.0.8-h0ad9c76_8.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/ca-certificates-2025.11.12-h4c7d964_0.conda
@@ -420,7 +420,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/win-64/vcomp14-14.44.35208-h818238b_32.conda
       - conda: https://conda.anaconda.org/conda-forge/win-64/zstd-1.5.7-h534d264_6.conda
       - conda: .
-        build: h9352c13_0
+        build: h2433df5_0
 packages:
 - conda: https://conda.anaconda.org/conda-forge/linux-64/_libgcc_mutex-0.1-conda_forge.tar.bz2
   sha256: fe51de6107f9edc7aa4f786a70f4a883943bc9d39b3bb7307c04c41410990726
@@ -1017,10 +1017,23 @@ packages:
 - conda: .
   name: cmake-utils
   version: 0.1.0
-  build: h9352c13_0
+  build: h0dc7051_0
+  subdir: osx-64
+  variants:
+    target_platform: osx-64
+  depends:
+  - libcxx >=21
+  input:
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
+    globs: []
+- conda: .
+  name: cmake-utils
+  version: 0.1.0
+  build: h2433df5_0
   subdir: win-64
   variants:
     cxx_compiler: vs2019
+    target_platform: win-64
   depends:
   - vc >=14.2,<15
   - vc14_runtime >=14.29.30139
@@ -1031,34 +1044,25 @@ packages:
 - conda: .
   name: cmake-utils
   version: 0.1.0
-  build: hbf21a9e_0
+  build: h60d57d3_0
+  subdir: osx-arm64
+  variants:
+    target_platform: osx-arm64
+  depends:
+  - libcxx >=21
+  input:
+    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
+    globs: []
+- conda: .
+  name: cmake-utils
+  version: 0.1.0
+  build: hb0f4dca_0
   subdir: linux-64
-  variants: {}
+  variants:
+    target_platform: linux-64
   depends:
   - libstdcxx >=15
   - libgcc >=15
-  input:
-    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
-    globs: []
-- conda: .
-  name: cmake-utils
-  version: 0.1.0
-  build: hbf21a9e_0
-  subdir: osx-64
-  variants: {}
-  depends:
-  - libcxx >=21
-  input:
-    hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
-    globs: []
-- conda: .
-  name: cmake-utils
-  version: 0.1.0
-  build: hbf21a9e_0
-  subdir: osx-arm64
-  variants: {}
-  depends:
-  - libcxx >=21
   input:
     hash: d681ea16609f6e57012f89196cd5fa2d995fb79a168b8fa340e3d00cdbfe03ea
     globs: []
