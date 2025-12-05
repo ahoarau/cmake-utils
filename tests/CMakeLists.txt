@@ -7,13 +7,12 @@ function(add_cmake_test dir)
         NAME "${dir} ${arg_EXTRA_OPTIONS} (test_id=${test_id})"
         COMMAND ${CMAKE_CTEST_COMMAND}
         --build-and-test "${CMAKE_CURRENT_SOURCE_DIR}/${dir}"
-                        "${CMAKE_CURRENT_BINARY_DIR}/${test_id}/build"
+                        "${CMAKE_CURRENT_BINARY_DIR}/${dir}/${test_id}/build"
         ${arg_EXTRA_OPTIONS}
         --build-config "Release"
         --build-generator "${CMAKE_GENERATOR}"
         --build-target install
-        --build-options "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/${test_id}/install"
-                        "-DCMAKE_UTILS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+        --build-options "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/${dir}/${test_id}/install"
     )
     # gersemi: on
 endfunction()
