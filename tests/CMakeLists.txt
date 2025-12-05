@@ -1,10 +1,20 @@
+add_test(
+    NAME InstallMainProject
+    COMMAND
+        ${CMAKE_CTEST_COMMAND} --build-and-test "${PROJECT_SOURCE_DIR}"
+        "${CMAKE_BINARY_DIR}/${PROJECT_NAME}-build" --build-config "Release" --build-generator
+        "${CMAKE_GENERATOR}" --build-target install --build-options
+        "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/${PROJECT_NAME}-install"
+)
+
 function(add_cmake_test dir)
     cmake_parse_arguments(arg "" "" "EXTRA_OPTIONS" ${ARGN})
     string(SHA256 hash "${dir};${arg_EXTRA_OPTIONS}")
     string(SUBSTRING ${hash} 0 8 test_id)
+    set(test_name "${dir} ${arg_EXTRA_OPTIONS} (test_id=${test_id})")
     # gersemi: off
     add_test(
-        NAME "${dir} ${arg_EXTRA_OPTIONS} (test_id=${test_id})"
+        NAME "${test_name}"
         COMMAND ${CMAKE_CTEST_COMMAND}
         --build-and-test "${CMAKE_CURRENT_SOURCE_DIR}/${dir}"
                         "${CMAKE_CURRENT_BINARY_DIR}/${dir}/${test_id}/build"
@@ -13,8 +23,10 @@ function(add_cmake_test dir)
         --build-generator "${CMAKE_GENERATOR}"
         --build-target install
         --build-options "-DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/${dir}/${test_id}/install"
+                        "-DCMAKE_PREFIX_PATH=${CMAKE_BINARY_DIR}/${PROJECT_NAME}-install"
     )
     # gersemi: on
+    set_tests_properties("${test_name}" PROPERTIES DEPENDS InstallMainProject)
 endfunction()
 
 add_cmake_test(test_project)

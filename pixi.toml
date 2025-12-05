@@ -26,19 +26,14 @@ configure = { cmd = [
     "-G Ninja",
     "-S .",
     "-B build",
-    "-DCMAKE_CXX_COMPILER_LAUNCHER=ccache",
     "-DCMAKE_BUILD_TYPE=Release",
     "-DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX",
-    "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
-    "-DCMAKE_UTILS_BUILD_PYTHON_BINDINGS=ON",
     "-DCMAKE_UTILS_BUILD_TESTS=ON",
 ] }
 build = { cmd = "cmake --build build", depends-on = ["configure"] }
 install = { cmd = "cmake --install build", depends-on = ["build"] }
 prek = { cmd = "prek run -a" }
-test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = [
-    "build",
-] }
+test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["configure"] }
 
 [feature.test-pixi-build]
 dependencies = { cmake-utils = { path = "." }, cmake = ">=3.22" }
@@ -62,3 +57,5 @@ extra-args = ["-DCMAKE_UTILS_BUILD_TESTS=OFF"]
 
 [target.win-64.activation.env]
 CLICOLOR_FORCE = "1"
+CMAKE_EXPORT_COMPILE_COMMANDS = "ON"
+CMAKE_CXX_COMPILER_LAUNCHER = "ccache"
