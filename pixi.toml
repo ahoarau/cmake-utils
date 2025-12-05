@@ -30,52 +30,14 @@ configure = { cmd = [
     "-DCMAKE_BUILD_TYPE=Release",
     "-DCMAKE_INSTALL_PREFIX=$CONDA_PREFIX",
     "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
+    "-DCMAKE_UTILS_BUILD_PYTHON_BINDINGS=ON",
+    "-DCMAKE_UTILS_BUILD_TESTS=ON",
 ] }
 build = { cmd = "cmake --build build", depends-on = ["configure"] }
 install = { cmd = "cmake --install build", depends-on = ["build"] }
 prek = { cmd = "prek run -a" }
-
-# Example Project
-_test_project_configure = { cmd = "cmake -G Ninja -S tests/test_project -B build/test_project -DCMAKE_BUILD_TYPE=Release", depends-on = [
-    "install",
-] }
-_test_project_build = { cmd = "cmake --build build/test_project", depends-on = [
-    "_test_project_configure",
-] }
-_test_project_install = { cmd = "cmake --install build/test_project --prefix install/test_project", depends-on = [
-    "_test_project_build",
-] }
-test_project = { depends-on = ["_test_project_install"] }
-
-# Example Project using FetchContent
-_test_fetchcontent_configure = { cmd = "cmake -G Ninja -S ./tests/packaging/fetchcontent -B build/packaging/fetchcontent -DCMAKE_BUILD_TYPE=Release" }
-_test_fetchcontent_build = { cmd = "cmake --build build/packaging/fetchcontent", depends-on = [
-    "_test_fetchcontent_configure",
-] }
-_test_fetchcontent_install = { cmd = "cmake --install build/packaging/fetchcontent --prefix install/packaging/fetchcontent", depends-on = [
-    "_test_fetchcontent_build",
-] }
-test_fetchcontent = { depends-on = ["_test_fetchcontent_install"] }
-
-# Example Project without dependencies
-_test_project_without_deps_configure = { cmd = "cmake -G Ninja -S tests/test_project_without_deps -B build/test_project_without_deps -DCMAKE_BUILD_TYPE=Release", depends-on = [
-    "install",
-] }
-_test_project_without_deps_build = { cmd = "cmake --build build/test_project_without_deps", depends-on = [
-    "_test_project_without_deps_configure",
-] }
-_test_project_without_deps_install = { cmd = "cmake --install build/test_project_without_deps --prefix install/test_project_without_deps", depends-on = [
-    "_test_project_without_deps_build",
-] }
-test_project_without_deps = { depends-on = [
-    "_test_project_without_deps_install",
-] }
-
-# All tests
-test = { depends-on = [
-    "test_project",
-    "test_fetchcontent",
-    "test_project_without_deps",
+test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = [
+    "build",
 ] }
 
 [feature.test-pixi-build]
