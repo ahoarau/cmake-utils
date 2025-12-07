@@ -1249,14 +1249,15 @@ function(xxx_export_package)
 
     # NOTE: Expose as options if needed
     set(GEN_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated/cmake/${PROJECT_NAME})
-    set(PACKAGE_CONFIG_OUTPUT ${GEN_DIR}/${PROJECT_NAME}-config.cmake)
+    set(PACKAGE_NAME ${PROJECT_NAME})
+    set(PACKAGE_NAMESPACE "${PACKAGE_NAME}::")
+    set(PACKAGE_CONFIG_FILENAME ${PACKAGE_NAME}-config.cmake)
     set(PACKAGE_VERSION ${PROJECT_VERSION})
-    set(PACKAGE_VERSION_OUTPUT ${GEN_DIR}/${PROJECT_NAME}-config-version.cmake)
+    set(PACKAGE_VERSION_FILENAME ${PACKAGE_NAME}-config-version.cmake) # Note: This needs to be config-version.cmake or ConfigVersion.cmake to work.
     set(PACKAGE_VERSION_COMPATIBILITY AnyNewerVersion)
     set(PACKAGE_VERSION_ARCH_INDEPENDENT "")
     set(NO_SET_AND_CHECK_MACRO "NO_SET_AND_CHECK_MACRO")
     set(NO_CHECK_REQUIRED_COMPONENTS_MACRO "NO_CHECK_REQUIRED_COMPONENTS_MACRO")
-    set(NAMESPACE "${PROJECT_NAME}::")
 
     # Dump package dependencies recorded with xxx_find_package()
     _xxx_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
@@ -1281,21 +1282,21 @@ function(xxx_export_package)
     set(PROJECT_COMPONENTS ${declared_components})
     configure_package_config_file(
         ${PACKAGE_CONFIG_TEMPLATE}
-        ${PACKAGE_CONFIG_OUTPUT}
+        ${GEN_DIR}/${PACKAGE_CONFIG_FILENAME}
         INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}
         ${NO_SET_AND_CHECK_MACRO}
         ${NO_CHECK_REQUIRED_COMPONENTS_MACRO}
     )
-    install(FILES ${PACKAGE_CONFIG_OUTPUT} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
+    install(FILES ${GEN_DIR}/${PACKAGE_CONFIG_FILENAME} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
 
     # <package>-config-version.cmake
     write_basic_package_version_file(
-        ${PACKAGE_VERSION_OUTPUT}
+        ${GEN_DIR}/${PACKAGE_VERSION_FILENAME}
         VERSION ${PACKAGE_VERSION}
         COMPATIBILITY ${PACKAGE_VERSION_COMPATIBILITY}
         ${PACKAGE_VERSION_ARCH_INDEPENDENT}
     )
-    install(FILES ${PACKAGE_VERSION_OUTPUT} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
+    install(FILES ${GEN_DIR}/${PACKAGE_VERSION_FILENAME} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
 
     foreach(component ${declared_components})
         message("Generating cmake module files for component '${component}'")
@@ -1311,6 +1312,7 @@ function(xxx_export_package)
             INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
         )
         # Create the export for the component targets
+        # And the install rules for the targets
         install(
             TARGETS ${targets}
             EXPORT ${PROJECT_NAME}-${component}
@@ -1323,7 +1325,7 @@ function(xxx_export_package)
         install(
             EXPORT ${PROJECT_NAME}-${component}
             FILE targets.cmake
-            NAMESPACE ${NAMESPACE}
+            NAMESPACE ${PACKAGE_NAMESPACE}
             DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
         )
     endforeach()
