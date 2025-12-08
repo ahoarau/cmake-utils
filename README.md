@@ -1,26 +1,29 @@
 # cmake-utils
 
 `cmake-utils` is a collection of CMake functions and macros designed to drastically reduce the boilerplate required to set up modern, production-ready C++ libraries.
-It is particularly focued on simplifying the *exports* of c++ libraries, and improve debuggability.
+It is particularly focued on simplifying the *exports* of c++ libraries, so you can import them via:
+
+```cmake
+find_package(mylib 1.0.0 CONFIG REQUIRED COMPONENTS Core Advanced)
+```
 
 ## Goals
 
-Modern CMake is powerful but often requires verbose configuration to achieve standard tasks. The goals of this project are to:
-
-1.  **Reduce Boilerplate**: Replace dozens of lines of configuration with single function calls for common tasks (e.g., setting output directories, configuring install paths).
-2.  **Enforce Best Practices**: Make it trivial to enable high warning levels, treat warnings as errors, and enforce compiler conformance (especially for MSVC).
-3.  **Simplify Packaging**: Exporting a C++ library so it can be used via `find_package()` is notoriously difficult. `cmake-utils` automates the generation of config files, version files, and transitive dependency management.
-4.  **Python Bindings**: Provide first-class support for building and packaging Python bindings (using `nanobind` or `Boost.Python`), including `__init__.py` generation and installation layout.
-5.  **Improve Introspection**: Provide summary tables for configuration options and dependencies at the end of the CMake run.
+* **Compatiblity**: Be compatible with Ubuntu 22.04 LTS which ships `CMake 3.22`. Users should be able to use `cmake-utils` without upgrading CMake, and only use `apt install cmake` to get started.
+* **Reduce Boilerplate**: Replace dozens of lines of configuration with single function calls for common tasks (e.g., setting output directories, configuring install paths).
+* **Simplify Packaging**: Exporting a C++ library so it can be used via `find_package()` is notoriously difficult. `cmake-utils` automates the generation of config files, version files, and transitive dependency management.
+* **Python Bindings**: Provide nanobind's like support for building `Boost.Python` bindings, and generating stubs. Allows to generate `__init__.py` files that handle DLL loading on Windows.
+* **Improve Introspection**: Provide summary tables for configuration options and dependencies at the end of the CMake run.
 
 ## Design Principles
 
-* Try not to hide CMake concepts. The functions should be thin wrappers that make common tasks easier, not black boxes that obscure what is happening.
+* **Try** not to hide CMake concepts. The functions should be thin wrappers that make common tasks easier, not black boxes that obscure what is happening.
 * Stay close to standard CMake idioms. Avoid inventing new paradigms or abstractions.
 * Be explicit about what is being done. Functions should have clear names and parameters that reflect their purpose.
 * Support common use cases, but allow for customization. Users should be able to override defaults when necessary (some work still needs to be done here).
 
 We try to avoid monolithic functions that do everything at once (e.g., a single `add_library_with_all_the_things()` function). Instead, we provide small, focused functions that can be composed together. For example, instead of:
+
 ```cmake
 jrl_add_library(
     NAME mylib
@@ -42,6 +45,7 @@ jrl_add_library(
 ```
 
 We prefer:
+
 ```cmake
 # Standard CMake
 add_library(mylib mylib.cpp)
@@ -59,9 +63,10 @@ xxx_add_export_component(NAME Core TARGETS mylib)
 ## Installation
 
 ### Method 0: Manual Installation
+
 You can manually install `cmake-utils` by cloning the repository and running the following commands:
 
-```bash
+```shell
 git clone https://github.com/ahoarau/cmake-utils.git
 cmake -S cmake-utils -B cmake-utils-build
 cmake --build cmake-utils-build --target install
@@ -70,17 +75,18 @@ cmake --install cmake-utils-build --prefix /where/to/install/cmake-utils-install
 
 To use it in your project, specify the installation path in your `CMAKE_PREFIX_PATH` when configuring your project:
 
-```
+```shell
 cd myproject
 cmake -B build -DCMAKE_PREFIX_PATH=/where/to/install/cmake-utils-install
 ```
+
 Then, in your `CMakeLists.txt`, you can find the package as usual:
+
 ```cmake
 find_package(cmake-utils CONFIG REQUIRED)
 
 xxx_print_dependencies_summary()
 ```
-
 
 ### Method 1: FetchContent
 
@@ -91,9 +97,10 @@ include(FetchContent)
 FetchContent_Declare(
     cmake-utils
     GIT_REPOSITORY https://github.com/ahoarau/cmake-utils.git
-    GIT_TAG        main # Replace with a specific tag or commit hash
+    GIT_TAG        main
+    EXCLUDE_FROM_ALL
 )
-FetchContent_MakeAvailable(cmake-utils)
+FetchContent_MakeAvailable(cmake-utils) # This includes the main module
 ```
 
 ### Method 2: `find_package`
@@ -106,7 +113,8 @@ find_package(cmake-utils CONFIG REQUIRED)
 
 ## Usage Example
 
-To use `cmake-utils`, ensure it is available (via `FetchContent` or `find_package`).
+A typical c++ library project looks like:
+
 
 ```cmake
 cmake_minimum_required(VERSION 3.22)
@@ -114,7 +122,7 @@ cmake_minimum_required(VERSION 3.22)
 # ┌──────────────────────────────────────────────────────────────────────────────
 # │ Project Declaration
 # └──────────────────────────────────────────────────────────────────────────────
-find_package(cmake-utils CONFIG REQUIRED)  # Find cmake-utils before project()
+find_package(cmake-utils CONFIG REQUIRED)
 project(MyProject VERSION 1.0.0 LANGUAGES CXX)
 
 # ┌──────────────────────────────────────────────────────────────────────────────
@@ -159,16 +167,30 @@ xxx_print_options_summary()
 
 ## Function Reference
 
+### Equivalents to Plain CMake Functions
+
+Plain CMake               | cmake-utils | extra functionnality |
+-- | -- | --
+option()                  | xxx_option() | Summary table, backwards compatibility |
+cmake_dependent_option()  | xxx_cmake_dependent_option() | Summary table, backwards compatibility |
+find_package()            | xxx_find_package() | Automatic dependency export, summary table|
+Move exe to `build/bin/`, libs to `build/lib/` | xxx_configure_default_build_dirs() | |
+include(GNUInstallDirs) | xxx_configure_default_install_dirs() | |
+FILE_SET                 | xxx_target_headers() | Same interface, needed as FILE_SET is CMake 3.23, and we aim 3.22 |
+find_package(Python 3.8 COMPONENTS Interpreter Development.Module) | xxx_find_python(3.8 COMPONENTS Interpreter Development.Module) | Diagnostic output |
+Nanobind boilerplate | xxx_find_nanobind() |  |
+
 ### Project Setup & Configuration
 
 #### `xxx_configure_defaults()`
 
 Sets up sensible defaults for a C++ project in one call. It calls the following functions internally:
-*   `xxx_configure_default_build_type(Release)`
-*   `xxx_configure_default_binary_dirs()`
-*   `xxx_configure_default_install_dirs()`
-*   `xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)`
-*   `xxx_configure_copy_compile_commands_in_source_dir()`
+
+* `xxx_configure_default_build_type(Release)`
+* `xxx_configure_default_binary_dirs()`
+* `xxx_configure_default_install_dirs()`
+* `xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)`
+* `xxx_configure_copy_compile_commands_in_source_dir()`
 
 Each of these can be called individually if you need more control.
 
@@ -178,16 +200,17 @@ Sets `CMAKE_BUILD_TYPE` to the specified value (e.g., `Release`, `Debug`, `RelWi
 
 #### `xxx_configure_default_binary_dirs()`
 
-Configures where compiled binaries are placed:
-*   `CMAKE_RUNTIME_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/bin` (executables, `.dll`, `.pyd`)
-*   `CMAKE_LIBRARY_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/lib` (shared libraries `.so`/`.dylib`)
-*   `CMAKE_ARCHIVE_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/lib` (static libraries `.a`/`.lib`)
+Configures where compiled binaries are placed in the build directory:
 
-Also sets per-configuration variants (`_DEBUG`, `_RELEASE`, etc.) for multi-config generators.
+* `CMAKE_RUNTIME_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/bin` (executables, `.dll`, `.pyd`)
+* `CMAKE_LIBRARY_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/lib` (shared libraries `.so`/`.dylib`)
+* `CMAKE_ARCHIVE_OUTPUT_DIRECTORY` → `${CMAKE_BINARY_DIR}/lib` (static libraries `.a`/`.lib`)
+
+Also sets per-configuration variants (`_DEBUG`, `_RELEASE`, etc.) for multi-config generators. In super projects, all executables will be placed in the top-level `bin/` directory, and all libraries in `lib/`, just like a single project.
 
 #### `xxx_configure_default_install_dirs()`
 
-Includes CMake's `GNUInstallDirs` module to define standard installation directories (`CMAKE_INSTALL_BINDIR`, `CMAKE_INSTALL_LIBDIR`, `CMAKE_INSTALL_INCLUDEDIR`, etc.) in a cross-platform way.
+Includes CMake's `GNUInstallDirs` module to define standard installation directories (`CMAKE_INSTALL_BINDIR`, `CMAKE_INSTALL_LIBDIR`, `CMAKE_INSTALL_INCLUDEDIR`, etc.) in a cross-platform way. This is equivalent to calling `include(GNUInstallDirs)`.
 
 #### `xxx_configure_default_install_prefix(<path>)`
 
@@ -196,6 +219,7 @@ Sets `CMAKE_INSTALL_PREFIX` to the specified path if the user hasn't overridden 
 #### `xxx_configure_copy_compile_commands_in_source_dir()`
 
 Automatically copies `compile_commands.json` from the build directory to the source root at the end of the CMake configuration step. This enables IDE features like code completion and navigation without manual setup.
+NOTE: This is useful if your build directory is not just `build/`, but e.g., `build/x64-Debug/`.
 
 #### `xxx_option(<name> <description> <default> [COMPATIBILITY_OPTION <old_name>])`
 
@@ -215,11 +239,11 @@ A wrapper around CMake's `cmake_dependent_option()` that also records the option
 
 #### `xxx_find_package(<package> ...)`
 
-Wraps the standard `find_package()`. **Crucially**, it records the found package and its imported targets. This information is used by `xxx_export_package` to automatically handle transitive dependencies in the generated CMake config files.
+Wraps the standard `find_package()` to allow later introspection. It records everything, from the call signature, to the imported targets, to the imported variables. This information is then used by `xxx_export_package` to automatically handle transitive dependencies in the generated CMake config files.
 
 #### `xxx_print_dependencies_summary()`
 
-Prints a list of all packages found via `xxx_find_package`, including the imported targets and their properties (useful for debugging include paths and link libraries).
+Prints a list of all packages found via `xxx_find_package`, including the imported targets and their properties. Useful for debugging include paths and link libraries.
 
 ---
 
@@ -228,8 +252,9 @@ Prints a list of all packages found via `xxx_find_package`, including the import
 #### `xxx_target_set_default_compile_options(<target> <visibility>)`
 
 Enables high warning levels:
-*   **MSVC**: `/W4` and disables some noisy/useless warnings.
-*   **GCC/Clang**: `-Wall -Wextra -Wconversion -Wpedantic`.
+
+* **MSVC**: `/W4` and disables some noisy/useless warnings.
+* **GCC/Clang**: `-Wall -Wextra -Wconversion -Wpedantic`.
 
 #### `xxx_target_enforce_msvc_conformance(<target> <visibility>)`
 
@@ -276,9 +301,10 @@ Groups one or more targets into a named "component" (e.g., `Core`, `IO`). Downst
 #### `xxx_export_package()`
 
 The main packaging function:
-*   Generates `<Package>Config.cmake` and `<Package>ConfigVersion.cmake`.
-*   Generates target export files for each component.
-*   Generates dependency files that automatically `find_dependency` any dependencies recorded by `xxx_find_package`.
+
+* Generates `<Package>Config.cmake` and `<Package>ConfigVersion.cmake`.
+* Generates target export files for each component.
+* Generates dependency files that automatically `find_dependency` any dependencies recorded by `xxx_find_package`.
 
 ---
 
@@ -340,10 +366,10 @@ Manually writing `find_dependency()` calls is tedious and error-prone. `cmake-ut
 
 When you call `xxx_find_package(fmt CONFIG REQUIRED)`, the function does the following:
 
-1.  **Snapshots Imported Targets**: It queries the `IMPORTED_TARGETS` directory property *before* calling `find_package`.
-2.  **Calls `find_package`**: The standard CMake `find_package(fmt CONFIG REQUIRED)` is executed.
-3.  **Detects New Targets**: It queries `IMPORTED_TARGETS` again *after* the call and computes the difference to find which new targets were created (e.g., `fmt::fmt`).
-4.  **Stores Metadata as JSON**: It saves this information into a global CMake property (`_xxx_<PROJECT_NAME>_package_dependencies`) as a JSON structure.
+1. **Snapshots Imported Targets**: It queries the `IMPORTED_TARGETS` directory property *before* calling `find_package`.
+2. **Calls `find_package`**: The standard CMake `find_package(fmt CONFIG REQUIRED)` is executed.
+3. **Detects New Targets**: It queries `IMPORTED_TARGETS` again *after* the call and computes the difference to find which new targets were created (e.g., `fmt::fmt`).
+4. **Stores Metadata as JSON**: It saves this information into a global CMake property (`_xxx_<PROJECT_NAME>_package_dependencies`) as a JSON structure.
 
 The stored JSON for each package looks like this:
 
@@ -357,10 +383,11 @@ The stored JSON for each package looks like this:
 ```
 
 This metadata captures:
-*   The **package name**.
-*   The **exact arguments** passed to `find_package`, so they can be replayed.
-*   The **imported targets** the package provides.
-*   The **module file path** (if a `Find<Package>.cmake` module was used instead of a config file).
+
+* The **package name**.
+* The **exact arguments** passed to `find_package`, so they can be replayed.
+* The **imported targets** the package provides.
+* The **module file path** (if a `Find<Package>.cmake` module was used instead of a config file).
 
 ---
 
@@ -368,15 +395,15 @@ This metadata captures:
 
 When you call `xxx_export_package()`, the function performs dependency analysis at *install time* using a generated CMake script:
 
-1.  **Writes Metadata to Files**: During configuration, it writes the recorded JSON and the list of `INTERFACE_LINK_LIBRARIES` for each exported target to:
-    *   `<build_dir>/generated/cmake/<project>/<component>/imported-libraries.cmake`
-    *   `<build_dir>/generated/cmake/<project>/<project>-package-dependencies.json` (for debugging)
+1. **Writes Metadata to Files**: During configuration, it writes the recorded JSON and the list of `INTERFACE_LINK_LIBRARIES` for each exported target to:
+    * `<build_dir>/generated/cmake/<project>/<component>/imported-libraries.cmake`
+    * `<build_dir>/generated/cmake/<project>/<project>-package-dependencies.json` (for debugging)
 
-2.  **Generates an Install Script**: It configures a `generate-dependencies.cmake` script from a template. This script runs at `cmake --install` time.
+2. **Generates an Install Script**: It configures a `generate-dependencies.cmake` script from a template. This script runs at `cmake --install` time.
 
-3.  **Analyzes Link Libraries at Install Time**: The install script iterates over the `INTERFACE_LINK_LIBRARIES` and, for each imported target (like `fmt::fmt`), looks it up in the recorded JSON to find the original `find_package` arguments.
+3. **Analyzes Link Libraries at Install Time**: The install script iterates over the `INTERFACE_LINK_LIBRARIES` and, for each imported target (like `fmt::fmt`), looks it up in the recorded JSON to find the original `find_package` arguments.
 
-4.  **Generates `dependencies.cmake`**: It writes a `<component>/dependencies.cmake` file containing:
+4. **Generates `dependencies.cmake`**: It writes a `<component>/dependencies.cmake` file containing:
 
     ```cmake
     include(CMakeFindDependencyMacro)
@@ -388,7 +415,7 @@ When you call `xxx_export_package()`, the function performs dependency analysis 
 
     The `if(NOT TARGET ...)` guard prevents errors if the dependency was already found by another package.
 
-5.  **Handles Find Modules**: If the original package used a `Find<Package>.cmake` module (not a config file), the install script copies the module file to the install destination and prepends `CMAKE_MODULE_PATH` in the generated `dependencies.cmake`.
+5. **Handles Find Modules**: If the original package used a `Find<Package>.cmake` module (not a config file), the install script copies the module file to the install destination and prepends `CMAKE_MODULE_PATH` in the generated `dependencies.cmake`.
 
 ---
 
@@ -407,6 +434,7 @@ xxx_export_package()
 ```
 
 **At configure time**, the JSON structure is populated:
+
 ```json
 {
   "package_dependencies": [
