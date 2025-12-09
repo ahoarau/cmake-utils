@@ -1253,7 +1253,9 @@ function(xxx_export_package)
     if(arg_PACKAGE_CONFIG_TEMPLATE)
         set(PACKAGE_CONFIG_TEMPLATE ${arg_PACKAGE_CONFIG_TEMPLATE})
     else()
-        set(PACKAGE_CONFIG_TEMPLATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.cmake.in)
+        set(PACKAGE_CONFIG_TEMPLATE
+            ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config-components.cmake.in
+        )
         set(using_default_template True)
     endif()
 
@@ -1284,7 +1286,7 @@ function(xxx_export_package)
         message(
             FATAL_ERROR
             "No export component declared for project '${PROJECT_NAME}'.
-        The default config.cmake.in template requires at least one export component.
+        The default config-components.cmake.in template requires at least one export component.
         Either add export-components via:
             xxx_add_export_component(NAME <comp_name> TARGETS [target1...])
         Or provide your own config template:
