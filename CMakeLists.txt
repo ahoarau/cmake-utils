@@ -25,7 +25,7 @@ install(
 
 xxx_export_package(
     PACKAGE_CONFIG_TEMPLATE
-        config.cmake.in
+        ${CMAKE_CURRENT_SOURCE_DIR}/templates/config-basic.cmake.in
     CMAKE_FILES_INSTALL_DIR
         ${CMAKE_FILES_INSTALL_DIR}
 )
