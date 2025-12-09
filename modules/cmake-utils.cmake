@@ -1266,7 +1266,7 @@ function(xxx_export_package)
     set(NO_CHECK_REQUIRED_COMPONENTS_MACRO "NO_CHECK_REQUIRED_COMPONENTS_MACRO")
 
     # Dump package dependencies recorded with xxx_find_package()
-    _xxx_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
+    xxx_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
 
     # Get declared export components
     get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
@@ -1337,11 +1337,11 @@ function(xxx_export_package)
     endforeach()
 endfunction()
 
-# _xxx_dump_package_dependencies_json()
+# xxx_dump_package_dependencies_json()
 # Internal function to dump the package dependencies recorded with xxx_find_package()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
 # In the function xxx_export_package().
-function(_xxx_dump_package_dependencies_json output)
+function(xxx_dump_package_dependencies_json output)
     get_property(
         package_dependencies_json
         GLOBAL
