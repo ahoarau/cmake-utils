@@ -718,39 +718,44 @@ function(xxx_print_dependencies_summary)
         if(package_targets STREQUAL "")
             continue()
         endif()
-        xxx_cmake_print_properties(TARGETS ${package_targets} PROPERTIES
-            NAME
-            ALIASED_TARGET
-            TYPE
-            VERSION
-            LOCATION
-            INCLUDE_DIRECTORIES
-            COMPILE_DEFINITIONS
-            COMPILE_OPTIONS
-            COMPILE_FEATURES
-            COMPILE_FLAGS
-            COMPILE_OPTIONS
-            LINK_LIBRARIES
-            LINK_OPTIONS
-            INTERFACE_INCLUDE_DIRECTORIES
-            INTERFACE_COMPILE_DEFINITIONS
-            INTERFACE_COMPILE_OPTIONS
-            INTERFACE_LINK_LIBRARIES
-            INTERFACE_LINK_OPTIONS
-            CXX_STANDARD
-            CXX_EXTENSIONS
-            CXX_STANDARD_REQUIRED
+        xxx_cmake_print_properties(
+            TARGETS ${package_targets}
+            OUTPUT_VARIABLE props_msg
+            PROPERTIES
+                NAME
+                ALIASED_TARGET
+                TYPE
+                VERSION
+                LOCATION
+                INCLUDE_DIRECTORIES
+                COMPILE_DEFINITIONS
+                COMPILE_OPTIONS
+                COMPILE_FEATURES
+                COMPILE_FLAGS
+                COMPILE_OPTIONS
+                LINK_LIBRARIES
+                LINK_OPTIONS
+                INTERFACE_INCLUDE_DIRECTORIES
+                INTERFACE_COMPILE_DEFINITIONS
+                INTERFACE_COMPILE_OPTIONS
+                INTERFACE_LINK_LIBRARIES
+                INTERFACE_LINK_OPTIONS
+                CXX_STANDARD
+                CXX_EXTENSIONS
+                CXX_STANDARD_REQUIRED
         )
+        _log("${props_msg}")
     endforeach()
     message(STATUS "${log_msg}")
 endfunction()
 
 # xxx_cmake_print_properties
-# Usage: xxx_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>])
+# Usage: xxx_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>] [OUTPUT_VARIABLE <var_name>])
 # This is taken and adapted from cmake's own cmake_print_properties function to add verbosity control and print only found properties.
+# If OUTPUT_VARIABLE is provided, the output will be stored in the variable instead of printed to the console.
 function(xxx_cmake_print_properties)
     set(options)
-    set(oneValueArgs VERBOSITY)
+    set(oneValueArgs VERBOSITY OUTPUT_VARIABLE)
     set(cpp_multiValueArgs PROPERTIES)
     set(cppmode_multiValueArgs
         TARGETS
@@ -775,7 +780,7 @@ function(xxx_cmake_print_properties)
         return()
     endif()
 
-    set(verbosity)
+    set(verbosity STATUS)
     if(CPP_VERBOSITY)
         set(verbosity ${CPP_VERBOSITY})
     endif()
@@ -879,7 +884,12 @@ function(xxx_cmake_print_properties)
             endforeach()
         endif()
     endforeach()
-    message(${verbosity} "${msg}")
+
+    if(CPP_OUTPUT_VARIABLE)
+        set(${CPP_OUTPUT_VARIABLE} "${msg}" PARENT_SCOPE)
+    else()
+        message(${verbosity} "${msg}")
+    endif()
 endfunction()
 
 # Usage: xxx_export_dependencies(TARGETS [target1...] GEN_DIR <gen_dir> INSTALL_DESTINATION <destination>)
