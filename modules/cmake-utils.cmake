@@ -931,7 +931,7 @@ function(xxx_export_dependencies)
     foreach(target ${arg_TARGETS})
         get_target_property(interface_link_libraries ${target} INTERFACE_LINK_LIBRARIES)
         if(NOT interface_link_libraries)
-            message("Target '${target}' has no INTERFACE_LINK_LIBRARIES.")
+            message(DEBUG "Target '${target}' has no INTERFACE_LINK_LIBRARIES.")
             continue()
         endif()
         foreach(lib ${interface_link_libraries})
@@ -947,7 +947,7 @@ function(xxx_export_dependencies)
         endforeach()
     endforeach()
 
-    message("All link libraries for targets '${arg_TARGETS}': ${all_imported_libraries}")
+    message(DEBUG "All link libraries for targets '${arg_TARGETS}': ${all_imported_libraries}")
 
     get_property(
         package_dependencies_json_content
