@@ -573,9 +573,7 @@ macro(xxx_find_package)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    execute_process(
-        COMMAND ${CMAKE_COMMAND} -E cmake_echo_color --blue --bold [${ARGV0}]
-    )
+    message(STATUS "[${ARGV0}]")
     message(DEBUG "Executing xxx_find_package with args ${ARGV}")
 
     # Pkg name is the first argument of find_package(<pkg_name> ...)
@@ -603,12 +601,12 @@ macro(xxx_find_package)
         # Add the parent path to the CMAKE_MODULE_PATH
         cmake_path(GET module_file PARENT_PATH module_dir)
         list(APPEND CMAKE_MODULE_PATH ${module_dir})
-        message("   Using custom module file: ${module_file}")
+        message(STATUS "   Using custom module file: ${module_file}")
     endif()
 
     # Call find_package with the provided arguments
     string(REPLACE ";" " " fp_pp "${find_package_args}")
-    message("   Executing find_package(${fp_pp})")
+    message(STATUS "   Executing find_package(${fp_pp})")
     unset(fp_pp)
 
     # Saving the list of imported targets and variables BEFORE the call to find_package
@@ -622,9 +620,9 @@ macro(xxx_find_package)
     find_package(${find_package_args}) # TODO: handle QUIET properly
 
     if(${package_name}_FOUND)
-        message("   Executing find_package()...✅")
+        message(STATUS "   Executing find_package()...✅")
     else()
-        message("   Executing find_package()...❌")
+        message(STATUS "   Executing find_package()...❌")
     endif()
 
     # Put back CMAKE_MODULE_PATH to its previous value
@@ -639,21 +637,21 @@ macro(xxx_find_package)
     list(REMOVE_ITEM package_targets ${imported_targets_before})
 
     if(${package_name}_VERSION)
-        message("   Version found: ${${package_name}_VERSION}")
+        message(STATUS "   Version found: ${${package_name}_VERSION}")
     endif()
 
     string(REPLACE ";" ", " package_variables_pp "${package_variables}")
     if(package_variables)
         message(DEBUG "   New variables detected: ${package_variables_pp}")
     else()
-        message("   No new variables detected.")
+        message(STATUS "   No new variables detected.")
     endif()
 
     string(REPLACE ";" ", " package_targets_pp "${package_targets}")
     if(package_targets)
-        message("   Imported targets detected: ${package_targets_pp}")
+        message(STATUS "   Imported targets detected: ${package_targets_pp}")
     else()
-        message("   No imported targets detected.")
+        message(STATUS "   No imported targets detected.")
     endif()
 
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
@@ -688,19 +686,25 @@ endmacro()
 # xxx_print_dependencies_summary()
 # Print a summary of all dependencies found via xxx_find_package, and some properties of their imported targets.
 function(xxx_print_dependencies_summary)
+    set(log_msg "")
+
+    macro(_log msg)
+        string(APPEND log_msg "${msg}\n")
+    endmacro()
+
     get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
         message(STATUS "No dependencies found via xxx_find_package.")
         return()
     endif()
 
-    message("")
-    message("================= External Dependencies ======================================")
-    message("")
+    _log("")
+    _log("================= External Dependencies ======================================")
+    _log("")
 
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
     math(EXPR max_idx "${num_deps} - 1")
-    message("${num_deps} dependencies declared xxx_find_package: ")
+    _log("${num_deps} dependencies declared xxx_find_package: ")
     foreach(i RANGE 0 ${max_idx})
         string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
@@ -708,9 +712,7 @@ function(xxx_print_dependencies_summary)
         # Replace ; by , for better readability
         string(REPLACE ";" ", " package_targets_pp "${package_targets}")
         math(EXPR i "${i} + 1")
-        message(
-            "${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]"
-        )
+        _log("${i}/${num_deps} Package [${package_name}] imported targets [${package_targets_pp}]")
 
         # Print target properties
         if(package_targets STREQUAL "")
@@ -740,6 +742,7 @@ function(xxx_print_dependencies_summary)
             CXX_STANDARD_REQUIRED
         )
     endforeach()
+    message(STATUS "${log_msg}")
 endfunction()
 
 # xxx_cmake_print_properties
@@ -1023,6 +1026,7 @@ function(xxx_add_export_component)
     endforeach()
 
     message(
+        STATUS
         "Adding export component '${arg_NAME}' with targets: ${arg_TARGETS} (${PROJECT_NAME}-${arg_NAME})"
     )
 
@@ -1182,6 +1186,7 @@ function(xxx_install_headers)
         endif()
         set(components ${declared_components})
         message(
+            STATUS
             "Installing headers for all declared components. Declared components: [${declared_components}]"
         )
     endif()
@@ -1202,6 +1207,7 @@ function(xxx_install_headers)
 
         foreach(target ${targets})
             message(
+                STATUS
                 "Installing headers for target '${target}' of component '${component}' to '${install_destination}'"
             )
             xxx_target_install_headers(${target} DESTINATION ${install_destination})
@@ -1299,7 +1305,7 @@ function(xxx_export_package)
     install(FILES ${GEN_DIR}/${PACKAGE_VERSION_FILENAME} DESTINATION ${CMAKE_FILES_INSTALL_DIR})
 
     foreach(component ${declared_components})
-        message("Generating cmake module files for component '${component}'")
+        message(STATUS "Generating cmake module files for component '${component}'")
 
         get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
 
@@ -1422,27 +1428,29 @@ endfunction()
 # Print all options defined via xxx_option() in a nice table
 # Usage: xxx_print_options_summary()
 function(xxx_print_options_summary)
+    set(log_msg "")
+
+    macro(_log msg)
+        string(APPEND log_msg "${msg}\n")
+    endmacro()
+
     get_property(option_names GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names)
     if(NOT option_names)
         message(STATUS "No options defined via xxx_option.")
         return()
     endif()
 
-    message("")
-    message(
-        "================= Configuration Summary =========================================================="
-    )
-    message("")
+    _log("")
+    _log("================= Configuration Summary ==========================================================")
+    _log("")
 
     _pad_string("Option"      40 _menu_option)
     _pad_string("Type"        8  _menu_type)
     _pad_string("Value"       5  _menu_value)
     _pad_string("Default"     5  _menu_default)
     _pad_string("Description (default)" 25 _menu_description)
-    message("${_menu_option} | ${_menu_type} | ${_menu_value} | ${_menu_description}")
-    message(
-        "--------------------------------------------------------------------------------------------------"
-    )
+    _log("${_menu_option} | ${_menu_type} | ${_menu_value} | ${_menu_description}")
+    _log("--------------------------------------------------------------------------------------------------")
 
     foreach(option_name ${option_names})
         get_property(_type CACHE ${option_name} PROPERTY TYPE)
@@ -1465,16 +1473,15 @@ function(xxx_print_options_summary)
         _pad_string("${_help}"     30 _help)
         _pad_string("${_default}"  3 _default)
 
-        message("${_name} | ${_type} | ${_val} | ${_help} (${_default})")
+        _log("${_name} | ${_type} | ${_val} | ${_help} (${_default})")
         if(_compat_option)
-            message("  (Compatibility option: ${_compat_option})")
+            _log("  (Compatibility option: ${_compat_option})")
         endif()
     endforeach()
 
-    message(
-        "--------------------------------------------------------------------------------------------------"
-    )
-    message("")
+    _log("--------------------------------------------------------------------------------------------------")
+    _log("")
+    _log(STATUS "${log_msg}")
 endfunction()
 
 # Shortcut to find Python package and check main variables
@@ -1486,16 +1493,16 @@ macro(xxx_find_python)
     # On Windows, Python_SITELIB returns \. Let's convert it to /.
     cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
 
-    message("   Python_FOUND             : ${Python_FOUND}")
-    message("   Python_EXECUTABLE        : ${Python_EXECUTABLE}")
-    message("   Python_VERSION           : ${Python_VERSION}")
-    message("   Python_SITELIB           : ${Python_SITELIB}")
-    message("   Python_INCLUDE_DIRS      : ${Python_INCLUDE_DIRS}")
-    message("   Python_LIBRARIES         : ${Python_LIBRARIES}")
-    message("   Python_SOABI             : ${Python_SOABI}")
-    message("   Python_NumPy_FOUND       : ${Python_NumPy_FOUND}")
-    message("   Python_NumPy_VERSION     : ${Python_NumPy_VERSION}")
-    message("   Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
+    message(STATUS "   Python_FOUND             : ${Python_FOUND}")
+    message(STATUS "   Python_EXECUTABLE        : ${Python_EXECUTABLE}")
+    message(STATUS "   Python_VERSION           : ${Python_VERSION}")
+    message(STATUS "   Python_SITELIB           : ${Python_SITELIB}")
+    message(STATUS "   Python_INCLUDE_DIRS      : ${Python_INCLUDE_DIRS}")
+    message(STATUS "   Python_LIBRARIES         : ${Python_LIBRARIES}")
+    message(STATUS "   Python_SOABI             : ${Python_SOABI}")
+    message(STATUS "   Python_NumPy_FOUND       : ${Python_NumPy_FOUND}")
+    message(STATUS "   Python_NumPy_VERSION     : ${Python_NumPy_VERSION}")
+    message(STATUS "   Python_NumPy_INCLUDE_DIRS: ${Python_NumPy_INCLUDE_DIRS}")
 endmacro()
 
 # Shortcut to find the nanobind package
@@ -1538,14 +1545,17 @@ macro(xxx_find_nanobind)
 
     xxx_find_package(nanobind ${ARGN})
 
-    message("   Nanobind CMake directory: ${nanobind_ROOT}")
+    message(STATUS "   Nanobind CMake directory: ${nanobind_ROOT}")
 
     # If you install nanobind with pip, it will include tsl-robin-map in <nanobind>/ext/robin_map
     # On macOS, brew install nanobind will not include tsl-robin-map, we need to install it via: brew install robin-map
     # Naturally, find_package(nanobind CONFIG REQUIRED) will succeed (nanobind_FOUND -> True), but the tsl-robin-map dependency will be missing, causing build errors.
     # So let's check if the headers are available, otherwise require tsl-robin-map explicitly.
     if(EXISTS "${nanobind_ROOT}/../ext/robin_map/include/tsl/robin_map.h")
-        message("   Nanobind's tsl-robin-map dependency found in '${nanobind_ROOT}/ext/robin_map'.")
+        message(
+            STATUS
+            "   Nanobind's tsl-robin-map dependency found in '${nanobind_ROOT}/ext/robin_map'."
+        )
     else()
         xxx_find_package(tsl-robin-map CONFIG REQUIRED)
     endif()
@@ -1706,6 +1716,7 @@ endfunction()
 function(xxx_python_compute_install_dir output)
     if(DEFINED ${PROJECT_NAME}_PYTHON_INSTALL_DIR)
         message(
+            STATUS
             "${PROJECT_NAME}_PYTHON_INSTALL_DIR is defined, using its value: ${${PROJECT_NAME}_PYTHON_INSTALL_DIR} as python install dir"
         )
         set(${output} ${${PROJECT_NAME}_PYTHON_INSTALL_DIR} PARENT_SCOPE)
@@ -1741,7 +1752,10 @@ function(xxx_python_compute_install_dir output)
 
     set(${output} "${relative_python_sitelib_wrt_python_root_dir}" PARENT_SCOPE)
 
-    message("Computed python install dir ${output}=${relative_python_sitelib_wrt_python_root_dir}")
+    message(
+        DEBUG
+        "Computed python install dir ${output}=${relative_python_sitelib_wrt_python_root_dir}"
+    )
 endfunction()
 
 # Check that the python module defined with NB_MODULE(<module_name>)
