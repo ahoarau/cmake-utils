@@ -1774,12 +1774,36 @@ endfunction()
 function(xxx_check_python_module_name target)
     xxx_check_target_exists(${target})
 
+    set(check_script_content
+        "
+message(DEBUG \"Checking Python module name for target '${target}'...\")
+file(STRINGS \"$<TARGET_FILE:${target}>\" target_content REGEX \"PyInit_([a-zA-Z0-9_]+)\" LIMIT_COUNT 1)
+string(REGEX MATCH \"PyInit_([a-zA-Z0-9_]+)\" _ \"\${target_content}\")
+if(NOT CMAKE_MATCH_1)
+    message(
+        FATAL_ERROR
+        \"Could not find PyInit function in module file: '$<TARGET_FILE:${target}>'. Is this a valid Python module?\"
+    )
+endif()
+
+if(NOT CMAKE_MATCH_1 STREQUAL \"${target}\")
+    message(
+        FATAL_ERROR
+        \"Module name mismatch for module file: '$<TARGET_FILE:${target}>'. Expected: '${target}', Detected: '\${CMAKE_MATCH_1}'\"
+    )
+endif()
+message(DEBUG \"Python module name check passed for '${target}'. Detected module name: '\${CMAKE_MATCH_1}'\")
+    "
+    )
+
+    set(generated_script_path "${CMAKE_CURRENT_BINARY_DIR}/${target}_check_pymod_name.cmake")
+
+    file(GENERATE OUTPUT "${generated_script_path}" CONTENT "${check_script_content}")
+
     add_custom_command(
         TARGET ${target}
         POST_BUILD
-        COMMAND
-            ${CMAKE_COMMAND} -DMODULE_FILE=$<TARGET_FILE:${target}> -DEXPECTED_MODULE_NAME=${target}
-            -P ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/CheckPythonModuleNameScript.cmake
+        COMMAND ${CMAKE_COMMAND} -P ${generated_script_path}
         COMMENT "Checking Python module name for ${target}"
         VERBATIM
     )
