@@ -1,4 +1,4 @@
-boostpy_add_module(test_project_pywrap_bp bindings.cpp)
+xxx_boostpy_add_module(test_project_pywrap_bp bindings.cpp)
 xxx_check_python_module_name(test_project_pywrap_bp)
 target_link_libraries(test_project_pywrap_bp PRIVATE test_project)
 xxx_target_set_default_compile_options(test_project_pywrap_bp PRIVATE)
@@ -9,7 +9,7 @@ xxx_python_generate_init_py(
     OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib/site-packages/test_project_bp/__init__.py
 )
 
-boostpy_add_stubs(
+xxx_boostpy_add_stubs(
     test_project_pywrap_bp_stubs
     MODULE test_project_bp.test_project_pywrap_bp
     OUTPUT ${CMAKE_BINARY_DIR}/lib/site-packages

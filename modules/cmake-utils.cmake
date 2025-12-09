@@ -13,7 +13,7 @@ function(_xxx_integrate_modules)
     # repo: https://github.com/DenizThatMenace/cmake-modules
     include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
 
-    # boostpy_add_module and boostpy_add_stubs
+    # xxx_boostpy_add_module and xxx_boostpy_add_stubs
     include(${utils_ROOT}/modules/BoostPython.cmake)
 
     include(${utils_ROOT}/modules/PrintSystemInfo.cmake)
