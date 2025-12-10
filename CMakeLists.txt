@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22...4.1)
+cmake_minimum_required(VERSION 3.22...4.2)
 project(jrl-cmakemodules-v2 VERSION 2.0.0)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/modules/jrl.cmake)
