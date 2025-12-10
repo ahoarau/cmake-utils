@@ -1,37 +1,37 @@
 cmake_minimum_required(VERSION 3.22...4.1)
 
-find_package(cmake-utils CONFIG REQUIRED)
+find_package(jrl-cmakemodules-v2 CONFIG REQUIRED)
 
 project(
     test_project
     VERSION 1.0.0
-    DESCRIPTION "A test project for cmake-utils"
+    DESCRIPTION "A test project for jrl-cmakemodules-v2"
     HOMEPAGE_URL "https://example.com/test_project"
     LANGUAGES CXX
 )
 
 # Configure default binary and install directories, build type, etc.
-xxx_configure_defaults()
+jrl_configure_defaults()
 
 # Declare options
-xxx_option(TEST_PROJECT_BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
-xxx_option(TEST_PROJECT_BUILD_TESTS "Build tests" ON)
+jrl_option(TEST_PROJECT_BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
+jrl_option(TEST_PROJECT_BUILD_TESTS "Build tests" ON)
 
 # Find dependencies
 if(TEST_PROJECT_BUILD_PYTHON_BINDINGS)
-    xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
-    xxx_find_nanobind(2.4.0 CONFIG REQUIRED)
+    jrl_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+    jrl_find_nanobind(2.4.0 CONFIG REQUIRED)
 
-    xxx_find_python(3.8 REQUIRED COMPONENTS Development.Module NumPy)
-    xxx_find_package(Boost CONFIG REQUIRED COMPONENTS python)
+    jrl_find_python(3.8 REQUIRED COMPONENTS Development.Module NumPy)
+    jrl_find_package(Boost CONFIG REQUIRED COMPONENTS python)
 endif()
 
 if(TEST_PROJECT_BUILD_PYTHON_BINDINGS AND TEST_PROJECT_BUILD_TESTS)
-    xxx_find_package(Pytest 8.0.0 REQUIRED)
+    jrl_find_package(Pytest 8.0.0 REQUIRED)
 endif()
 
 if(TEST_PROJECT_BUILD_TESTS)
-    xxx_find_package(Catch2 3.4.0 CONFIG REQUIRED)
+    jrl_find_package(Catch2 3.4.0 CONFIG REQUIRED)
     include(Catch)
 endif()
 
@@ -45,15 +45,15 @@ target_include_directories(
 target_compile_features(test_project PUBLIC cxx_std_17)
 
 # Set compile options
-xxx_target_set_default_compile_options(test_project PRIVATE)
-xxx_target_enforce_msvc_conformance(test_project PRIVATE)
-xxx_target_treat_all_warnings_as_errors(test_project PRIVATE)
+jrl_target_set_default_compile_options(test_project PRIVATE)
+jrl_target_enforce_msvc_conformance(test_project PRIVATE)
+jrl_target_treat_all_warnings_as_errors(test_project PRIVATE)
 
 # Generate utility headers
 set_target_properties(test_project PROPERTIES VERSION ${PROJECT_VERSION})
-xxx_target_generate_config_header(test_project PUBLIC)
-xxx_target_generate_warning_header(test_project PUBLIC)
-xxx_target_generate_deprecated_header(test_project PUBLIC)
+jrl_target_generate_config_header(test_project PUBLIC)
+jrl_target_generate_warning_header(test_project PUBLIC)
+jrl_target_generate_deprecated_header(test_project PUBLIC)
 
 # Python bindings
 if(TEST_PROJECT_BUILD_PYTHON_BINDINGS)
@@ -70,7 +70,7 @@ if(TEST_PROJECT_BUILD_TESTS)
 endif()
 
 # Declare headers for target
-xxx_target_headers(test_project PUBLIC
+jrl_target_headers(test_project PUBLIC
     HEADERS
         include/test_project/Math.hpp
     BASE_DIRS
@@ -78,11 +78,11 @@ xxx_target_headers(test_project PUBLIC
 )
 
 # Declare export components
-xxx_add_export_component(NAME test_project TARGETS test_project)
+jrl_add_export_component(NAME test_project TARGETS test_project)
 
 # Export the package files (headers, targets, config files, etc.)
-xxx_export_package()
+jrl_export_package()
 
 # Print summaries
-xxx_print_dependencies_summary()
-xxx_print_options_summary()
+jrl_print_dependencies_summary()
+jrl_print_options_summary()

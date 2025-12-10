@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22...4.1)
 
-function(_xxx_integrate_modules)
+function(_jrl_integrate_modules)
     set(utils_ROOT ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/..)
     cmake_path(CONVERT "${utils_ROOT}" TO_CMAKE_PATH_LIST utils_ROOT NORMALIZE)
 
@@ -13,13 +13,13 @@ function(_xxx_integrate_modules)
     # repo: https://github.com/DenizThatMenace/cmake-modules
     include(${utils_ROOT}/external-modules/boost-test/BoostTestDiscoverTests.cmake)
 
-    # xxx_boostpy_add_module and xxx_boostpy_add_stubs
+    # jrl_boostpy_add_module and jrl_boostpy_add_stubs
     include(${utils_ROOT}/modules/BoostPython.cmake)
 
     include(${utils_ROOT}/modules/PrintSystemInfo.cmake)
 endfunction()
 
-_xxx_integrate_modules()
+_jrl_integrate_modules()
 
 # Copy compile_commands.json from the binary dir to the upper source directory for clangd support
 function(copy_compile_commands_in_source_dir)
@@ -34,7 +34,7 @@ function(copy_compile_commands_in_source_dir)
 endfunction()
 
 # Launch the copy at the end of the configuration step
-function(xxx_configure_copy_compile_commands_in_source_dir)
+function(jrl_configure_copy_compile_commands_in_source_dir)
     cmake_language(DEFER DIRECTORY ${CMAKE_SOURCE_DIR} GET_CALL_IDS _ids)
     set(call_id 03e6a81d-6918-4da7-a4f4-a3dd74f61cef)
     if(NOT _ids OR NOT ${call_id} IN_LIST _ids)
@@ -50,10 +50,10 @@ function(xxx_configure_copy_compile_commands_in_source_dir)
     endif()
 endfunction()
 
-# Usage: xxx_check_var_defined(<var> [<message>])
-# Example: xxx_check_var_defined(MY_VAR "MY_VAR must be set to build this project")
-# Example: xxx_check_var_defined(MY_VAR) # Will print "MY_VAR is not defined."
-function(xxx_check_var_defined var)
+# Usage: jrl_check_var_defined(<var> [<message>])
+# Example: jrl_check_var_defined(MY_VAR "MY_VAR must be set to build this project")
+# Example: jrl_check_var_defined(MY_VAR) # Will print "MY_VAR is not defined."
+function(jrl_check_var_defined var)
     if(NOT DEFINED ${var})
         if(ARGC EQUAL 1)
             set(msg "Required variable '${ARGV0}' is not defined.")
@@ -65,13 +65,13 @@ function(xxx_check_var_defined var)
 endfunction()
 
 # Check if a target exists, otherwise raise a fatal error
-function(xxx_check_target_exists target_name)
+function(jrl_check_target_exists target_name)
     if(NOT TARGET ${target_name})
         message(FATAL_ERROR "Target '${target_name}' does not exist.")
     endif()
 endfunction()
 
-function(xxx_check_valid_visibility visibility)
+function(jrl_check_valid_visibility visibility)
     set(vs PRIVATE PUBLIC INTERFACE)
     if(NOT ${visibility} IN_LIST vs)
         message(
@@ -81,22 +81,22 @@ function(xxx_check_valid_visibility visibility)
     endif()
 endfunction()
 
-function(xxx_check_file_exists filepath)
+function(jrl_check_file_exists filepath)
     if(NOT EXISTS ${filepath})
         message(FATAL_ERROR "File '${filepath}' does not exist.")
     endif()
 endfunction()
 
 # Include CTest but simply prevent adding a lot of useless targets. Useful for IDEs.
-macro(xxx_include_ctest)
+macro(jrl_include_ctest)
     set_property(GLOBAL PROPERTY CTEST_TARGETS_ADDED 1)
     include(CTest)
 endmacro()
 
-# Usage: xxx_configure_default_build_type(<build_type>)
+# Usage: jrl_configure_default_build_type(<build_type>)
 # Usual values for <build_type> are: Debug, Release, MinSizeRel, RelWithDebInfo
-# Example: xxx_configure_default_build_type(RelWithDebInfo)
-function(xxx_configure_default_build_type build_type)
+# Example: jrl_configure_default_build_type(RelWithDebInfo)
+function(jrl_configure_default_build_type build_type)
     set(standard_build_types Debug Release MinSizeRel RelWithDebInfo)
     if(NOT build_type IN_LIST standard_build_types)
         message(
@@ -114,7 +114,7 @@ function(xxx_configure_default_build_type build_type)
 endfunction()
 
 # Configures the default output directory for binaries and libraries
-function(xxx_configure_default_binary_dirs)
+function(jrl_configure_default_binary_dirs)
     # doc: https://cmake.org/cmake/help/v3.22/manual/cmake-buildsystem.7.html#id47
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin CACHE PATH "") # For Unix/MacOS executables, Windows: .exe, .dll, .pyd
     set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib CACHE PATH "") # for Unix/MacOS shared libraries .so/.dylib and Windows: .lib (import libraries for shared libraries)
@@ -130,13 +130,13 @@ function(xxx_configure_default_binary_dirs)
     endforeach()
 endfunction()
 
-function(xxx_target_set_output_directory target_name)
+function(jrl_target_set_output_directory target_name)
     set(options)
     set(oneValueArgs OUTPUT_DIRECTORY)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-    xxx_check_target_exists(${target_name})
-    xxx_check_var_defined(arg_OUTPUT_DIRECTORY)
+    jrl_check_target_exists(${target_name})
+    jrl_check_var_defined(arg_OUTPUT_DIRECTORY)
 
     set(dir ${arg_OUTPUT_DIRECTORY})
 
@@ -162,12 +162,12 @@ endfunction()
 
 # Configures the default install directories using GNUInstallDirs (bin, lib, include, etc.)
 # Works on all platforms
-function(xxx_configure_default_install_dirs)
+function(jrl_configure_default_install_dirs)
     include(GNUInstallDirs)
 endfunction()
 
 # If not provided by the user, set a default CMAKE_INSTALL_PREFIX. Useful for IDEs.
-function(xxx_configure_default_install_prefix default_install_prefix)
+function(jrl_configure_default_install_prefix default_install_prefix)
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
         message(STATUS "Setting default install prefix to '${default_install_prefix}'")
         set(CMAKE_INSTALL_PREFIX
@@ -181,23 +181,23 @@ function(xxx_configure_default_install_prefix default_install_prefix)
 endfunction()
 
 # Setup the default options for a project (opinionated defaults)
-# Usage : xxx_configure_defaults()
-function(xxx_configure_defaults)
-    xxx_configure_default_build_type(Release)
-    xxx_configure_default_binary_dirs()
-    xxx_configure_default_install_dirs()
-    xxx_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)
-    xxx_configure_copy_compile_commands_in_source_dir()
+# Usage : jrl_configure_defaults()
+function(jrl_configure_defaults)
+    jrl_configure_default_build_type(Release)
+    jrl_configure_default_binary_dirs()
+    jrl_configure_default_install_dirs()
+    jrl_configure_default_install_prefix(${CMAKE_BINARY_DIR}/install)
+    jrl_configure_copy_compile_commands_in_source_dir()
 endfunction()
 
 # Enable the most common warnings for MSVC, GCC and Clang
 # Adding some extra warning on msvc to mimic gcc/clang behavior
-# Usage: xxx_target_set_default_compile_options(<target_name> <visibility>)
+# Usage: jrl_target_set_default_compile_options(<target_name> <visibility>)
 # visibility is either PRIVATE, PUBLIC or INTERFACE
-# Example: xxx_target_set_default_compile_options(my_target INTERFACE)
-function(xxx_target_set_default_compile_options target_name visibility)
-    xxx_check_target_exists(${target_name})
-    xxx_check_valid_visibility(${visibility})
+# Example: jrl_target_set_default_compile_options(my_target INTERFACE)
+function(jrl_target_set_default_compile_options target_name visibility)
+    jrl_check_target_exists(${target_name})
+    jrl_check_valid_visibility(${visibility})
 
     # In CMake >= 3.26, use CMAKE_CXX_COMPILER_FRONTEND_VARIANT
     # ref: https://cmake.org/cmake/help/latest/variable/CMAKE_LANG_COMPILER_FRONTEND_VARIANT.html
@@ -240,11 +240,11 @@ function(xxx_target_set_default_compile_options target_name visibility)
 endfunction()
 
 # Description: Enforce MSVC c++ conformance mode so msvc behaves more like gcc and clang
-# Usage: xxx_target_enforce_msvc_conformance(<target_name> <visibility>)
+# Usage: jrl_target_enforce_msvc_conformance(<target_name> <visibility>)
 # visibility is either PRIVATE, PUBLIC or INTERFACE
-# Example: xxx_target_enforce_msvc_conformance(my_target INTERFACE)
-function(xxx_target_enforce_msvc_conformance target_name visibility)
-    xxx_check_valid_visibility(${visibility})
+# Example: jrl_target_enforce_msvc_conformance(my_target INTERFACE)
+function(jrl_target_enforce_msvc_conformance target_name visibility)
+    jrl_check_valid_visibility(${visibility})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
@@ -267,12 +267,12 @@ endfunction()
 # Description: Treat all warnings as errors for a targets (/WX for MSVC, -Werror for GCC/Clang)
 # Can be disabled by on the cmake cli with --compile-no-warning-as-error
 # ref: https://cmake.org/cmake/help/latest/manual/cmake.1.html#cmdoption-cmake-compile-no-warning-as-error
-# Usage: xxx_target_treat_all_warnings_as_errors(<target_name> <visibility>)
+# Usage: jrl_target_treat_all_warnings_as_errors(<target_name> <visibility>)
 # visibility is either PRIVATE, PUBLIC or INTERFACE
-# Example: xxx_target_treat_all_warnings_as_errors(my_target PRIVATE)
+# Example: jrl_target_treat_all_warnings_as_errors(my_target PRIVATE)
 # NOTE: in CMake 3.24, we have the new CMAKE_COMPILE_WARNING_AS_ERROR option, but for the whole project and subprojects
-function(xxx_target_treat_all_warnings_as_errors target_name visibility)
-    xxx_check_valid_visibility(${visibility})
+function(jrl_target_treat_all_warnings_as_errors target_name visibility)
+    jrl_check_valid_visibility(${visibility})
 
     if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
         set(CMAKE_CXX_COMPILER_ID "MSVC")
@@ -294,7 +294,7 @@ function(xxx_target_treat_all_warnings_as_errors target_name visibility)
     endif()
 endfunction()
 
-function(xxx_make_valid_c_identifier INPUT OUTPUT_VAR)
+function(jrl_make_valid_c_identifier INPUT OUTPUT_VAR)
     # 1. Replace all non-alphanumeric and non-underscore characters with underscores
     # 2. If it starts with a digit, prefix with underscore
     # 3. Optionally collapse multiple consecutive underscores
@@ -312,7 +312,7 @@ function(xxx_make_valid_c_identifier INPUT OUTPUT_VAR)
     set(${OUTPUT_VAR} "${CLEAN}" PARENT_SCOPE)
 endfunction()
 
-function(xxx_target_generate_header target_name visibility)
+function(jrl_target_generate_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs
         FILENAME
@@ -324,16 +324,16 @@ function(xxx_target_generate_header target_name visibility)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(PROJECT_NAME)
-    xxx_check_var_defined(CMAKE_CURRENT_BINARY_DIR)
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_check_target_exists(${target_name})
-    xxx_check_valid_visibility(${visibility})
+    jrl_check_var_defined(PROJECT_NAME)
+    jrl_check_var_defined(CMAKE_CURRENT_BINARY_DIR)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_target_exists(${target_name})
+    jrl_check_valid_visibility(${visibility})
 
-    xxx_check_var_defined(arg_FILENAME)
-    xxx_check_var_defined(arg_HEADER_DIR)
-    xxx_check_var_defined(arg_TEMPLATE_FILE)
-    xxx_check_var_defined(arg_INSTALL_DESTINATION)
+    jrl_check_var_defined(arg_FILENAME)
+    jrl_check_var_defined(arg_HEADER_DIR)
+    jrl_check_var_defined(arg_TEMPLATE_FILE)
+    jrl_check_var_defined(arg_INSTALL_DESTINATION)
 
     if(NOT EXISTS ${arg_TEMPLATE_FILE})
         message(FATAL_ERROR "Input file ${arg_TEMPLATE_FILE} does not exist.")
@@ -341,7 +341,7 @@ function(xxx_target_generate_header target_name visibility)
 
     set(output_file ${arg_HEADER_DIR}/${arg_FILENAME})
 
-    xxx_make_valid_c_identifier(${target_name} LIBRARY_NAME)
+    jrl_make_valid_c_identifier(${target_name} LIBRARY_NAME)
 
     # We need to define LIBRARY_NAME_UPPERCASE, TARGET_NAME, TARGET_VERSION, TARGET_VERSION_MAJOR, TARGET_VERSION_MINOR, TARGET_VERSION_PATCH
     string(TOUPPER ${LIBRARY_NAME} LIBRARY_NAME_UPPERCASE)
@@ -377,16 +377,16 @@ function(xxx_target_generate_header target_name visibility)
         return()
     endif()
 
-    xxx_target_headers(${target_name} ${visibility} HEADERS ${output_file} BASE_DIRS ${arg_HEADER_DIR})
+    jrl_target_headers(${target_name} ${visibility} HEADERS ${output_file} BASE_DIRS ${arg_HEADER_DIR})
 endfunction()
 
-function(xxx_target_generate_warning_header target_name visibility)
+function(jrl_target_generate_warning_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/warning.hpp)
     if(arg_FILENAME)
@@ -408,7 +408,7 @@ function(xxx_target_generate_warning_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility}
+    jrl_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/warning.hpp.in
@@ -418,13 +418,13 @@ function(xxx_target_generate_warning_header target_name visibility)
     )
 endfunction()
 
-function(xxx_target_generate_deprecated_header target_name visibility)
+function(jrl_target_generate_deprecated_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     set(filename ${target_name}/deprecated.hpp)
     if(arg_FILENAME)
@@ -446,7 +446,7 @@ function(xxx_target_generate_deprecated_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility}
+    jrl_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/deprecated.hpp.in
@@ -456,17 +456,17 @@ function(xxx_target_generate_deprecated_header target_name visibility)
     )
 endfunction()
 
-function(xxx_target_generate_config_header target_name visibility)
+function(jrl_target_generate_config_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION VERSION)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_check_var_defined(PROJECT_VERSION)
-    xxx_check_var_defined(PROJECT_VERSION_MAJOR)
-    xxx_check_var_defined(PROJECT_VERSION_MINOR)
-    xxx_check_var_defined(PROJECT_VERSION_PATCH)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_var_defined(PROJECT_VERSION)
+    jrl_check_var_defined(PROJECT_VERSION_MAJOR)
+    jrl_check_var_defined(PROJECT_VERSION_MINOR)
+    jrl_check_var_defined(PROJECT_VERSION_PATCH)
 
     set(filename ${target_name}/config.hpp)
     if(arg_FILENAME)
@@ -488,7 +488,7 @@ function(xxx_target_generate_config_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility}
+    jrl_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/config.hpp.in
@@ -498,17 +498,17 @@ function(xxx_target_generate_config_header target_name visibility)
     )
 endfunction()
 
-function(xxx_target_generate_tracy_header target_name visibility)
+function(jrl_target_generate_tracy_header target_name visibility)
     set(options SKIP_INSTALL)
     set(oneValueArgs FILENAME HEADER_DIR INSTALL_DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
-    xxx_check_var_defined(PROJECT_VERSION)
-    xxx_check_var_defined(PROJECT_VERSION_MAJOR)
-    xxx_check_var_defined(PROJECT_VERSION_MINOR)
-    xxx_check_var_defined(PROJECT_VERSION_PATCH)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_var_defined(PROJECT_VERSION)
+    jrl_check_var_defined(PROJECT_VERSION_MAJOR)
+    jrl_check_var_defined(PROJECT_VERSION_MINOR)
+    jrl_check_var_defined(PROJECT_VERSION_PATCH)
 
     set(filename ${target_name}/tracy.hpp)
     if(arg_FILENAME)
@@ -530,7 +530,7 @@ function(xxx_target_generate_tracy_header target_name visibility)
         set(skip_install SKIP_INSTALL)
     endif()
 
-    xxx_target_generate_header(${target_name} ${visibility}
+    jrl_target_generate_header(${target_name} ${visibility}
         FILENAME ${filename}
         HEADER_DIR ${header_dir}
         TEMPLATE_FILE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../templates/tracy.hpp.in
@@ -542,7 +542,7 @@ endfunction()
 
 # This function searches for a find module named Find<package>.cmake).
 # It iterates over the CMAKE_MODULE_PATH and cmake builtin modules.
-function(xxx_search_package_module_file package_name output_filepath)
+function(jrl_search_package_module_file package_name output_filepath)
     set(module_filename "Find${package_name}.cmake")
     set(found_module_file "")
     # QUESTION: Should we look into cmake builtin modules?
@@ -562,19 +562,19 @@ function(xxx_search_package_module_file package_name output_filepath)
     set(${output_filepath} ${found_module_file} PARENT_SCOPE)
 endfunction()
 
-# Usage: xxx_find_package(<package> [version] [REQUIRED] [COMPONENTS ...] MODULE_PATH <path_to_find_module>)
+# Usage: jrl_find_package(<package> [version] [REQUIRED] [COMPONENTS ...] MODULE_PATH <path_to_find_module>)
 # ref: https://cmake.org/cmake/help/latest/command/find_package.html
 # This function allows to automatically retrieve the imported targets provided by the package
 # and store info in global properties for later use (e.g. when exporting dependencies)
 # Note: this needs to be a macro so find_package can leak variables (like Python_SITELIB)
-macro(xxx_find_package)
+macro(jrl_find_package)
     set(options)
     set(oneValueArgs MODULE_PATH)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
     message(STATUS "[${ARGV0}]")
-    message(DEBUG "Executing xxx_find_package with args ${ARGV}")
+    message(DEBUG "Executing jrl_find_package with args ${ARGV}")
 
     # Pkg name is the first argument of find_package(<pkg_name> ...)
     set(package_name ${ARGV0})
@@ -592,7 +592,7 @@ macro(xxx_find_package)
     else()
         # search for the module file only is CONFIG is not in the find_package args
         if(NOT "CONFIG" IN_LIST find_package_args)
-            xxx_search_package_module_file(${package_name} module_file)
+            jrl_search_package_module_file(${package_name} module_file)
         endif()
     endif()
 
@@ -654,7 +654,7 @@ macro(xxx_find_package)
         message(STATUS "   No imported targets detected.")
     endif()
 
-    get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
+    get_property(deps GLOBAL PROPERTY _jrl_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
         string(JSON deps SET "{}" "package_dependencies" "[]")
     endif()
@@ -669,7 +669,7 @@ macro(xxx_find_package)
     string(JSON deps_length LENGTH "${deps}" "package_dependencies")
     string(JSON deps SET "${deps}" "package_dependencies" ${deps_length} "${package_json}")
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies "${deps}")
+    set_property(GLOBAL PROPERTY _jrl_${PROJECT_NAME}_package_dependencies "${deps}")
 
     unset(package_targets)
     unset(package_targets_pp)
@@ -683,18 +683,18 @@ macro(xxx_find_package)
     unset(deps_length)
 endmacro()
 
-# xxx_print_dependencies_summary()
-# Print a summary of all dependencies found via xxx_find_package, and some properties of their imported targets.
-function(xxx_print_dependencies_summary)
+# jrl_print_dependencies_summary()
+# Print a summary of all dependencies found via jrl_find_package, and some properties of their imported targets.
+function(jrl_print_dependencies_summary)
     set(log_msg "")
 
     macro(_log msg)
         string(APPEND log_msg "${msg}\n")
     endmacro()
 
-    get_property(deps GLOBAL PROPERTY _xxx_${PROJECT_NAME}_package_dependencies)
+    get_property(deps GLOBAL PROPERTY _jrl_${PROJECT_NAME}_package_dependencies)
     if(NOT deps)
-        message(STATUS "No dependencies found via xxx_find_package.")
+        message(STATUS "No dependencies found via jrl_find_package.")
         return()
     endif()
 
@@ -704,7 +704,7 @@ function(xxx_print_dependencies_summary)
 
     string(JSON num_deps LENGTH "${deps}" "package_dependencies")
     math(EXPR max_idx "${num_deps} - 1")
-    _log("${num_deps} dependencies declared xxx_find_package: ")
+    _log("${num_deps} dependencies declared jrl_find_package: ")
     foreach(i RANGE 0 ${max_idx})
         string(JSON package_name GET "${deps}" "package_dependencies" ${i} "package_name")
         string(JSON package_targets GET "${deps}" "package_dependencies" ${i} "package_targets")
@@ -718,7 +718,7 @@ function(xxx_print_dependencies_summary)
         if(package_targets STREQUAL "")
             continue()
         endif()
-        xxx_cmake_print_properties(
+        jrl_cmake_print_properties(
             TARGETS ${package_targets}
             OUTPUT_VARIABLE props_msg
             PROPERTIES
@@ -749,11 +749,11 @@ function(xxx_print_dependencies_summary)
     message(STATUS "${log_msg}")
 endfunction()
 
-# xxx_cmake_print_properties
-# Usage: xxx_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>] [OUTPUT_VARIABLE <var_name>])
+# jrl_cmake_print_properties
+# Usage: jrl_cmake_print_properties(<mode> <items> PROPERTIES <property1> <property2> ... [VERBOSITY <verbosity_level>] [OUTPUT_VARIABLE <var_name>])
 # This is taken and adapted from cmake's own cmake_print_properties function to add verbosity control and print only found properties.
 # If OUTPUT_VARIABLE is provided, the output will be stored in the variable instead of printed to the console.
-function(xxx_cmake_print_properties)
+function(jrl_cmake_print_properties)
     set(options)
     set(oneValueArgs VERBOSITY OUTPUT_VARIABLE)
     set(cpp_multiValueArgs PROPERTIES)
@@ -767,7 +767,7 @@ function(xxx_cmake_print_properties)
 
     string(JOIN " " _mode_names ${cppmode_multiValueArgs})
     set(_missing_mode_message
-        "Mode keyword missing in xxx_cmake_print_properties() call, there must be exactly one of ${_mode_names}"
+        "Mode keyword missing in jrl_cmake_print_properties() call, there must be exactly one of ${_mode_names}"
     )
 
     cmake_parse_arguments(CPP "${options}" "${oneValueArgs}" "${cpp_multiValueArgs}" ${ARGN})
@@ -775,7 +775,7 @@ function(xxx_cmake_print_properties)
     if(NOT CPP_PROPERTIES)
         message(
             FATAL_ERROR
-            "Required argument PROPERTIES missing in xxx_cmake_print_properties() call"
+            "Required argument PROPERTIES missing in jrl_cmake_print_properties() call"
         )
         return()
     endif()
@@ -892,16 +892,16 @@ function(xxx_cmake_print_properties)
     endif()
 endfunction()
 
-# Usage: xxx_export_dependencies(TARGETS [target1...] GEN_DIR <gen_dir> INSTALL_DESTINATION <destination>)
+# Usage: jrl_export_dependencies(TARGETS [target1...] GEN_DIR <gen_dir> INSTALL_DESTINATION <destination>)
 # This function analyzes the link libraries of the provided targets,
 # determines which packages are needed and generates a <export_name>-dependencies.cmake file
-function(xxx_export_dependencies)
+function(jrl_export_dependencies)
     set(options)
     set(oneValueArgs INSTALL_DESTINATION GEN_DIR)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(arg_TARGETS)
+    jrl_check_var_defined(arg_TARGETS)
 
     if(arg_GEN_DIR)
         set(GEN_DIR ${arg_GEN_DIR})
@@ -962,17 +962,17 @@ function(xxx_export_dependencies)
     get_property(
         package_dependencies_json_content
         GLOBAL
-        PROPERTY _xxx_${PROJECT_NAME}_package_dependencies
+        PROPERTY _jrl_${PROJECT_NAME}_package_dependencies
     )
     if(all_imported_libraries AND NOT package_dependencies_json_content)
         message(
             FATAL_ERROR
-            "Imported libraries found, but no package dependencies recorded with xxx_find_package()"
+            "Imported libraries found, but no package dependencies recorded with jrl_find_package()"
         )
     endif()
 
     if(NOT package_dependencies_json_content)
-        message(DEBUG "No package dependencies recorded with xxx_find_package()")
+        message(DEBUG "No package dependencies recorded with jrl_find_package()")
     endif()
 
     file(
@@ -998,23 +998,23 @@ set(buildsystem_targets [[${buildsystem_targets}]])
     install(SCRIPT ${GEN_DIR}/generate-dependencies.cmake)
 endfunction()
 
-# xxx_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
+# jrl_add_export_component(NAME <component_name> TARGETS <target1> <target2> ...)
 # Add an export component with associated targets that will be exported as a CMake package component.
 # Each export component will have its own <package>-component-<name>-targets.cmake
 # and <package>-component-<name>-dependencies.cmake generated.
 # Components are used with: find_package(<package> CONFIG REQUIRED COMPONENTS <component1> <component2> ...)
-function(xxx_add_export_component)
+function(jrl_add_export_component)
     set(options)
     set(oneValueArgs NAME)
     set(multiValueArgs TARGETS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(PROJECT_NAME)
-    xxx_check_var_defined(arg_TARGETS)
-    xxx_check_var_defined(arg_NAME)
+    jrl_check_var_defined(PROJECT_NAME)
+    jrl_check_var_defined(arg_TARGETS)
+    jrl_check_var_defined(arg_NAME)
 
     # Check export component is not already declared
-    get_property(existing_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
+    get_property(existing_components GLOBAL PROPERTY _jrl_${PROJECT_NAME}_export_components)
     if(${arg_NAME} IN_LIST existing_components)
         message(
             FATAL_ERROR
@@ -1024,7 +1024,7 @@ function(xxx_add_export_component)
 
     # Check if target is already in an export component
     foreach(component ${existing_components})
-        get_property(component_targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
+        get_property(component_targets GLOBAL PROPERTY _jrl_${PROJECT_NAME}_${component}_targets)
         foreach(target ${arg_TARGETS})
             if(${target} IN_LIST component_targets)
                 message(
@@ -1041,17 +1041,17 @@ function(xxx_add_export_component)
     )
 
     # This option associates the installed target files with an export, without installing anything.
-    # TODO: Declare exports first like that, split the xxx_export_package() with a generation and an install step.
+    # TODO: Declare exports first like that, split the jrl_export_package() with a generation and an install step.
     # install(TARGETS ${arg_TARGETS} EXPORT ${PROJECT_NAME}-${arg_NAME})
 
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components ${arg_NAME} APPEND)
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
+    set_property(GLOBAL PROPERTY _jrl_${PROJECT_NAME}_export_components ${arg_NAME} APPEND)
+    set_property(GLOBAL PROPERTY _jrl_${PROJECT_NAME}_${arg_NAME}_targets ${arg_TARGETS})
 endfunction()
 
-# xxx_contains_generator_expressions(<input_string> <output_var>)
+# jrl_contains_generator_expressions(<input_string> <output_var>)
 # Check if the provided string contains generator expressions.
 # Sets output_var to True or False.
-function(xxx_contains_generator_expressions input_string output_var)
+function(jrl_contains_generator_expressions input_string output_var)
     string(GENEX_STRIP "${input_string}" stripped_string)
     if(stripped_string STREQUAL input_string)
         set(${output_var} False PARENT_SCOPE)
@@ -1060,23 +1060,23 @@ function(xxx_contains_generator_expressions input_string output_var)
     endif()
 endfunction()
 
-# xxx_target_headers(<target>
+# jrl_target_headers(<target>
 #   HEADERS <list_of_headers>
 #   BASE_DIRS <list_of_base_dirs> # Optional, default is empty
 # )
 # Declare headers for target (to be installed later)
-# This will populate the _xxx_install_headers and _xxx_install_headers_base_dirs properties of the target.
+# This will populate the _jrl_install_headers and _jrl_install_headers_base_dirs properties of the target.
 # In CMake 3.23, we will use FILE_SETS instead of this trick.
 # cf: https://cmake.org/cmake/help/latest/command/target_sources.html#file-sets
-function(xxx_target_headers target visibility)
+function(jrl_target_headers target visibility)
     set(options)
     set(oneValueArgs GENERATED_DIR)
     set(multiValueArgs HEADERS BASE_DIRS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(arg_HEADERS)
-    xxx_check_target_exists(${target})
-    xxx_check_valid_visibility(${visibility})
+    jrl_check_var_defined(arg_HEADERS)
+    jrl_check_target_exists(${target})
+    jrl_check_valid_visibility(${visibility})
 
     if(NOT arg_BASE_DIRS)
         set(arg_BASE_DIRS "")
@@ -1085,23 +1085,23 @@ function(xxx_target_headers target visibility)
     # Save the headers in a property of the target
     # NOTE: The PUBLIC_HEADER technically works, but does not support base_dirs
     # cf: https://cmake.org/cmake/help/latest/command/install.html#install
-    set_property(TARGET ${target} APPEND PROPERTY _xxx_install_headers "${arg_HEADERS}")
-    set_property(TARGET ${target} APPEND PROPERTY _xxx_install_headers_base_dirs "${arg_BASE_DIRS}")
+    set_property(TARGET ${target} APPEND PROPERTY _jrl_install_headers "${arg_HEADERS}")
+    set_property(TARGET ${target} APPEND PROPERTY _jrl_install_headers_base_dirs "${arg_BASE_DIRS}")
 endfunction()
 
-# xxx_target_install_headers(<target>
+# jrl_target_install_headers(<target>
 #   DESTINATION <destination> # Optional, default is CMAKE_INSTALL_INCLUDEDIR
 # )
 # Install declared header for a given target and solve the relative path using the provided base dirs.
-# It is using the _xxx_install_headers and _xxx_install_headers_base_dirs properties set via xxx_target_headers().
-# For a whole project, use xxx_install_headers() instead (which calls this function for each component, that contains targets).
-function(xxx_target_install_headers target)
+# It is using the _jrl_install_headers and _jrl_install_headers_base_dirs properties set via jrl_target_headers().
+# For a whole project, use jrl_install_headers() instead (which calls this function for each component, that contains targets).
+function(jrl_target_install_headers target)
     set(options)
     set(oneValueArgs DESTINATION)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_target_exists(${target})
+    jrl_check_target_exists(${target})
 
     if(NOT arg_DESTINATION)
         set(install_destination ${CMAKE_INSTALL_INCLUDEDIR})
@@ -1109,8 +1109,8 @@ function(xxx_target_install_headers target)
         set(install_destination ${arg_DESTINATION})
     endif()
 
-    get_target_property(headers ${target} _xxx_install_headers)
-    get_target_property(base_dirs ${target} _xxx_install_headers_base_dirs)
+    get_target_property(headers ${target} _jrl_install_headers)
+    get_target_property(base_dirs ${target} _jrl_install_headers_base_dirs)
 
     if(NOT headers)
         message(DEBUG "No headers declared for target '${target}'. Skipping installation.")
@@ -1158,19 +1158,19 @@ endforeach()
     )
 endfunction()
 
-# xxx_install_headers(
+# jrl_install_headers(
 #   DESTINATION <destination> # Optional, default is CMAKE_INSTALL_INCLUDEDIR
 #   COMPONENTS <component1> <component2> ... # Optional, default is all declared components
 # )
 # For each component, install declared headers for all targets.
-# See xxx_target_headers() to declare headers for a target.
-function(xxx_install_headers)
+# See jrl_target_headers() to declare headers for a target.
+function(jrl_install_headers)
     set(options)
     set(oneValueArgs DESTINATION)
     set(multiValueArgs COMPONENTS)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(PROJECT_NAME)
+    jrl_check_var_defined(PROJECT_NAME)
 
     if(arg_UNPARSED_ARGUMENTS)
         message(FATAL_ERROR "Unrecognized arguments: ${arg_UNPARSED_ARGUMENTS}")
@@ -1182,7 +1182,7 @@ function(xxx_install_headers)
         set(install_destination ${arg_DESTINATION})
     endif()
 
-    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
+    get_property(declared_components GLOBAL PROPERTY _jrl_${PROJECT_NAME}_export_components)
 
     set(components "")
     if(arg_COMPONENTS)
@@ -1191,7 +1191,7 @@ function(xxx_install_headers)
         if(NOT declared_components)
             message(
                 FATAL_ERROR
-                "No export components declared for project '${PROJECT_NAME}'. Cannot install headers. Use xxx_add_export_component() first."
+                "No export components declared for project '${PROJECT_NAME}'. Cannot install headers. Use jrl_add_export_component() first."
             )
         endif()
         set(components ${declared_components})
@@ -1209,7 +1209,7 @@ function(xxx_install_headers)
             )
         endif()
 
-        get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
+        get_property(targets GLOBAL PROPERTY _jrl_${PROJECT_NAME}_${component}_targets)
         if(NOT targets)
             message(WARNING "No targets found for component '${component}'. Skipping.")
             continue()
@@ -1220,12 +1220,12 @@ function(xxx_install_headers)
                 STATUS
                 "Installing headers for target '${target}' of component '${component}' to '${install_destination}'"
             )
-            xxx_target_install_headers(${target} DESTINATION ${install_destination})
+            jrl_target_install_headers(${target} DESTINATION ${install_destination})
         endforeach()
     endforeach()
 endfunction()
 
-# xxx_export_package()
+# jrl_export_package()
 # Export the CMake package with all its components (targets, headers, package modules, etc.)
 # Generates and installs CMake package configuration files:
 #  - <INSTALL_DIR>/<package>/<package>-config.cmake
@@ -1235,7 +1235,7 @@ endfunction()
 #  - <INSTALL_DIR>/<package>/<package>/<componentB>/targets.cmake
 #  - <INSTALL_DIR>/<package>/<package>/<componentB>/dependencies.cmake
 # NOTE: This is for CMake package export only. Python bindings are handled separately.
-function(xxx_export_package)
+function(jrl_export_package)
     set(options)
     set(oneValueArgs PACKAGE_CONFIG_TEMPLATE CMAKE_FILES_INSTALL_DIR PACKAGE_CONFIG_EXTRA_CONTENT)
     set(multiValueArgs)
@@ -1244,11 +1244,11 @@ function(xxx_export_package)
     message(STATUS "[${PROJECT_NAME}] Exporting package (${CMAKE_CURRENT_FUNCTION})")
 
     include(CMakePackageConfigHelpers)
-    xxx_check_var_defined(PROJECT_NAME)
-    xxx_check_var_defined(PROJECT_VERSION)
-    xxx_check_var_defined(CMAKE_INSTALL_BINDIR)
-    xxx_check_var_defined(CMAKE_INSTALL_LIBDIR)
-    xxx_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
+    jrl_check_var_defined(PROJECT_NAME)
+    jrl_check_var_defined(PROJECT_VERSION)
+    jrl_check_var_defined(CMAKE_INSTALL_BINDIR)
+    jrl_check_var_defined(CMAKE_INSTALL_LIBDIR)
+    jrl_check_var_defined(CMAKE_INSTALL_INCLUDEDIR)
 
     if(arg_PACKAGE_CONFIG_TEMPLATE)
         set(PACKAGE_CONFIG_TEMPLATE ${arg_PACKAGE_CONFIG_TEMPLATE})
@@ -1277,20 +1277,20 @@ function(xxx_export_package)
     set(NO_SET_AND_CHECK_MACRO "NO_SET_AND_CHECK_MACRO")
     set(NO_CHECK_REQUIRED_COMPONENTS_MACRO "NO_CHECK_REQUIRED_COMPONENTS_MACRO")
 
-    # Dump package dependencies recorded with xxx_find_package()
-    xxx_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
+    # Dump package dependencies recorded with jrl_find_package()
+    jrl_dump_package_dependencies_json(${GEN_DIR}/${PROJECT_NAME}-package-dependencies.json)
 
     # Get declared export components
-    get_property(declared_components GLOBAL PROPERTY _xxx_${PROJECT_NAME}_export_components)
+    get_property(declared_components GLOBAL PROPERTY _jrl_${PROJECT_NAME}_export_components)
     if(using_default_template AND NOT declared_components)
         message(
             FATAL_ERROR
             "No export component declared for project '${PROJECT_NAME}'.
         The default config-components.cmake.in template requires at least one export component.
         Either add export-components via:
-            xxx_add_export_component(NAME <comp_name> TARGETS [target1...])
+            jrl_add_export_component(NAME <comp_name> TARGETS [target1...])
         Or provide your own config template:
-            xxx_export_package(PACKAGE_CONFIG_TEMPLATE <config-template.cmake.in>)
+            jrl_export_package(PACKAGE_CONFIG_TEMPLATE <config-template.cmake.in>)
         "
         )
     endif()
@@ -1320,12 +1320,12 @@ function(xxx_export_package)
     foreach(component ${declared_components})
         message(STATUS "Generating cmake module files for component '${component}'")
 
-        get_property(targets GLOBAL PROPERTY _xxx_${PROJECT_NAME}_${component}_targets)
+        get_property(targets GLOBAL PROPERTY _jrl_${PROJECT_NAME}_${component}_targets)
 
-        xxx_target_install_headers(${targets} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+        jrl_target_install_headers(${targets} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
         # <package>/<component>/dependencies.cmake
-        xxx_export_dependencies(
+        jrl_export_dependencies(
             TARGETS ${targets}
             GEN_DIR ${GEN_DIR}/${component}
             INSTALL_DESTINATION ${CMAKE_FILES_INSTALL_DIR}/${component}
@@ -1349,28 +1349,28 @@ function(xxx_export_package)
     endforeach()
 endfunction()
 
-# xxx_dump_package_dependencies_json()
-# Internal function to dump the package dependencies recorded with xxx_find_package()
+# jrl_dump_package_dependencies_json()
+# Internal function to dump the package dependencies recorded with jrl_find_package()
 # It is called at the end of the configuration step via cmake_language(DEFER CALL ...)
-# In the function xxx_export_package().
-function(xxx_dump_package_dependencies_json output)
+# In the function jrl_export_package().
+function(jrl_dump_package_dependencies_json output)
     get_property(
         package_dependencies_json
         GLOBAL
-        PROPERTY _xxx_${PROJECT_NAME}_package_dependencies
+        PROPERTY _jrl_${PROJECT_NAME}_package_dependencies
     )
     if(NOT package_dependencies_json)
-        message(STATUS "No package dependencies recorded with xxx_find_package()")
+        message(STATUS "No package dependencies recorded with jrl_find_package()")
         return()
     endif()
     message(STATUS "[${PROJECT_NAME}] Dumping package dependencies JSON to ${output}")
     file(WRITE ${output} "${package_dependencies_json}")
 endfunction()
 
-# xxx_option(<option_name> <description> <default_value>)
-# Example: xxx_option(BUILD_TESTING "Build the tests" ON)
+# jrl_option(<option_name> <description> <default_value>)
+# Example: jrl_option(BUILD_TESTING "Build the tests" ON)
 # Override cmake option() to get a nice summary at the end of the configuration step
-function(xxx_option option_name description default_value)
+function(jrl_option option_name description default_value)
     set(options)
     set(oneValueArgs COMPATIBILITY_OPTION)
     set(multiValueArgs)
@@ -1382,7 +1382,7 @@ function(xxx_option option_name description default_value)
         set_property(
             GLOBAL
             PROPERTY
-                _xxx_${PROJECT_NAME}_option_${option_name}_compat_option ${arg_COMPATIBILITY_OPTION}
+                _jrl_${PROJECT_NAME}_option_${option_name}_compat_option ${arg_COMPATIBILITY_OPTION}
         )
         if(DEFINED ${arg_COMPATIBILITY_OPTION})
             message(
@@ -1395,13 +1395,13 @@ function(xxx_option option_name description default_value)
 
     set_property(
         GLOBAL
-        PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
+        PROPERTY _jrl_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
     )
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
+    set_property(GLOBAL PROPERTY _jrl_${PROJECT_NAME}_option_names ${option_name} APPEND)
 endfunction()
 
 function(
-    xxx_cmake_dependent_option
+    jrl_cmake_dependent_option
     option_name
     description
     default_value
@@ -1413,9 +1413,9 @@ function(
 
     set_property(
         GLOBAL
-        PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
+        PROPERTY _jrl_${PROJECT_NAME}_option_${option_name}_default_value ${default_value}
     )
-    set_property(GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names ${option_name} APPEND)
+    set_property(GLOBAL PROPERTY _jrl_${PROJECT_NAME}_option_names ${option_name} APPEND)
 endfunction()
 
 # Helper function: pad or truncate a string to a fixed width
@@ -1437,18 +1437,18 @@ function(_pad_string input width output_var)
     set(${output_var} "${_padded}" PARENT_SCOPE)
 endfunction()
 
-# Print all options defined via xxx_option() in a nice table
-# Usage: xxx_print_options_summary()
-function(xxx_print_options_summary)
+# Print all options defined via jrl_option() in a nice table
+# Usage: jrl_print_options_summary()
+function(jrl_print_options_summary)
     set(log_msg "")
 
     macro(_log msg)
         string(APPEND log_msg "${msg}\n")
     endmacro()
 
-    get_property(option_names GLOBAL PROPERTY _xxx_${PROJECT_NAME}_option_names)
+    get_property(option_names GLOBAL PROPERTY _jrl_${PROJECT_NAME}_option_names)
     if(NOT option_names)
-        message(STATUS "No options defined via xxx_option.")
+        message(STATUS "No options defined via jrl_option.")
         return()
     endif()
 
@@ -1470,13 +1470,13 @@ function(xxx_print_options_summary)
         get_property(
             _default
             GLOBAL
-            PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_default_value
+            PROPERTY _jrl_${PROJECT_NAME}_option_${option_name}_default_value
         )
         get_property(_help CACHE ${option_name} PROPERTY HELPSTRING)
         get_property(
             _compat_option
             GLOBAL
-            PROPERTY _xxx_${PROJECT_NAME}_option_${option_name}_compat_option
+            PROPERTY _jrl_${PROJECT_NAME}_option_${option_name}_compat_option
         )
 
         _pad_string("${option_name}"      40 _name)
@@ -1497,10 +1497,10 @@ function(xxx_print_options_summary)
 endfunction()
 
 # Shortcut to find Python package and check main variables
-# Usage: xxx_find_python([version] [REQUIRED] [COMPONENTS ...])
-# Example: xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
-macro(xxx_find_python)
-    xxx_find_package(Python ${ARGN})
+# Usage: jrl_find_python([version] [REQUIRED] [COMPONENTS ...])
+# Example: jrl_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+macro(jrl_find_python)
+    jrl_find_package(Python ${ARGN})
 
     # On Windows, Python_SITELIB returns \. Let's convert it to /.
     cmake_path(CONVERT ${Python_SITELIB} TO_CMAKE_PATH_LIST Python_SITELIB NORMALIZE)
@@ -1518,15 +1518,15 @@ macro(xxx_find_python)
 endmacro()
 
 # Shortcut to find the nanobind package
-# Usage: xxx_find_nanobind()
-macro(xxx_find_nanobind)
+# Usage: jrl_find_nanobind()
+macro(jrl_find_nanobind)
     string(REPLACE ";" " " args_pp "${ARGN}")
-    xxx_check_var_defined(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
+    jrl_check_var_defined(Python_EXECUTABLE "Python executable not found (variable Python_EXECUTABLE).
 
-    Please call xxx_find_python(<args>) first, e.g.:
+    Please call jrl_find_python(<args>) first, e.g.:
 
-        xxx_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
-        xxx_find_package(nanobind ${args_pp})
+        jrl_find_python(3.8 REQUIRED COMPONENTS Interpreter Development.Module)
+        jrl_find_package(nanobind ${args_pp})
     "
     )
     unset(args_pp)
@@ -1555,7 +1555,7 @@ macro(xxx_find_nanobind)
         message(FATAL_ERROR "Failed to find nanobind package: ${nanobind_error}")
     endif()
 
-    xxx_find_package(nanobind ${ARGN})
+    jrl_find_package(nanobind ${ARGN})
 
     message(STATUS "   Nanobind CMake directory: ${nanobind_ROOT}")
 
@@ -1569,17 +1569,17 @@ macro(xxx_find_nanobind)
             "   Nanobind's tsl-robin-map dependency found in '${nanobind_ROOT}/ext/robin_map'."
         )
     else()
-        xxx_find_package(tsl-robin-map CONFIG REQUIRED)
+        jrl_find_package(tsl-robin-map CONFIG REQUIRED)
     endif()
 endmacro()
 
-function(xxx_python_compile_all)
+function(jrl_python_compile_all)
     set(options VERBOSE)
     set(oneValueArgs DIRECTORY)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    xxx_check_var_defined(arg_DIRECTORY)
+    jrl_check_var_defined(arg_DIRECTORY)
 
     if(arg_VERBOSE)
         message(STATUS "Compiling all Python files in directory '${arg_DIRECTORY}'")
@@ -1611,7 +1611,7 @@ function(xxx_python_compile_all)
     endif()
 endfunction()
 
-function(xxx_python_generate_init_py name)
+function(jrl_python_generate_init_py name)
     set(options)
     set(oneValueArgs OUTPUT_PATH)
     set(multiValueArgs)
@@ -1660,10 +1660,10 @@ function(xxx_python_generate_init_py name)
     set(all_rel_paths "")
     foreach(dll_name IN LISTS dlls_to_link)
         get_target_property(python_module_dir ${name} LIBRARY_OUTPUT_DIRECTORY)
-        xxx_check_var_defined(python_module_dir "LIBRARY_OUTPUT_DIRECTORY not set for target '${name}', add it using 'set_target_properties(<target> PROPERTIES LIBRARY_OUTPUT_DIRECTORY <dir>)'")
+        jrl_check_var_defined(python_module_dir "LIBRARY_OUTPUT_DIRECTORY not set for target '${name}', add it using 'set_target_properties(<target> PROPERTIES LIBRARY_OUTPUT_DIRECTORY <dir>)'")
 
         get_target_property(dll_dir ${dll_name} RUNTIME_OUTPUT_DIRECTORY)
-        xxx_check_var_defined(dll_dir)
+        jrl_check_var_defined(dll_dir)
 
         file(RELATIVE_PATH rel_path ${python_module_dir} ${dll_dir})
         list(APPEND all_rel_paths ${rel_path})
@@ -1689,9 +1689,9 @@ endfunction()
 
 # Find if a python module is available, fills <module_name>_FOUND variable
 # Displays messages based on REQUIRED and QUIET options
-# Usage: xxx_check_python_module(<module_name> [REQUIRED] [QUIET])
-# Example: xxx_check_python_module(numpy REQUIRED)
-function(xxx_check_python_module module_name)
+# Usage: jrl_check_python_module(<module_name> [REQUIRED] [QUIET])
+# Example: jrl_check_python_module(numpy REQUIRED)
+function(jrl_check_python_module module_name)
     set(options REQUIRED QUIET)
     set(oneValueArgs)
     set(multiValueArgs)
@@ -1701,7 +1701,7 @@ function(xxx_check_python_module module_name)
         message(
             FATAL_ERROR
             "Python_EXECUTABLE not defined.
-        Please use xxx_find_package(Python REQUIRED COMPONENT Interpreter)"
+        Please use jrl_find_package(Python REQUIRED COMPONENT Interpreter)"
         )
     endif()
 
@@ -1725,7 +1725,7 @@ function(xxx_check_python_module module_name)
     endif()
 endfunction()
 
-function(xxx_python_compute_install_dir output)
+function(jrl_python_compute_install_dir output)
     if(DEFINED ${PROJECT_NAME}_PYTHON_INSTALL_DIR)
         message(
             STATUS
@@ -1739,7 +1739,7 @@ function(xxx_python_compute_install_dir output)
         message(
             FATAL_ERROR
             "Python_EXECUTABLE not defined.
-        Please use xxx_find_package(Python REQUIRED COMPONENT Interpreter)"
+        Please use jrl_find_package(Python REQUIRED COMPONENT Interpreter)"
         )
     endif()
 
@@ -1772,9 +1772,9 @@ endfunction()
 
 # Check that the python module defined with NB_MODULE(<module_name>)
 # or BOOST_PYTHON_MODULE(<module_name>) has the same name as the target: <module_name>.cpython-XY.so
-# Usage: xxx_check_python_module_name(<module_target>)
-function(xxx_check_python_module_name target)
-    xxx_check_target_exists(${target})
+# Usage: jrl_check_python_module_name(<module_target>)
+function(jrl_check_python_module_name target)
+    jrl_check_target_exists(${target})
 
     add_custom_command(
         TARGET ${target}

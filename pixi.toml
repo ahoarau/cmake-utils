@@ -1,7 +1,7 @@
 [workspace]
-name = "cmake-utils"
+name = "jrl-cmakemodules-v2"
 version = "0.1.0"
-description = "cmake-utils"
+description = "jrl-cmakemodules-v2"
 authors = ["Antoine Hoarau 703240+ahoarau@users.noreply.github.com"]
 channels = ["conda-forge"]
 platforms = ["osx-arm64", "osx-64", "linux-64", "win-64"]
@@ -36,7 +36,7 @@ prek = { cmd = "prek run -a" }
 test = { cmd = "ctest --test-dir build --output-on-failure", depends-on = ["configure"] }
 
 [feature.test-pixi-build]
-dependencies = { cmake-utils = { path = "." }, cmake = ">=3.22" }
+dependencies = { jrl-cmakemodules-v2 = { path = "." }, cmake = ">=3.22" }
 
 [feature.test-pixi-build.tasks]
 test-packaging-pixi-build = "cmake -S tests/packaging/pixi_build -B build/pixi_build"
