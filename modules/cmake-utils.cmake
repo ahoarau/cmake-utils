@@ -1237,7 +1237,7 @@ endfunction()
 # NOTE: This is for CMake package export only. Python bindings are handled separately.
 function(xxx_export_package)
     set(options)
-    set(oneValueArgs PACKAGE_CONFIG_TEMPLATE CMAKE_FILES_INSTALL_DIR)
+    set(oneValueArgs PACKAGE_CONFIG_TEMPLATE CMAKE_FILES_INSTALL_DIR PACKAGE_CONFIG_EXTRA_CONTENT)
     set(multiValueArgs)
     cmake_parse_arguments(arg "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
@@ -1296,7 +1296,8 @@ function(xxx_export_package)
     endif()
 
     # <package>-config.cmake
-    # Needs the variable PROJECT_COMPONENTS
+    # The multi-component needs the variable PROJECT_COMPONENTS
+    set(PACKAGE_CONFIG_EXTRA_CONTENT ${arg_PACKAGE_CONFIG_EXTRA_CONTENT})
     set(PROJECT_COMPONENTS ${declared_components})
     configure_package_config_file(
         ${PACKAGE_CONFIG_TEMPLATE}

@@ -32,3 +32,5 @@ foreach(component ${@PROJECT_NAME@_FIND_COMPONENTS})
         break()
     endif()
 endforeach()
+
+@PACKAGE_CONFIG_EXTRA_CONTENT@

@@ -26,6 +26,8 @@ install(
 xxx_export_package(
     PACKAGE_CONFIG_TEMPLATE
         ${CMAKE_CURRENT_SOURCE_DIR}/templates/config-basic.cmake.in
+    PACKAGE_CONFIG_EXTRA_CONTENT
+        [[include("${CMAKE_CURRENT_LIST_DIR}/modules/ModulesV2.cmake")]]
     CMAKE_FILES_INSTALL_DIR
         ${CMAKE_FILES_INSTALL_DIR}
 )
