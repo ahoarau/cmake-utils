@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.22...4.1)
 project(jrl-cmakemodules-v2 VERSION 2.0.0)
 
-include(${CMAKE_CURRENT_SOURCE_DIR}/modules/ModulesV2.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/modules/jrl.cmake)
 
 if(CMAKE_UTILS_BUILD_TESTS)
     enable_testing()
