@@ -1,0 +1,25 @@
+[project]
+name = "cmake-docs-test"
+version = "0.1.0"
+description = "Generate HTML docs from CMake functions"
+requires-python = ">=3.10"
+dependencies = [
+  "Markdown",
+  "cmake-parser",
+]
+
+[project.scripts]
+gendoc = "gendoc:main"
+genmd = "genmd:main"
+test = "runtests:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["gendoc", "genmd", "runtests"]
+
+[tool.uv]
+# Keep uv-managed virtual environment in .venv (default)
+
