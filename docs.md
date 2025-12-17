@@ -193,7 +193,7 @@ Configures the default output directory for binaries and libraries
 
 ```cpp
 jrl_target_set_output_directory(<target_name>
-  [OUTPUT_DIRECTORY <value>]
+  OUTPUT_DIRECTORY <value>
 )
 ```
 
@@ -341,10 +341,10 @@ _No documentation available._
 ```cpp
 jrl_target_generate_header(<target_name> <PRIVATE|PUBLIC|INTERFACE>
   [SKIP_INSTALL]
-  [FILENAME <value>]
-  [HEADER_DIR <value>]
-  [INSTALL_DESTINATION <value>]
-  [TEMPLATE_FILE <value>]
+  FILENAME <value>
+  HEADER_DIR <value>
+  INSTALL_DESTINATION <value>
+  TEMPLATE_FILE <value>
   [VERSION <value>]
 )
 ```
@@ -603,7 +603,7 @@ If OUTPUT_VARIABLE is provided, the output will be stored in the variable instea
 jrl_export_dependencies(
   [GEN_DIR <value>]
   [INSTALL_DESTINATION <value>]
-  [TARGETS <item>...]
+  TARGETS <item>...
 )
 ```
 
@@ -630,8 +630,8 @@ determines which packages are needed and generates a <export_name>-dependencies.
 
 ```cpp
 jrl_add_export_component(
-  [NAME <value>]
-  [TARGETS <item>...]
+  NAME <value>
+  TARGETS <item>...
 )
 ```
 
@@ -679,7 +679,7 @@ Sets output_var to True or False.
 jrl_target_headers(<target> <PRIVATE|PUBLIC|INTERFACE>
   [GENERATED_DIR <value>]
   [BASE_DIRS <item>...]
-  [HEADERS <item>...]
+  HEADERS <item>...
 )
 ```
 
@@ -920,7 +920,7 @@ Usage: jrl_find_nanobind()
 ```cpp
 jrl_python_compile_all(
   [VERBOSE]
-  [DIRECTORY <value>]
+  DIRECTORY <value>
 )
 ```
 

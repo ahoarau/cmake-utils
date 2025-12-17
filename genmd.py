@@ -170,23 +170,37 @@ class CMakeParser:
         # *_check_var_defined(<prefix>_<KEY>), treat KEY as required.
         required_vars: set[str] = set()
 
-        for node in nodes[start_index + 1 : end_index]:
+        scope_nodes = nodes[start_index + 1 : end_index]
+
+        # Pass 1: collect `set(...)` assignments and required-variable checks.
+        # We must do this before handling `cmake_parse_arguments(...)` because
+        # many functions check required vars *after* parsing ARGN.
+        for node in scope_nodes:
             if not isinstance(node, Command):
                 continue
 
             ident = node.identifier
             ident_lower = ident.lower()
+
             if ident_lower.endswith("check_var_defined") and node.args:
-                required_vars.add(node.args[0].value)
+                required_vars.add(_strip_quotes(node.args[0].value.strip()))
                 continue
 
-            if ident == "set" and node.args:
+            if ident_lower == "set" and node.args:
                 var_name = node.args[0].value
                 values = [tok.value for tok in node.args[1:]]
                 set_values[var_name] = values
                 continue
 
-            if ident == "cmake_parse_arguments" and len(node.args) >= 4:
+        # Pass 2: extract `cmake_parse_arguments(...)` specs and mark required keys.
+        for node in scope_nodes:
+            if not isinstance(node, Command):
+                continue
+
+            ident = node.identifier
+            ident_lower = ident.lower()
+
+            if ident_lower == "cmake_parse_arguments" and len(node.args) >= 4:
                 prefix = _strip_quotes(node.args[0].value.strip())
                 options_ref = node.args[1].value
                 one_ref = node.args[2].value
